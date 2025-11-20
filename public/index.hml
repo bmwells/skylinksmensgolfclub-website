@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skylinks Men's Golf Club</title>
+    <style>
+        /* CSS Variables for Images - CHANGE THESE TO UPDATE ALL IMAGES */
+        :root {
+            --main-image: url('/images/p1.webp');
+            --logo-image: url('/images/p1.webp');
+            --hero-image: url('/images/p1.webp');
+            --tournament-image: url('/images/p1.webp');
+            --instagram-image: url('/images/p1.webp');
+            
+            /* Colors */
+            --lightAccent-hsl: 0, 0%, 100%;
+            --white-hsl: 0, 0%, 100%;
+            --lightAccent: hsla(var(--lightAccent-hsl), 1);
+            --white: hsla(var(--white-hsl), 1);
+            --primary-green: #2c5530;
+        }
+
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: var(--lightAccent);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .site-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-green);
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            color: var(--primary-green);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background-image: var(--hero-image);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-top: 80px;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: var(--primary-green);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            padding: 4rem 2rem;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .welcome-text h2 {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-text p {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .club-logo {
+            text-align: center;
+        }
+
+        .club-logo img {
+            max-width: 300px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        /* Tournament Section */
+        .tournament-section {
+            padding: 4rem 2rem;
+            background-color: #fff;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 3rem;
+        }
+
+        .tournament-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .tournament-card {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: transform 0.3s;
+        }
+
+        .tournament-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tournament-image {
+            width: 100%;
+            height: 200px;
+            background-image: var(--tournament-image);
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .tournament-card h3 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .tournament-card .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        /* Instagram Section */
+        .instagram-section {
+            padding: 4rem 2rem;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+
+        .instagram-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .instagram-post {
+            background-image: var(--instagram-image);
+            background-size: cover;
+            background-position: center;
+            height: 250px;
+            border-radius: 8px;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 4rem 2rem;
+            background-color: #fff;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .contact-info h2 {
+            color: var(--primary-green);
+            margin-bottom: 2rem;
+        }
+
+        .contact-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-green);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #1e3a23;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--primary-green);
+            color: white;
+            padding: 3rem 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .welcome-grid,
+            .tournament-grid,
+            .contact-grid,
+            .instagram-grid,
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .instagram-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="site-title">Skylinks Men's Golf Club</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/" class="active">Home</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/schedule">Schedule</a></li>
+                    <li><a href="/tournament-entry">Tournament Entry</a></li>
+                    <li><a href="/results">Tournament Results</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Skylinks Men's Golf Club</h1>
+            <p>Experience premier golf tournaments and community</p>
+        </div>
+    </section>
+
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+        <div class="container">
+            <div class="welcome-grid">
+                <div class="welcome-text">
+                    <h2>Welcome to Skylinks Men's Golf Club</h2>
+                    <p><strong>Members,</strong><br>
+                    We thank you for your membership, feedback, and continued support.</p>
+                    <p><strong>Prospective Members,</strong><br>
+                    Please feel free to browse our website for any information you may need, and don't hesitate to contact us with any questions.</p>
+                    <p>We look forward to growing, and enjoying a great season with you.</p>
+                    <p><strong>See you on the course!</strong></p>
+                </div>
+                <div class="club-logo">
+                    <img src="/images/p1.webp" alt="Skylinks Men's Golf Club Logo">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tournament Entry Section -->
+    <section class="tournament-section">
+        <div class="container">
+            <h2 class="section-title">Tournament Entry</h2>
+            <div class="tournament-grid">
+                <div class="tournament-card">
+                    <div class="tournament-image"></div>
+                    <h3>Monthly Tournament</h3>
+                    <p class="price">From $90</p>
+                </div>
+                <div class="tournament-card">
+                    <div class="tournament-image"></div>
+                    <h3>New Membership</h3>
+                    <p class="price">$109</p>
+                </div>
+                <div class="tournament-card">
+                    <div class="tournament-image"></div>
+                    <h3>Membership Renewal</h3>
+                    <p class="price">$89</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instagram Section -->
+    <section class="instagram-section">
+        <div class="container">
+            <h2 class="section-title">Follow us on Instagram @skylinksmensgolfclub</h2>
+            <div class="instagram-grid">
+                <div class="instagram-post"></div>
+                <div class="instagram-post"></div>
+                <div class="instagram-post"></div>
+                <div class="instagram-post"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h1>Contact Us</h1>
+                    <p>Have questions regarding membership or a specific tournament? Fill out some info and we will be in touch shortly.</p>
+                </div>
+                <div class="contact-form">
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Name *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="topic">Topic</label>
+                            <select id="topic" name="topic">
+                                <option value="membership">Membership</option>
+                                <option value="tournament">Tournament</option>
+                                <option value="results">Results</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea id="message" name="message" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-info">
+                <h3>Skylinks Men's Golf Club</h3>
+            </div>
+            <div class="footer-location">
+                <h4>Location</h4>
+                <p>4800 E Wardlow Rd<br>Long Beach, CA 90808</p>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <p><a href="mailto:skylinksmensclub@gmail.com">skylinksmensclub@gmail.com</a><br>(562) 421 - 3388</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript option for easy image management
+        const imageConfig = {
+            // Change these paths to update images
+            main: '/images/p1.webp',
+            logo: '/images/p1.webp',
+            hero: '/images/p1.webp',
+            tournament: '/images/p1.webp',
+            instagram: '/images/p1.webp'
+        };
+
+        // Function to update all images (optional)
+        function updateAllImages(newImagePath) {
+            document.documentElement.style.setProperty('--main-image', `url('${newImagePath}')`);
+            document.documentElement.style.setProperty('--hero-image', `url('${newImagePath}')`);
+            document.documentElement.style.setProperty('--tournament-image', `url('${newImagePath}')`);
+            document.documentElement.style.setProperty('--instagram-image', `url('${newImagePath}')`);
+            
+            // Update img tags
+            const images = document.querySelectorAll('img[src*="p1.webp"]');
+            images.forEach(img => {
+                img.src = newImagePath;
+            });
+        }
+
+        // Uncomment the line below to change all images at once
+        // updateAllImages('/images/new-image.webp');
+    </script>
+</body>
+</html>
