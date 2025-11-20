@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skylinks Men's Golf Club</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Additional CSS for dropdown menu */
+        .nav-menu li {
+            position: relative;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: var(--lightAccent);
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1001;
+            list-style: none;
+            padding: 0.5rem 0;
+        }
+        
+        .dropdown-menu li {
+            width: 100%;
+        }
+        
+        .dropdown-menu a {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+        
+        .dropdown-menu a:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        
+        .nav-menu li:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .dropdown-menu {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                background-color: transparent;
+                display: none;
+                padding-left: 1.5rem;
+            }
+            
+            .nav-menu.active .dropdown-menu {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded here -->
+    <div id="header-placeholder"></div>
+
+    <!-- Hero Section - No text overlay -->
+    <section class="hero"></section>
+
+    <!-- Welcome Section - Image on left, text on right -->
+    <section class="welcome-section">
+        <div class="container">
+            <div class="welcome-grid">
+                <div class="welcome-image"></div>
+                <div class="welcome-text">
+                    <h2>Welcome to Skylinks Men's Golf Club</h2>
+                    <p><strong>Members,</strong></p>
+                    <p>We thank you for your membership, feedback, and continued support.</p>
+                    <p><strong>Prospective Members,</strong></p>
+                    <p>Please feel free to browse our website for any information you may need,<br>and don't hesitate to contact us with any questions.</p>
+                    <p>We look forward to growing, and enjoying a great season with you.</p>
+                    <p><strong>See you on the course!</strong></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tournament Entry Section -->
+    <section class="tournament-section">
+        <div class="container">
+            <h2 class="section-title">Tournament Entry</h2>
+            <div class="tournament-grid">
+                <div class="tournament-card">
+                    <div class="tournament-image"></div>
+                    <h3>Monthly Tournament</h3>
+                    <p class="price">From $90</p>
+                </div>
+                <div class="tournament-card">
+                    <div class="tournament-image"></div>
+                    <h3>New Membership</h3>
+                    <p class="price">$109</p>
+                </div>
+                <div class="tournament-card">
+                    <div class="tournament-image"></div>
+                    <h3>Membership Renewal</h3>
+                    <p class="price">$89</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instagram Section -->
+    <section class="instagram-section">
+        <div class="container">
+            <h2 class="section-title">Follow us on Instagram @skylinksmensgolfclub</h2>
+            <div class="instagram-grid">
+                <div class="instagram-post"></div>
+                <div class="instagram-post"></div>
+                <div class="instagram-post"></div>
+                <div class="instagram-post"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h1>Contact Us</h1>
+                    <p>Have questions regarding membership or a specific tournament? Fill out some info and we will be in touch shortly.</p>
+                </div>
+                <div class="contact-form">
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Name *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="topic">Topic</label>
+                            <select id="topic" name="topic">
+                                <option value="membership">Membership</option>
+                                <option value="tournament">Tournament</option>
+                                <option value="results">Results</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea id="message" name="message" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-info">
+                <h3>Skylinks Men's Golf Club</h3>
+            </div>
+            <div class="footer-location">
+                <h4>Location</h4>
+                <p>4800 E Wardlow Rd<br>Long Beach, CA 90808</p>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <p><a href="mailto:skylinksmensclub@gmail.com">skylinksmensclub@gmail.com</a><br>(562) 421 - 3388</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/image.js"></script>
+    <script>
+        // Load header content
+        fetch('/header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading header:', error));
+    </script>
+</body>
+</html>

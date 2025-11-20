@@ -1,0 +1,294 @@
+/* Import Manrope font */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&display=swap');
+
+
+/* CSS Variables for Images - CHANGE THESE TO UPDATE ALL IMAGES */
+:root {
+    --hero-image: url('/images/p1.webp');
+    --welcome-image: url('/images/p2.webp');
+    --tournament-image1: url('/images/p3.webp');
+    --tournament-image2: url('/images/p4.webp');
+    --tournament-image3: url('/images/p5.webp');
+    --instagram-image: url('/images/p2.webp');
+    
+    /* Colors */
+    --lightAccent-hsl: 0, 0%, 100%;
+    --white-hsl: 0, 0%, 100%;
+    --lightAccent: hsla(var(--lightAccent-hsl), 1);
+    --white: hsla(var(--white-hsl), 1);
+    --primary: black;
+}
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #fff;
+}
+
+/* Hero Section - No text overlay */
+.hero {
+    height: 95vh;
+    background-image: var(--hero-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-top: 40px;
+}
+
+/* Welcome Section - Image on left, text on right */
+.welcome-section {
+    padding: 4rem 2rem;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.welcome-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.welcome-image {
+    width: 100%;
+    height: 400px;
+    background-image: var(--welcome-image);
+    background-size: contain; /* Shows full image without cropping */
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 10px;
+    background-color: #f8f9fa; /* Adds background color to fill empty space */
+}
+
+.welcome-text h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
+.welcome-text p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    line-height: 1.8;
+}
+
+/* Tournament Section */
+.tournament-section {
+    padding: 4rem 2rem;
+    background-color: #fff;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 3rem;
+}
+
+.tournament-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.tournament-card {
+    text-align: center;
+    padding: 2rem;
+    border-radius: 10px;
+    background: #f8f9fa;
+    transition: transform 0.3s;
+}
+
+.tournament-card:hover {
+    transform: translateY(-5px);
+}
+
+.tournament-image {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.tournament-card:nth-child(1) .tournament-image {
+    background-image: var(--tournament-image1);
+}
+
+.tournament-card:nth-child(2) .tournament-image {
+    background-image: var(--tournament-image2);
+}
+
+.tournament-card:nth-child(3) .tournament-image {
+    background-image: var(--tournament-image3);
+}
+
+.tournament-card h3 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.tournament-card .price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Instagram Section */
+.instagram-section {
+    padding: 4rem 2rem;
+    background-color: #f8f9fa;
+    text-align: center;
+}
+
+.instagram-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.instagram-post {
+    background-image: var(--instagram-image);
+    background-size: cover;
+    background-position: center;
+    height: 250px;
+    border-radius: 8px;
+}
+
+/* Contact Section */
+.contact-section {
+    padding: 4rem 2rem;
+    background-color: #fff;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+}
+
+.contact-info h2 {
+    color: var(--primary);
+    margin-bottom: 2rem;
+}
+
+.contact-form {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 10px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    height: 120px;
+    resize: vertical;
+}
+
+.submit-btn {
+    background-color: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: #1e3a23;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--primary);
+    color: white;
+    padding: 3rem 2rem;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer h3 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+
+    .welcome-grid,
+    .tournament-grid,
+    .contact-grid,
+    .instagram-grid,
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .instagram-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .welcome-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .welcome-image {
+        height: 300px;
+        order: -1;
+    }
+}

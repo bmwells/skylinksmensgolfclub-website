@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+/* Header-specific CSS */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
+
+.header {
+    background-color: var(--lightAccent);
+    padding: 1rem 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-inner {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    font-weight: 400;
+    transition: color 0.3s;
+}
+
+.nav-menu a:hover {
+    color: var(--primary);
+}
+
+.site-title, .nav-menu a {
+    font-family: 'Manrope', sans-serif;
+}
+
+/* Dropdown Styles */
+.nav-menu li {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--lightAccent);
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1001;
+    list-style: none;
+    padding: 0.5rem 0;
+}
+
+.dropdown-menu li {
+    width: 100%;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 0.75rem 1.5rem;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    white-space: nowrap;
+}
+
+.dropdown-menu a:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.nav-menu li:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--lightAccent);
+        padding: 1rem 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .nav-menu.active {
+        display: flex;
+    }
+    
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        background-color: transparent;
+        display: none;
+        padding-left: 1.5rem;
+    }
+    
+    .nav-menu.active .dropdown-menu.active {
+        display: block;
+    }
+    
+    .mobile-menu-btn {
+        display: block;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--primary);
+    }
+}
+
+.mobile-menu-btn {
+    display: none;
+}
+
+/* CSS Variables for Images */
+:root {
+    --lightAccent-hsl: 0, 0%, 100%;
+    --white-hsl: 0, 0%, 100%;
+    --lightAccent: hsla(var(--lightAccent-hsl), 1);
+    --white: hsla(var(--white-hsl), 1);
+    --primary: black;
+}
+</style>
+</head>
+<body>
+<header class="header">
+    <div class="header-inner">
+        <a href="/" class="site-title">Skylinks Men's Golf Club</a>
+        <button class="mobile-menu-btn" aria-label="Toggle menu">☰</button>
+        <nav>
+            <ul class="nav-menu">
+                <li><a href="/" class="active">Home</a></li>
+                <li class="dropdown">
+                    <a href="/about">About</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/about/who-we-are">Who We Are</a></li>
+                        <li><a href="/about/presidents-letter">President's Letter</a></li>
+                        <li><a href="/about/meeting-minutes">Meeting Minutes</a></li>
+                    </ul>
+                </li>
+                <li><a href="/schedule">Schedule</a></li>
+                <li><a href="/tournament-entry">Tournament Entry</a></li>
+                <li><a href="/results">Tournament Results</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/cart">Cart</a></li>
+
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<script>
+// Header-specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    const navMenu = document.querySelector('.nav-menu');
+    const aboutLink = document.querySelector('.dropdown > a');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    
+    // Mobile menu toggle
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+    }
+    
+    // Mobile dropdown toggle
+    if (aboutLink && window.innerWidth <= 768) {
+        aboutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            dropdownMenu.classList.toggle('active');
+        });
+    }
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            if (!e.target.closest('.header-inner')) {
+                navMenu.classList.remove('active');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.remove('active');
+                }
+            }
+        }
+    });
+    
+    // Update active link based on current page
+    const currentPage = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-menu a');
+    
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+});
+</script>
+</body>
+</html>
