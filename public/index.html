@@ -170,22 +170,8 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-grid">
-            <div class="footer-info">
-                <h3>Skylinks Men's Golf Club</h3>
-            </div>
-            <div class="footer-location">
-                <h4>Location</h4>
-                <p>4800 E Wardlow Rd<br>Long Beach, CA 90808</p>
-            </div>
-            <div class="footer-contact">
-                <h4>Contact</h4>
-                <p><a href="mailto:skylinksmensclub@gmail.com">skylinksmensclub@gmail.com</a><br>(562) 421 - 3388</p>
-            </div>
-        </div>
-    </footer>
+    <!-- Footer will be loaded here -->
+    <div id="footer-placeholder"></div>
 
     <script src="/js/image.js"></script>
     <script>
@@ -196,6 +182,14 @@
                 document.getElementById('header-placeholder').innerHTML = data;
             })
             .catch(error => console.error('Error loading header:', error));
+
+        // Load footer content
+        fetch('/footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading footer:', error));
     </script>
 </body>
 </html>

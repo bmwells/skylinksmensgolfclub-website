@@ -1,0 +1,81 @@
+<footer class="footer">
+    <div class="footer-grid">
+        <div class="footer-info">
+            <h3>Skylinks Men's Golf Club</h3>
+        </div>
+        <div class="footer-location">
+            <h4>Location</h4>
+            <p>4800 E Wardlow Rd<br>Long Beach, CA 90808</p>
+        </div>
+        <div class="footer-contact">
+            <h4>Contact</h4>
+            <p><a href="mailto:skylinksmensclub@gmail.com">skylinksmensclub@gmail.com</a><br>(562) 421 - 3388</p>
+        </div>
+    </div>
+</footer>
+<style>
+    /* Footer CSS */
+    .footer {
+        background-color: #f4f5f4;
+        color: black;
+        padding: 3rem 2rem;
+        font-weight: 400;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 3rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .footer h3 {
+        margin-bottom: 1rem;
+        font-size: 3rem;
+        font-weight: 400;
+    }
+
+    .footer h4 {
+        margin-bottom: 1rem;
+        font-size: 1.7rem;
+        text-align: right;
+
+    }
+
+    .footer p {
+        line-height: 1.6;
+        text-align: right;
+    }
+
+    .footer a {
+        color: black;
+        text-decoration: underline;
+    }
+
+    .footer a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .footer-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .footer h3 {
+        font-size: 2rem;
+     }
+    
+        .footer h4 {
+            text-align: left;
+        }
+
+        .footer p {
+            text-align: left;
+        }
+
+
+    }
+</style>
