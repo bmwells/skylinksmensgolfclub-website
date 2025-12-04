@@ -1,8 +1,6 @@
 /* Import Manrope font */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
-
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&display=swap');
-
 
 /* CSS Variables for Images - CHANGE THESE TO UPDATE ALL IMAGES */
 :root {
@@ -12,13 +10,16 @@
     --tournament-image2: url('/images/p4.webp');
     --tournament-image3: url('/images/p5.webp');
     --instagram-image: url('/images/p2.webp');
-    
+
     /* Colors */
     --lightAccent-hsl: 0, 0%, 100%;
     --white-hsl: 0, 0%, 100%;
     --lightAccent: hsla(var(--lightAccent-hsl), 1);
     --white: hsla(var(--white-hsl), 1);
     --primary: black;
+
+    /* animation timing */
+    --menu-transition: 280ms;
 }
 
 /* Reset and Base Styles */
@@ -67,11 +68,11 @@ body {
     width: 100%;
     height: 400px;
     background-image: var(--welcome-image);
-    background-size: contain; /* Shows full image without cropping */
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     border-radius: 10px;
-    background-color: #f8f9fa; /* Adds background color to fill empty space */
+    background-color: #f8f9fa;
 }
 
 .welcome-text h2 {
@@ -243,10 +244,6 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .nav-menu {
-        display: none;
-    }
-
     .welcome-grid,
     .tournament-grid,
     .contact-grid,
@@ -257,14 +254,266 @@ body {
     .instagram-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .welcome-grid {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
-    
+
     .welcome-image {
         height: 300px;
         order: -1;
     }
+}
+
+/* =========================================== */
+/* HEADER STYLES */
+/* =========================================== */
+
+.header {
+    background-color: var(--lightAccent);
+    padding: 1rem 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-inner {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* Use header-specific selectors for nav-menu */
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    font-weight: 400;
+    transition: color 0.3s;
+}
+
+.nav-menu a:hover {
+    color: var(--primary);
+}
+
+.site-title, .nav-menu a {
+    font-family: 'Manrope', sans-serif;
+}
+
+/* Dropdown Styles for desktop hover (unchanged behavior) */
+.nav-menu li {
+    position: relative;
+}
+
+/* Desktop dropdown (hover) */
+@media (min-width: 1025px) {
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: var(--lightAccent);
+        min-width: 200px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-radius: 4px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+        z-index: 1001;
+        list-style: none;
+        padding: 0.5rem 0;
+    }
+
+    .dropdown-menu li {
+        width: 100%;
+    }
+
+    .dropdown-menu a {
+        display: block;
+        padding: 0.75rem 1.5rem;
+        color: #333;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        white-space: nowrap;
+    }
+
+    .dropdown-menu a:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+
+    .nav-menu li:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    /* hide native marker from desktop tooltip-like summary if any (summary used only in mobile though) */
+    .dropdown summary {
+        display: none;
+    }
+}
+
+/* Mobile styles */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2.2rem;
+    cursor: pointer;
+    color: var(--primary);
+    padding: 0.5rem;
+    padding-right: 3rem;
+    z-index: 1002;
+    margin-left: auto;
+}
+
+/* Mobile (and tablet) behavior */
+@media (max-width: 1024px) {
+    .header-inner {
+        padding: 0 1.5rem;
+    }
+
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--lightAccent);
+        padding: 0.25rem 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1000;
+        margin: 0;
+        gap: 0;
+        overflow: hidden;
+    }
+
+    /* Active state for the nav (opened by JS) */
+    .nav-menu.active {
+        display: flex;
+        animation: menuFade var(--menu-transition) ease forwards;
+    }
+
+    .nav-menu li {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-menu a {
+        display: block;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-size: 16px;
+        width: 100%;
+    }
+
+    /* Style <details>/<summary> as dropdown for mobile */
+    .dropdown details {
+        width: 100%;
+    }
+
+    .dropdown summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-size: 16px;
+        display: block;
+        outline: none;
+        user-select: none;
+        position: relative;
+    }
+
+    /* remove default disclosure triangle */
+    .dropdown summary::-webkit-details-marker { display: none; }
+    .dropdown summary::marker { content: none; }
+
+    /* Arrow indicator */
+    .dropdown summary::after {
+        content: '▼';
+        position: absolute;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.85rem;
+        transition: transform var(--menu-transition) ease;
+    }
+
+    /* When open, rotate arrow */
+    .dropdown details[open] summary::after {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    /* The submenu (animated slide) */
+    .dropdown .dropdown-menu {
+        overflow: hidden;
+        max-height: 0; /* collapsed */
+        transition: max-height var(--menu-transition) ease, opacity var(--menu-transition) ease;
+        opacity: 0;
+        padding-left: 1.25rem;
+        background-color: transparent;
+        box-shadow: none;
+        border: none;
+        margin: 0;
+        list-style: none;
+    }
+
+    /* When details is open, expand submenu */
+    .dropdown details[open] .dropdown-menu {
+        max-height: 500px; /* large enough for content */
+        opacity: 1;
+        padding-bottom: 0.5rem;
+    }
+
+    .dropdown .dropdown-menu a {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        display: block;
+        width: 100%;
+    }
+
+    .dropdown .dropdown-menu li:last-child a {
+        border-bottom: none;
+    }
+
+    .dropdown .dropdown-menu li {
+        width: 100%;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    /* Remove hover rule that interfered with mobile dropdowns */
+    /* (Intentionally not reintroducing .nav-menu li:hover .dropdown-menu {display:none;} ) */
+}
+
+/* small animation for menu open */
+@keyframes menuFade {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
 }

@@ -1,83 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Skylinks Men's Golf Club</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        /* Additional CSS for dropdown menu */
-        .nav-menu li {
-            position: relative;
-        }
-        
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: var(--lightAccent);
-            min-width: 200px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            border-radius: 4px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            z-index: 1001;
-            list-style: none;
-            padding: 0.5rem 0;
-        }
-        
-        .dropdown-menu li {
-            width: 100%;
-        }
-        
-        .dropdown-menu a {
-            display: block;
-            padding: 0.75rem 1.5rem;
-            color: #333;
-            text-decoration: none;
-            transition: background-color 0.3s;
-            white-space: nowrap;
-        }
-        
-        .dropdown-menu a:hover {
-            background-color: rgba(0,0,0,0.05);
-        }
-        
-        .nav-menu li:hover .dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        
-        /* Mobile styles */
-        @media (max-width: 768px) {
-            .dropdown-menu {
-                position: static;
-                opacity: 1;
-                visibility: visible;
-                transform: none;
-                box-shadow: none;
-                background-color: transparent;
-                display: none;
-                padding-left: 1.5rem;
-            }
-            
-            .nav-menu.active .dropdown-menu {
-                display: block;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-    <!-- Header will be loaded here -->
+
+    <!-- HEADER INJECTION -->
     <div id="header-placeholder"></div>
 
-    <!-- Hero Section - No text overlay -->
+    <!-- Hero Section -->
     <section class="hero"></section>
 
-    <!-- Welcome Section - Image on left, text on right -->
+    <!-- Welcome Section -->
     <section class="welcome-section">
         <div class="container">
             <div class="welcome-grid">
@@ -95,7 +32,7 @@
         </div>
     </section>
 
-    <!-- Tournament Entry Section -->
+    <!-- Tournament Section -->
     <section class="tournament-section">
         <div class="container">
             <h2 class="section-title">Tournament Entry</h2>
@@ -144,11 +81,11 @@
                     <form>
                         <div class="form-group">
                             <label for="name">Name *</label>
-                            <input type="text" id="name" name="name" required>
+                            <input type="text" id="name" name="name" required />
                         </div>
                         <div class="form-group">
                             <label for="email">Email *</label>
-                            <input type="email" id="email" name="email" required>
+                            <input type="email" id="email" name="email" required />
                         </div>
                         <div class="form-group">
                             <label for="topic">Topic</label>
@@ -170,26 +107,26 @@
         </div>
     </section>
 
-    <!-- Footer will be loaded here -->
+    <!-- FOOTER INJECTION -->
     <div id="footer-placeholder"></div>
 
+    <!-- Scripts -->
+    <script src="/js/menu.js"></script>
     <script src="/js/image.js"></script>
-    <script>
-        // Load header content
-        fetch('/header.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('header-placeholder').innerHTML = data;
-            })
-            .catch(error => console.error('Error loading header:', error));
 
-        // Load footer content
-        fetch('/footer.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('footer-placeholder').innerHTML = data;
-            })
-            .catch(error => console.error('Error loading footer:', error));
+    <script>
+        // Load header + footer on page
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("header-placeholder").innerHTML = html;
+                initMenu(); // initialize after header loads
+            });
+
+        fetch("/footer.html")
+            .then(res => res.text())
+            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
     </script>
+
 </body>
 </html>
