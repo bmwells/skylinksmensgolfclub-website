@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tournament Results - Skylinks Men's Golf Club</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Additional styles for results page */
+        .results-page {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .hero-section {
+            position: relative;
+            height: 50vh;
+            min-height: 400px;
+            overflow: hidden;
+            margin-bottom: 3rem;
+            margin-top: 60px;
+        }
+        
+        .hero-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: 28% 50%;
+            background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/9cdae476-9d68-45a9-87e9-80615a519e47/202501+Results.jpg');
+            background-color: rgba(0, 0, 0, 0.2);
+            background-blend-mode: multiply;
+        }
+        
+        .hero-content {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .results-header h2 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .event-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .event-item {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+        
+        .event-item.expanded {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .event-item:last-child {
+            margin-bottom: 3rem; 
+        }
+        
+        .event-main {
+            display: flex;
+            padding: 1rem;
+            cursor: pointer;
+            align-items: center;
+            min-height: 120px;
+        }
+        
+        .event-image {
+            width: 160px;
+            height: 90px;
+            min-width: 160px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 1.5rem;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .event-date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            padding: 0.75rem;
+            background: #2c3e50;
+            color: white;
+            border-radius: 8px;
+            margin-right: 1.5rem;
+        }
+        
+        .event-month {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+        
+        .event-day {
+            font-size: 2rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .event-info {
+            flex: 1;
+            padding-right: 1rem;
+        }
+        
+        .event-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .event-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .event-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .event-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .expand-btn {
+            background: none;
+            border: none;
+            color: #2c3e50;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f8f9fa;
+        }
+        
+        .expand-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .expand-btn.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .event-details {
+            display: none;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .event-details.expanded {
+            display: block;
+        }
+        
+        .details-content {
+            padding: 2rem;
+        }
+        
+        .details-content h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .details-content h4 {
+            color: #2c3e50;
+            margin: 1.5rem 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+        
+        .details-content ul, .details-content ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+        
+        .details-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+        
+        .details-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        /* Two-column layout for results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        /* Individual flight sections */
+        .flight-section {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .flight-section h4 {
+            margin-top: 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #2c3e50;
+            color: #2c3e50;
+        }
+
+        .flight-section p strong {
+            color: #495057;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* For specific sections like skins and polies */
+        .special-section {
+            grid-column: 1 / -1; /* Span full width */
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .special-section h4 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #adb5bd;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Results link styling */
+        .results-link-container {
+            margin: 1rem 0;
+        }
+
+        .results-link-container a {
+            font-weight: 600;
+            color: #2c3e50;
+            text-decoration: none;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 2px;
+        }
+
+        .results-link-container a:hover {
+            color: #1a252f;
+            border-bottom-color: #1a252f;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                position: relative;
+                height: 20vh;
+                min-height: 200px;
+            }
+
+            .event-main {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .event-image {
+                width: 100%;
+                height: 250px;
+                min-width: auto;
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+            
+            .event-date {
+                margin-right: 0;
+                margin-bottom: 1rem;
+                min-width: auto;
+                width: 100%;
+                flex-direction: row;
+                justify-content: center;
+                gap: 1rem;
+            }
+            
+            .event-month {
+                margin-bottom: 0;
+                font-size: 2rem;
+            }
+            
+            .event-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .event-actions {
+                margin-top: 1rem;
+                justify-content: center;
+            }
+            
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            
+            .results-header h2 {
+                font-size: 1.75rem;
+            }
+            
+            /* For mobile, stack the columns */
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="results-page">
+    <!-- HEADER INJECTION -->
+    <div id="header-placeholder"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <div>
+                <h1>Tournament Results</h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section">
+        <div class="results-container">
+            
+            <div class="event-list">
+                
+                <!-- October 18, 2025 - Individual Stroke Play -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(0)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1758488594508-AVLKYFHPNJWKERSEAA1N/202510Thumbnail.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Oct</span>
+                            <span class="event-day">18</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">October 18th - Individual Stroke Play</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, October 18, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4><a href="https://www.golfgenius.com/ggid/epbmbx">https://www.golfgenius.com/ggid/epbmbx</a></h4>
+                            </div>
+                            
+                            <div class="results-grid">
+                                <!-- Flight A -->
+                                <div class="flight-section">
+                                    <h4>Flight A</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Les Douglas 100 points</li>
+                                        <li>Eric Betts 80 points</li>
+                                        <li>James Snider 59 points</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Ron Zimmerman 100 points</li>
+                                        <li>Jose Valle 80 points</li>
+                                        <li>Dan Valdes 59 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- Flight B -->
+                                <div class="flight-section">
+                                    <h4>Flight B</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Sevag Kazanci 100 points</li>
+                                        <li>Thomas Molley 80 points</li>
+                                        <li>Renato Sison 59 points</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Mike Wells 100 points</li>
+                                        <li>Richard Fernandez 80 points</li>
+                                        <li>Trevor King 59 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- Flight C -->
+                                <div class="flight-section">
+                                    <h4>Flight C</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Michael Letender 100 points</li>
+                                        <li>Joshua Barnes 80 points</li>
+                                        <li>Bill Dodge 59 points</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Mike Hembree 100 points</li>
+                                        <li>Ted Lewandowski 80 points</li>
+                                        <li>Robert Griggs 59 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- Flight D -->
+                                <div class="flight-section">
+                                    <h4>Flight D</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Rick Rico 100 points</li>
+                                        <li>Richard Carranza 80 points</li>
+                                        <li>John Kurutz 59 points</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Kevin McMichael 100 points</li>
+                                        <li>Richard Bell 80 points</li>
+                                        <li>Sean Gatz 59 points</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#4 James Snider Birdie 520 points</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#4 Kevin McMichael Eagle 65 points</li>
+                                    <li>#5 Adam Brand Eagle 65 points</li>
+                                    <li>#6 Michael Letender Eagle 65 points</li>
+                                    <li>#7 Kevin McMichael Eagle 65 points</li>
+                                    <li>#12 Victor Campos Double Eagle 65 points</li>
+                                    <li>#15 Robert Griggs Eagle 65 points</li>
+                                    <li>#16 Troy Ward Eagle 65 points</li>
+                                    <li>#18 Victor Campos Eagle 65 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>Adam Brand 65 points</li>
+                                    <li>Daniel Sickmann 65 points</li>
+                                </ul>
+                                <p><strong>Hole 9</strong></p>
+                                <ul>
+                                    <li>Ron Zimmerman 43 points</li>
+                                    <li>Tom Goode 43 points</li>
+                                    <li>Brian Bart 43 points</li>
+                                </ul>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Les Douglas 43 points</li>
+                                    <li>Justin Sandoval 43 points</li>
+                                    <li>Tom Seidl 43 points</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Robert Borowski 43 points</li>
+                                    <li>Michael Letender 43 points</li>
+                                    <li>Christopher Luther 43 points</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- September 20, 2025 - 2 Man Best Ball -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(1)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1758424599575-1TE0UQIMSHK91WKBRKO1/202509+Thumbnail.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Sep</span>
+                            <span class="event-day">20</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">September 20th - 2 Man Best Ball</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, September 20, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 9:00 AM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4><a href="https://www.golfgenius.com/pages/12014598284522852897">https://www.golfgenius.com/pages/12014598284522852897</a></h4>
+                            </div>
+                            
+                            <div class="results-grid">
+                                <!-- Flight A -->
+                                <div class="flight-section">
+                                    <h4>Flight A</h4>
+                                    <ol>
+                                        <li>Rudolph Gamarnik & Dan Valdes 180 points</li>
+                                        <li>Brock Livesey & James Snider 150 points</li>
+                                        <li>Eric Betts & Mark Evans 120 points</li>
+                                        <li>Greg Erskine & Duncan Avery 90 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- Flight B -->
+                                <div class="flight-section">
+                                    <h4>Flight B</h4>
+                                    <ol>
+                                        <li>Gary Rowe & Bryan Rowe 176 points</li>
+                                        <li>Patrick Coniglio & Allan Hessler 146 points</li>
+                                        <li>Ed Fitzpatrick & Roy Ganzer 116 points</li>
+                                        <li>Justin Moody & Mike White 86 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- Flight C -->
+                                <div class="flight-section">
+                                    <h4>Flight C</h4>
+                                    <ol>
+                                        <li>Joshua Myers & Alvaro Rubalcaba 176 points</li>
+                                        <li>Peter Arbuckle & Ramon Aldana 146 points</li>
+                                        <li>Sean McCartan & Terry McCartan 116 points</li>
+                                        <li>Mike Ortega & Mike Hembree 86 points</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#9 Michael Carver Eagle 330 points</li>
+                                    <li>#15 Gary Rowe & Bryan Rowe 330 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>Greg Erskine 55 points</li>
+                                    <li>Jose Valle 55 points</li>
+                                    <li>Matt Ross 55 points</li>
+                                    <li>Mike White 55 points</li>
+                                </ul>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Gary Rowe 55 points</li>
+                                    <li>Brock Livesey 55 points</li>
+                                    <li>Jose Valle 55 points</li>
+                                    <li>Matt Ross 55 points</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Brian Rowe 110 points</li>
+                                    <li>Christopher Luther 110 points</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- August 16-17, 2025 - Club Championship -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(2)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1755874972767-HCSMLGVK9QU66U1Z7H2T/202508Thumbnail2X3.jpeg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Aug</span>
+                            <span class="event-day">16-17</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">August 16th - Club Championship</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Sat, Aug 16 - Sun, Aug 17, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 3:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4><a href="https://www.golfgenius.com/pages/11912680781333435281">https://www.golfgenius.com/pages/11912680781333435281</a></h4>
+                            </div>
+                            
+                            <div class="results-grid">
+                                <!-- Overall Results -->
+                                <div class="flight-section">
+                                    <h4>Overall Gross</h4>
+                                    <ol>
+                                        <li>Ted Shankle 100 points</li>
+                                    </ol>
+                                    <h4>Overall Net</h4>
+                                    <ol>
+                                        <li>Trevor King 100 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight Gross</h4>
+                                    <ol>
+                                        <li>James Snider 100 points</li>
+                                    </ol>
+                                    <h4>A Flight Net</h4>
+                                    <ol>
+                                        <li>Mark Evans 100 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight Gross</h4>
+                                    <ol>
+                                        <li>David Curiel 100 points</li>
+                                    </ol>
+                                    <h4>B Flight Net</h4>
+                                    <ol>
+                                        <li>Tom Seidl 100 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- C Flight -->
+                                <div class="flight-section">
+                                    <h4>C Flight Gross</h4>
+                                    <ol>
+                                        <li>Jamie Beltran 100 points</li>
+                                    </ol>
+                                    <h4>C Flight Net</h4>
+                                    <ol>
+                                        <li>Brad Davis 100 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- D Flight -->
+                                <div class="flight-section">
+                                    <h4>D Flight Gross</h4>
+                                    <ol>
+                                        <li>Ted Lewandowski 100 points</li>
+                                    </ol>
+                                    <h4>D Flight Net</h4>
+                                    <ol>
+                                        <li>Troy Ward 100 points</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Round 1 Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#7 Eric Betts Birdie 240 points</li>
+                                    <li>#13 Mark Evans Birdie 240 points</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#1 Brad Davis Eagle 80 points</li>
+                                    <li>#2 Jaime Beltran Eagle 80 points</li>
+                                    <li>#6 Sean McCartan Eagle 80 points</li>
+                                    <li>#7 Eric Betts Eagle 80 points</li>
+                                    <li>#9 Richard Bell Eagle 80 points</li>
+                                    <li>#14 Sean McCartan Eagle 80 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Round 2 Skins</h4>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#3 Brad Davis Eagle 195 points</li>
+                                    <li>#9 William Howard Birdie 195 points</li>
+                                    <li>#12 Sean McCartan Eagle 195 points</li>
+                                    <li>#14 Maurice Turner Eagle 195 points</li>
+                                    <li>#16 Michael Wilcoxen Eagle 195 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Round 1 Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>John Kurutz 30 points</li>
+                                    <li>Neo Aoga 30 points</li>
+                                    <li>Mark Slotterbeck 30 points</li>
+                                    <li>Mark Hillyer 30 points</li>
+                                </ul>
+                                <p><strong>Hole 9</strong></p>
+                                <ul>
+                                    <li>Wesley Motta 60 points</li>
+                                    <li>Vedant Jaitha 60 points</li>
+                                </ul>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Joshua Myers 40 points</li>
+                                    <li>Ted Lewandowski 40 points</li>
+                                    <li>Mark Evans 40 points</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Jose Valle 60 points</li>
+                                    <li>Mark Slotterbeck 60 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Round 2 Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>Ed Fitzpatrick 120 points</li>
+                                    <li>Ted Shankle 120 points</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Mike Hembree 80 points</li>
+                                    <li>Michael Wilcoxen 80 points</li>
+                                    <li>Lat Syprasert 80 points</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- July 19, 2025 - Member Guest Scramble -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(3)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1754885750018-WEWUZ3GHVMJNRK8NE25V/202507Thumbnail2X3.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Jul</span>
+                            <span class="event-day">19</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">July 19th - Member Guest Scramble</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, July 19, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 3:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4><a href="https://smsgc-memberguestjuly2025.golfgenius.com/pages/11820420114321281774">https://smsgc-memberguestjuly2025.golfgenius.com/pages/11820420114321281774</a></h4>
+                            </div>
+                            
+                            <div class="results-grid">
+                                <!-- Overall Results -->
+                                <div class="flight-section">
+                                    <h4>Overall Gross</h4>
+                                    <ol>
+                                        <li>Alex Reuss and Lester Perry 150 points</li>
+                                    </ol>
+                                    <h4>Overall Net</h4>
+                                    <ol>
+                                        <li>Kevin Ryan and Todd Carcelero 150 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight Gross</h4>
+                                    <ol>
+                                        <li>Ted Shankle and Ben Deering 150 points</li>
+                                        <li>Greg Erskine and Doug Eastman 100 points</li>
+                                        <li>Ron Zimmerman and Billy Sutt 60 points</li>
+                                    </ol>
+                                    <h4>A Flight Net</h4>
+                                    <ol>
+                                        <li>James Snider and Brock Livesey 150 points</li>
+                                        <li>Kevin Hurst and Brett Sterbens 100 points</li>
+                                        <li>Daniel Anderson and Tyler Carmichael 60 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight Gross</h4>
+                                    <ol>
+                                        <li>Brad Kaiser and Michael Boggs 150 points</li>
+                                        <li>Trevine Felsinger and Mike Berka 100 points</li>
+                                        <li>Lat Syprasert and Sak Thongdy 60 points</li>
+                                    </ol>
+                                    <h4>B Flight Net</h4>
+                                    <ol>
+                                        <li>Jamon Gurnick and Mark Pollard 150 points</li>
+                                        <li>Rudolph Garmarnik and Ignacio Brache 100 points</li>
+                                        <li>Tim Barnes and Joshua Barnes 60 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- C Flight -->
+                                <div class="flight-section">
+                                    <h4>C Flight Gross</h4>
+                                    <ol>
+                                        <li>Kevin Ashworth and Rick Green 150 points</li>
+                                        <li>Robert Meliere and Chris Neubauer 100 points</li>
+                                        <li>Philip Tomlin and Tom Seidl 60 points</li>
+                                    </ol>
+                                    <h4>C Flight Net</h4>
+                                    <ol>
+                                        <li>Robert Griggs and Michael Letender 150 points</li>
+                                        <li>Ted Lewandowski and Sean Williams 100 points</li>
+                                        <li>Robert Mathieu and Glenn Baker 60 points</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#1 Ron Zimmerman and Billy Sutt Eagle 160 points</li>
+                                    <li>#2 Kevin Hurst and Brett Sterbens Eagle 160 points</li>
+                                    <li>#10 John Kehoe and Brian Bart Eagle 160 points</li>
+                                    <li>#11 Kevin Ryan and Todd Carcelero 160 points</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#1 Ron Zimmerman and Billy Sutt Eagle 160 points</li>
+                                    <li>#4 Lat Syprasert and Sak Thongdy Eagle 160 points</li>
+                                    <li>#10 John Kehoe and Brian Bart Eagle 160 points</li>
+                                    <li>#11 Kevin Ryan and Todd Carcelero 160 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>Job Cabreros 80 points</li>
+                                    <li>Kevin McMichael 80 points</li>
+                                </ul>
+                                <p><strong>Hole 9</strong></p>
+                                <ul>
+                                    <li>Mike Berka 160 points</li>
+                                </ul>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Brad Davis 55 points</li>
+                                    <li>John Kurutz 55 points</li>
+                                    <li>Sean Williams 55 points</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Alex Reuss 35 points</li>
+                                    <li>Matt Saunders 35 points</li>
+                                    <li>Ramon Aldana 35 points</li>
+                                    <li>Ted Lewandowski 35 points</li>
+                                    <li>Ted Shankle 35 points</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- June 21, 2025 - The Big Game (Individual) -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(4)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/2d290474-22f2-40b3-8208-5e204d12b7ba/202506Picture.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Jun</span>
+                            <span class="event-day">21</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">June 21st - The Big Game (Individual)</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, June 21, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4><a href="https://www.golfgenius.com/pages/11748526368520966722">https://www.golfgenius.com/pages/11748526368520966722</a></h4>
+                            </div>
+                            
+                            <div class="results-grid">
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight Gross</h4>
+                                    <ol>
+                                        <li>Ted Shankle 100 points</li>
+                                        <li>Zach Jones 80 points</li>
+                                        <li>Joe De La Fuente 60 points</li>
+                                        <li>Les Douglas 40 points</li>
+                                        <li>Eric Betts 20 points</li>
+                                    </ol>
+                                    <h4>A Flight Net</h4>
+                                    <ol>
+                                        <li>Tom Seidl 100 points</li>
+                                        <li>Tim Barnes 80 points</li>
+                                        <li>Clark Izu 60 points</li>
+                                        <li>Charles Chamberlain 40 points</li>
+                                        <li>Jeff Ronk 20 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight Gross</h4>
+                                    <ol>
+                                        <li>Justin Moody 100 points</li>
+                                        <li>Eric Hernandez 80 points</li>
+                                        <li>Dean Abatayo 60 points</li>
+                                        <li>Trevor King 40 points</li>
+                                        <li>Gregory Monteilh 20 points</li>
+                                    </ol>
+                                    <h4>B Flight Net</h4>
+                                    <ol>
+                                        <li>Robert Timberlake 100 points</li>
+                                        <li>Tim Johnson 80 points</li>
+                                        <li>Sean McCartan 60 points</li>
+                                        <li>William Howard 40 points</li>
+                                        <li>Ramon Aldana 20 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- C Flight -->
+                                <div class="flight-section">
+                                    <h4>C Flight Gross</h4>
+                                    <ol>
+                                        <li>Robert Borowski 100 points</li>
+                                        <li>Robert Mathieu 80 points</li>
+                                        <li>Daniel Shugarts 60 points</li>
+                                        <li>Ted Lewandowski 40 points</li>
+                                        <li>David Zitin 20 points</li>
+                                    </ol>
+                                    <h4>C Flight Net</h4>
+                                    <ol>
+                                        <li>Rick Rico 100 points</li>
+                                        <li>James Ridenour 80 points</li>
+                                        <li>Troy Ward 60 points</li>
+                                        <li>John Kurutz 40 points</li>
+                                        <li>Adam Brand 20 points</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#2 Clark Izu Birdie 105 points</li>
+                                    <li>#7 Braden Grinstead Birdie 105 points</li>
+                                    <li>#8 Nick Hein Birdie 105 points</li>
+                                    <li>#9 Tom Siedl Birdie 105 points</li>
+                                    <li>#18 Justin Moody Eagle 105 points</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#1 Daniel Shugarts Eagle 75 points</li>
+                                    <li>#7 Braden Grinstead Eagle 75 points</li>
+                                    <li>#8 Nick Hein Eagle 75 points</li>
+                                    <li>#13 George Trujillo Eagle 75 points</li>
+                                    <li>#15 Sean McCartan Eagle 75 points</li>
+                                    <li>#17 Les Douglas Eagle 75 points</li>
+                                    <li>#18 Justin Moody Double Eagle 75 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>Bill Dodge 129 points</li>
+                                </ul>
+                                <p><strong>Hole 9</strong></p>
+                                <ul>
+                                    <li>Ed Fitzpatrick 64 points</li>
+                                    <li>Tom Seidl 64 points</li>
+                                </ul>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Jeff Mort 43 points</li>
+                                    <li>Joe De La Fuente 43 points</li>
+                                    <li>Robert Borowski 43 points</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Joe De La Fuente 20 points</li>
+                                    <li>Kevin Dolan 20 points</li>
+                                    <li>Michael Munakata 20 points</li>
+                                    <li>Robert Borowski 20 points</li>
+                                    <li>Robert Mathieu 20 points</li>
+                                    <li>Robert Timberlake 20 points</li>
+                                    <li>Tom Seidl 20 points</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- May 17, 2025 - Member-Member 6-6-6 Tournament -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(5)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1746075363678-J08I7TF37QZHZOVT7WLD/202505+Thumbnail2X3.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">May</span>
+                            <span class="event-day">17</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">May 17th - Member-Member 6-6-6 Tournament</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, May 17, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-grid">
+                                <!-- Overall Champions -->
+                                <div class="flight-section">
+                                    <h4>Overall Gross Champions</h4>
+                                    <ol>
+                                        <li>Mark Evans & Kevin Ryan (-2) 140 points</li>
+                                    </ol>
+                                    <h4>Overall Net Champions</h4>
+                                    <ol>
+                                        <li>Gregory Monteith & Mark Pollard (-10) 140 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight Gross</h4>
+                                    <ol>
+                                        <li>Jeremy Martin & Dan Valdes 140 points</li>
+                                        <li>James Snider & Brock Livesey (tiebreaker) 70 points</li>
+                                    </ol>
+                                    <h4>A Flight Net</h4>
+                                    <ol>
+                                        <li>Tim Barnes & Lester Perry 140 points</li>
+                                        <li>Jeff Delauney & Wesley Motta 70 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight Gross</h4>
+                                    <ol>
+                                        <li>Gary Rowe & Bryan Rowe 140 points</li>
+                                        <li>Jon Cowger & Ron Zimmerman 70 points</li>
+                                    </ol>
+                                    <h4>B Flight Net</h4>
+                                    <ol>
+                                        <li>Eric Hernandez & Steven Loefler 140 points</li>
+                                        <li>Richard Bell & Les Douglas (tie-breaker) 70 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- C Flight -->
+                                <div class="flight-section">
+                                    <h4>C Flight Gross</h4>
+                                    <ol>
+                                        <li>Thomas Molley & Brad Davis 140 points</li>
+                                        <li>Chris Neubauer & Brendan McGuire 70 points</li>
+                                    </ol>
+                                    <h4>C Flight Net</h4>
+                                    <ol>
+                                        <li>Kevin Ashworth & Bob Weaver 140 points</li>
+                                        <li>Rick Green & Matt DeRuyter (tiebreaker) 70 points</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- D Flight -->
+                                <div class="flight-section">
+                                    <h4>D Flight Gross</h4>
+                                    <ol>
+                                        <li>David Street & Michael Munakata 140 points</li>
+                                        <li>Daniel Mlynarski & Bruce Stoller 70 points</li>
+                                    </ol>
+                                    <h4>D Flight Net</h4>
+                                    <ol>
+                                        <li>Troy Ward & Robert Mathieu 140 points</li>
+                                        <li>Brent Tubbs & Paul Ramirez (tiebreaker) 70 points</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#13 Ramon Aldana & Kevin Hurst Birdie 300 points</li>
+                                    <li>#14 Eric Hernandez & Steven Loefler Eagle 300 points</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#2 Greg Erskine & David Zitin Eagle 150 points</li>
+                                    <li>#10 Sean Gatz & Phillip Tomlin Eagle 150 points</li>
+                                    <li>#13 Ramon Aldana & Kevin Hurst Ace 150 points</li>
+                                    <li>#14 Eric Hernandez & Steven Loefler Double Eagle 150 points</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>Lester Perry 75 points</li>
+                                    <li>Ted Shankle 75 points</li>
+                                </ul>
+                                <p><strong>Hole 9</strong></p>
+                                <ul>
+                                    <li>Gary Rolek 75 points</li>
+                                    <li>Brendan McGuire 75 points</li>
+                                </ul>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Ramon Aldana 150 points</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Chris Neubouer 75 points</li>
+                                    <li>Troy Ward 75 points</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- April 19, 2025 - The Mayor's Cup Match Play Qualifier -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(6)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/0fe2285e-cdec-4e5a-8651-ae98d121a821/MayorsCup.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Apr</span>
+                            <span class="event-day">19</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">April 19th - The Mayor's Cup Match Play Qualifier</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, April 19, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 3:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4>Website: <a href="https://www.golfgenius.com/pages/11433983807607312946">https://www.golfgenius.com/pages/11433983807607312946</a></h4>
+                            </div>
+                            <p>Top 64 players have been placed in a march madness bracket. Match play will continue until winner of flight A plays winner of flight D and winner of flight B plays winner of flight C. Whole tournament will be played in a couple of months.</p>
+                            
+                            <div class="results-grid">
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight</h4>
+                                    <ol>
+                                        <li>Joe Delafuente Net Score 69</li>
+                                        <li>Jose Valle Net Score 70</li>
+                                        <li>Roy Ganzer Net Score 70</li>
+                                        <li>Mark Evans Net Score 70</li>
+                                        <li>Elliot Harkness Net Score 71</li>
+                                        <li>Greg Erskine Net Score 71</li>
+                                        <li>Alex Gonzales Net Score 72</li>
+                                        <li>Brock Livesey Net Score 72</li>
+                                        <li>Les Douglas Net Score 73</li>
+                                        <li>Ted Shankle Net Score 74</li>
+                                        <li>Beaux Schuh Net Score 74</li>
+                                        <li>Jeff Delaunay Net Score 74</li>
+                                        <li>Kevin Dolan Net Score 74</li>
+                                        <li>Ian Smith Net Score 75</li>
+                                        <li>Neo Aoga Net Score 75</li>
+                                        <li>Dan Valdes Net Score 75</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight</h4>
+                                    <ol>
+                                        <li>Brad Kaiser Net Score 67</li>
+                                        <li>Andrew Wittenberg Net Score 69</li>
+                                        <li>Nick Hein Net Score 70</li>
+                                        <li>Thomas Molley Net Score 71</li>
+                                        <li>David Curiel Net Score 71</li>
+                                        <li>Rudolph Gamarnik Net Score 72</li>
+                                        <li>Clark Izu Net Score 72</li>
+                                        <li>Christopher Crawley Net Score 72</li>
+                                        <li>Jeff Mort Net Score 73</li>
+                                        <li>Kevin Ryan Net Score 73</li>
+                                        <li>David Collicutt Net Score 74</li>
+                                        <li>Michael Fawver Net Score 74</li>
+                                        <li>Alvaro Rubalcaba Net Score 74</li>
+                                        <li>Jeremy Martin Net Score 75</li>
+                                        <li>Tim Barnes Net Score 75</li>
+                                        <li>Jeff Fenton Net Score 75</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- C Flight -->
+                                <div class="flight-section">
+                                    <h4>C Flight</h4>
+                                    <ol>
+                                        <li>Bill Dodge Net Score 68</li>
+                                        <li>Steven Loefler Net Score 69</li>
+                                        <li>Andrew Coates Net Score 70</li>
+                                        <li>Trevor King Net Score 70</li>
+                                        <li>Mike Ortega Net Score 72</li>
+                                        <li>Justin Moody Net Score 72</li>
+                                        <li>Richard Fernandez Net Score 73</li>
+                                        <li>Robert Timberlake Net Score 73</li>
+                                        <li>Brian Bart Net Score 73</li>
+                                        <li>Mark Hillyer Net Score 73</li>
+                                        <li>Rick Green Net Score 73</li>
+                                        <li>Jeff Winterburn Net Score 74</li>
+                                        <li>Edward Otero Net Score 75</li>
+                                        <li>Peter Arbuckle Net Score 75</li>
+                                        <li>Ruben Flores Net Score 75</li>
+                                        <li>Tamir Barkol Net Score 75</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- D Flight -->
+                                <div class="flight-section">
+                                    <h4>D Flight</h4>
+                                    <ol>
+                                        <li>Ramon Aldana Net Score 66</li>
+                                        <li>Richard Carranza Net Score 67</li>
+                                        <li>Robert Borowski Net Score 68</li>
+                                        <li>James Ridenour Net Score 70</li>
+                                        <li>Billy Letender Net Score 72</li>
+                                        <li>Terry McCartan Net Score 72</li>
+                                        <li>Joshua Myers Net Score 73</li>
+                                        <li>Kevin Hoodward Net Score 73</li>
+                                        <li>Michael Letender Net Score 73</li>
+                                        <li>Ryan Hart Net Score 74</li>
+                                        <li>Michael Munakata Net Score 75</li>
+                                        <li>Troy Ward Net Score 75</li>
+                                        <li>Kevin Mcmichael Net Score 75</li>
+                                        <li>Bruce Stoller Net Score 75</li>
+                                        <li>Adam Brand Net Score 75</li>
+                                        <li>David Zitin Net Score 75</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#2 Ted Shankle Eagle </li>
+                                    <li>#4 Ted Shankle Birdie</li>
+                                    <li>#15 Ed Fitzpatrick Double Eagle</li>
+                                    <li>#17 Dan Valdes Birdie</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#6 Steven Loefler Double Eagle</li>
+                                    <li>#9 Kevin Hoodward Eagle</li>
+                                    <li>#10 David Street Eagle</li>
+                                    <li>#12 Bill Dodge Eagle</li>
+                                    <li>#15 Ed Fitzpatrick Double Eagle</li>
+                                    <li>#17 Dan Valdes Eagle</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Polies</h4>
+                                <p><strong>Hole 5</strong></p>
+                                <ul>
+                                    <li>Chris Crawley</li>
+                                    <li>Charles Chamberlain</li>
+                                    <li>Jeff Delaunay</li>
+                                    <li>Alvaro Ruvalcaba</li>
+                                    <li>Josh Myers</li>
+                                    <li>Greg Flood</li>
+                                </ul>
+                                <p><strong>Hole 9</strong></p>
+                                <ul>
+                                    <li>Brock Livesey</li>
+                                    <li>Greg Erskine</li>
+                                    <li>Michael Letender</li>
+                                    <li>Kevin Hoodward</li>
+                                </ul>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Alvaro Ruvalcaba</li>
+                                    <li>David Zitin</li>
+                                    <li>Greg Erskine</li>
+                                    <li>Josh Myers</li>
+                                    <li>Michael Letender</li>
+                                    <li>Mike Munakata</li>
+                                    <li>Quinlan Sparks</li>
+                                    <li>Rich Fernandez</li>
+                                    <li>Roy Ganzer</li>
+                                    <li>Steven Loefler</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Tom Goode </li>
+                                    <li>Paul Ramirez</li>
+                                    <li>Mike Fawyer</li>
+                                    <li>Alvaro Ruvalcaba</li>
+                                    <li>Rob Fernandez</li>
+                                    <li>Brian Bart</li>
+                                    <li>Kevin Dolan</li>
+                                    <li>Eric Burnett</li>
+                                    <li>Quinlan Sparks</li>
+                                    <li>Colin Holmes</li>
+                                    <li>Mark Hillyer</li>
+                                    <li>Trevine Felsinger</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- March 15, 2025 - 4 Man Memorial -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(7)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1740246499828-409HW7C51HWEZVGF0PGD/20250203Thumbnail.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Mar</span>
+                            <span class="event-day">15</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">March 15th - 4 Man Memorial</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, March 15, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4>Website: <a href="http://www.golfgenius.com/pages/11433962777232839203">http://www.golfgenius.com/pages/11433962777232839203</a></h4>
+                            </div>
+                            
+                            <div class="results-grid">
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Brad Kaiser, Dan Valdes, Kevin Ryan, Mark Evans Score -20 Points 280</li>
+                                        <li>David Collicutt, Mark Hillyer, Ted Shankle, Trevine Felsinger Score -9 Points 240</li>
+                                        <li>Edward Otero, Jeff Delaunay, Jeff Fenton, Wesley Motta Score -6 Points 160</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Joshua Barnes, Tim Barnes, Mike Robbins, Daniel Anderson Score -27 Points 280</li>
+                                        <li>Michael Fawver, Mike Wells, Rudolph Gamarnik, Russell Warnick Score -21 Points 240</li>
+                                        <li>Gregory Monteilh, Jamon Gurnick, Mark Pollard, Marco Cisneros Score -18 Points 160</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Eric Hernandez, Kevin Hurst, Steven Loefler, Trevor King Score +5 Points 240</li>
+                                        <li>Donny Dubry, Alex Gonzales, Robert Griggs, Andrew Coates Score +6 Points 160</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Ted Lewandowski, Sean Williams, Leo Corrales, Jacob Bottoms Score -27 Points 240</li>
+                                        <li>John Kurutz, Michael Wilcoxen, Rick Rico, William Howard Score -19 Points 160</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#2 Brad Kaiser, Dan Valdes, Kevin Ryan, Mark Evans Score 8 Points 140</li>
+                                    <li>#4 Les Douglas, Richard Bell, Robert McDowell, Larry Hamm Score 7 Points 140</li>
+                                    <li>#11 Brock Livesey, James Snider, Nick Hein Score 8 Points 140</li>
+                                    <li>#13 Thomas Molley, Ron Zimmerman, Brad Davis, Jon Cowger Score 4 Points 140</li>
+                                    <li>#18 Gregory Monteilh, Jamon Gurnick Mark Pollard, Marco Cisneros Score 6 Points 140</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#13 Thomas Molley, Ron Zimmerman, Brad Davis, Jon Cowger Score 3 Points 140</li>
+                                    <li>#6 Ted Lewandowski, Sean Williams, Leo Corrales, Jacob Bottoms Score 6 Points 140</li>
+                                    <li>#12 Gregory Monteilh, Jamon Gurnick Mark Pollard, Marco Cisneros Score 5 Points 140</li>
+                                    <li>#16 Ted Lewandowski, Sean Williams, Leo Corrales, Jacob Bottoms Score 6 Points 140</li>
+                                    <li>#18 Gregory Monteilh, Jamon Gurnick Mark Pollard, Marco Cisneros Score 4 Points 140</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Polies</h4>
+                                <p><strong>Hole 13</strong></p>
+                                <ul>
+                                    <li>Brad Kaiser Points 115</li>
+                                    <li>Ryan Hart Points 115</li>
+                                    <li>Thomas Molley Points 115</li>
+                                </ul>
+                                <p><strong>Hole 16</strong></p>
+                                <ul>
+                                    <li>Dan Valdes Points 85</li>
+                                    <li>David Collicutt Points 85</li>
+                                    <li>Eric Burnett Points 85</li>
+                                    <li>James Snider Points 85</li>
+                                    <li>Leo Corrales Points 85</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- February 15, 2025 - Past Presidents -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(8)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1743053751471-W12Z9AGE32S6MCQZ3PGY/202502Thumbnail.JPG')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Feb</span>
+                            <span class="event-day">15</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">February 15th - Past Presidents</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, February 15, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 4:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-link-container">
+                                <h4>Website: https://www.golfgenius.com/pages/11344441988943483723</h4>
+                            </div>
+                            
+                            <div class="results-grid">
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Les Dougles Score 23 Points 100</li>
+                                        <li>Ted Shankle Score 22 Points 80</li>
+                                        <li>Lester Perry Score 20 Points 60</li>
+                                        <li>Alex Gonzales Score 19 Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Andrew Wittenberg Score 27 Points 100</li>
+                                        <li>Mike Wells Score 23 CARD OFF Points 80</li>
+                                        <li>Marco Cisneros Score 23 CARD OFF Points 60</li>
+                                        <li>Jeff Delaunay Score 22 CARD OFF Points 40</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Mark Pavlovich Score 15 Points 100</li>
+                                        <li>Thomas Molley Score 12 Points 80</li>
+                                        <li>Chis Pohl Score 8 Points 60</li>
+                                        <li>Tim Barnes Score 7 Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Francisco Mireles Score 24 Points 100</li>
+                                        <li>Eric Hernandez Score 23 Points 80</li>
+                                        <li>Chet Soboleske Score 21 Points 60</li>
+                                        <li>Rick Green Score 20 CARD OFF Points 40</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- C Flight -->
+                                <div class="flight-section">
+                                    <h4>C Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Robert Timberlake Score 5 Points 100</li>
+                                        <li>Jeff Claytor Score 3 Points 80</li>
+                                        <li>Peter Balzano Score 2 CARD OFF Points 60</li>
+                                        <li>Daniel Giallombardo Score 2 CARD OFF Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Chris Neubauer Score 22 Points 100</li>
+                                        <li>Mark Hillyer Score 21 Points 80</li>
+                                        <li>Brad Davis Score 20 CARD OFF Points 60</li>
+                                        <li>Bryce Renn Score 72 CARD OFF Points 40</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- D Flight -->
+                                <div class="flight-section">
+                                    <h4>D Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Richard Bell Score 0 Points 100</li>
+                                        <li>Daniel Shugarts Score -2 CARD OFF Points 80</li>
+                                        <li>Ramon Aldana Score -2 CARD OFF Points 60</li>
+                                        <li>Jon Cowger Score -9 Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Kevin McMichael Score 35 Points 100</li>
+                                        <li>Rick Rico Score 23 Points 80</li>
+                                        <li>Billy Letender Score 19 Points 60</li>
+                                        <li>Sean Williams Score 17 Points 40</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#4 Ted Shankle Birdie Points 160</li>
+                                    <li>#6 Ted Shankle Eagle Points 160</li>
+                                    <li>#17 Marco Cisneros Birdie Points 160</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#3 Kevin McMichael Eagle Points 96</li>
+                                    <li>#7 Neo Aoga Eagle Points 96</li>
+                                    <li>#9 Rick Rico Eagle Points 96</li>
+                                    <li>#11 Chris Pohl Eagle Points 96</li>
+                                    <li>#17 Marco Cisneros Eagle on 17 Points 96</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- January 18, 2025 - Kickoff Tournament -->
+                <div class="event-item">
+                    <div class="event-main" onclick="toggleEvent(9)">
+                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737529586068-4KD7K3GA8078B7S2JYWW/202501Thumbnail.jpg')"></div>
+                        <div class="event-date">
+                            <span class="event-month">Jan</span>
+                            <span class="event-day">18</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">January 18th - Kickoff Tournament</h3>
+                            <div class="event-meta">
+                                <span class="event-time">📅 Saturday, January 18, 2025</span>
+                                <span class="event-time">⏰ 6:30 AM - 3:45 PM</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="expand-btn">▼</button>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <div class="details-content">
+                            <div class="results-grid">
+                                <!-- A Flight -->
+                                <div class="flight-section">
+                                    <h4>A Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Ted Shankle Score 68 Points 110</li>
+                                        <li>Gary Liechty Score 73 Points 80</li>
+                                        <li>Dan Valdes Score 75 CARD OFF Points 60</li>
+                                        <li>Alex Gozales Score 75 CARD OFF Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Tim Barnes Score 68 Points 110</li>
+                                        <li>Tom Molley Score 71 CARD OFF Points 80</li>
+                                        <li>Mark Slotterbeck Score 71 CARD OFF Points 60</li>
+                                        <li>Kevin Ryan Score 72 CARD OFF Points 40</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- B Flight -->
+                                <div class="flight-section">
+                                    <h4>B Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Clark Izu Score 79 CARD OFF Points 110</li>
+                                        <li>Chris Crawley Score 79 CARD OFF Points 80</li>
+                                        <li>Eric Hernandez Score 79 CARD OFF Points 60</li>
+                                        <li>Tom Seidl Score 80 Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Justin Moody Score 68 Points 110</li>
+                                        <li>Collin Holmes Score 69 CARD OFF Points 80</li>
+                                        <li>Mark Pollard Score 69 CARD OFF Points 60</li>
+                                        <li>Ruben Flores Score 71 Points 40</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- C Flight -->
+                                <div class="flight-section">
+                                    <h4>C Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Robert McDowell Score 81 Points 110</li>
+                                        <li>Richard Stevens Score 83 CARD OFF Points 80</li>
+                                        <li>Peter Balzano Score 83 CARD OFF Points 60</li>
+                                        <li>Bob Bellucci Score 83 CARD OFF Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>Willie Howard Score 70 CARD OFF Points 110</li>
+                                        <li>Leo Corrales Score 70 CARD OFF Points 80</li>
+                                        <li>Ted Lewandowski Score 71 Points 60</li>
+                                        <li>Mark Hilyer Score 72 CARD OFF Points 40</li>
+                                    </ol>
+                                </div>
+                                
+                                <!-- D Flight -->
+                                <div class="flight-section">
+                                    <h4>D Flight</h4>
+                                    <p><strong>Gross</strong></p>
+                                    <ol>
+                                        <li>Rick Rico Score 88 Points 110</li>
+                                        <li>Jim Dunlap Score 93 Points 80</li>
+                                        <li>Sean Williams Score 94 Points 60</li>
+                                        <li>Bill Letender Score 96 CARD OFF Points 40</li>
+                                    </ol>
+                                    <p><strong>Net</strong></p>
+                                    <ol>
+                                        <li>David Street Score 70 CARD OFF 110</li>
+                                        <li>Don Balzano Score 70 CARD OFF Points 80</li>
+                                        <li>Phil Tomlin Score 71 Points 60</li>
+                                        <li>Donny Dubry Score 72 Points 40</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Skins</h4>
+                                <p><strong>Gross</strong></p>
+                                <ul>
+                                    <li>#4 Steve Barlow Birdie on 4 Points 120</li>
+                                    <li>#5 Brad Kaiser Hole in One on 5 Points 120</li>
+                                    <li>#6 Justin Moody Eagle on 6 Points 120</li>
+                                    <li>#18 Brad Kaiser Birdie on 18 Points 120</li>
+                                </ul>
+                                <p><strong>Net</strong></p>
+                                <ul>
+                                    <li>#2 David Street Eagle on 2 Points 81</li>
+                                    <li>#4 Steve Barlow Eagle on 4 Points 81</li>
+                                    <li>#5 Brad Kaiser Hole in One on 5 Points 81</li>
+                                    <li>#6 Justin Moody Double Eagle on 6 Points 81</li>
+                                    <li>#13 Bruce Stoller Eagle on 13 Points 81</li>
+                                    <li>#18 Brad Kaiser Eagle on 18 Points 81</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="special-section">
+                                <h4>Closest to the Pin</h4>
+                                <div class="results-grid">
+                                    <div class="flight-section">
+                                        <p><strong>Hole #5</strong></p>
+                                        <ol>
+                                            <li>Brad Kaiser ACE Points 100</li>
+                                            <li>Neo Aoga 4' 4" Points 70</li>
+                                            <li>Peter Arbuckle 4' 7" Points 50</li>
+                                            <li>Jeff Mort 8' 3" Points 30</li>
+                                        </ol>
+                                    </div>
+                                    
+                                    <div class="flight-section">
+                                        <p><strong>Hole #9</strong></p>
+                                        <ol>
+                                            <li>Gary Liechty 4' 4" Points 100</li>
+                                            <li>Josh Barnes 4' 5" Points 70</li>
+                                            <li>Nick Hein 5' 1" Points 50</li>
+                                            <li>Richard Carranza 9' 2" Points 30</li>
+                                        </ol>
+                                    </div>
+                                    
+                                    <div class="flight-section">
+                                        <p><strong>Hole #13</strong></p>
+                                        <ol>
+                                            <li>Ted Shankle 1' 5" Points 100</li>
+                                            <li>Bruce Stoller 3' 9" Points 70</li>
+                                            <li>Nick Hein 3' 10" Points 50</li>
+                                            <li>Mark Evans 6' 2" Points 30</li>
+                                        </ol>
+                                    </div>
+                                    
+                                    <div class="flight-section">
+                                        <p><strong>Hole #16</strong></p>
+                                        <ol>
+                                            <li>Mark Hillyer 3' 10" Points 100</li>
+                                            <li>Mark Pollard 5' 1" Points 70</li>
+                                            <li>Richard Fernandez 9' 9" Points 50</li>
+                                            <li>Bob Mathieu 14' 4" Points 30</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER INJECTION -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="/js/menu.js"></script>
+    <script src="/js/image.js"></script>
+    
+    <script>
+        // Load header + footer on page
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("header-placeholder").innerHTML = html;
+                initMenu(); // initialize after header loads
+            });
+
+        fetch("/footer.html")
+            .then(res => res.text())
+            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+        // Event expansion functionality
+        function toggleEvent(index) {
+            const eventItems = document.querySelectorAll('.event-item');
+            const expandBtns = document.querySelectorAll('.expand-btn');
+            const details = document.querySelectorAll('.event-details');
+            
+            const eventItem = eventItems[index];
+            const expandBtn = expandBtns[index];
+            const detail = details[index];
+            
+            // Close all other events
+            eventItems.forEach((item, i) => {
+                if (i !== index && item.classList.contains('expanded')) {
+                    item.classList.remove('expanded');
+                    expandBtns[i].classList.remove('expanded');
+                    details[i].classList.remove('expanded');
+                }
+            });
+            
+            // Toggle current event
+            eventItem.classList.toggle('expanded');
+            expandBtn.classList.toggle('expanded');
+            detail.classList.toggle('expanded');
+        }
+    
+    </script>
+
+</body>
+</html>
