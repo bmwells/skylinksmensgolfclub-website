@@ -368,10 +368,30 @@ body {
         transform: translateY(0);
     }
 
-    /* hide native marker from desktop tooltip-like summary if any (summary used only in mobile though) */
+    /* Desktop: show the text but disable summary click behavior */
+    @media (min-width: 1025px) {
     .dropdown summary {
+        display: block;          /* show “About” text */
+        cursor: default;         /* no pointer cursor */
+        padding: 0;              /* match normal nav spacing */
+        margin: 0;
+        font-size: 16px;
+        font-weight: 400;
+        list-style: none;
+        user-select: none;
+    }
+
+    /* Remove the default marker */
+    .dropdown summary::-webkit-details-marker {
         display: none;
     }
+    .dropdown summary::marker {
+        content: none;
+    }
+
+    
+}
+
 }
 
 /* Mobile styles */
@@ -390,6 +410,15 @@ body {
 
 /* Mobile (and tablet) behavior */
 @media (max-width: 1024px) {
+    .dropdown-desktop {
+        display: none;
+    }
+    
+    .dropdown-mobile {
+        display: block;
+        width: 100%;
+    }
+
     .header-inner {
         padding: 0 1.5rem;
     }
