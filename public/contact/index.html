@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us - Skylinks Men's Golf Club</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Contact Page Specific Styles - using same styles as home page */
+        
+        .contact-page-section {
+            padding: 4rem 2rem;
+            background-color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .contact-page-section .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .contact-page-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        @media (min-width: 992px) {
+            .contact-page-grid {
+                grid-template-columns: 1fr 500px;
+                gap: 6rem;
+            }
+        }
+        
+        .contact-page-content {
+            text-align: center;
+        }
+        
+        @media (min-width: 992px) {
+            .contact-page-content {
+                text-align: left;
+            }
+        }
+        
+        .contact-page-content h1 {
+            color: var(--primary);
+            font-size: 4rem;
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            padding-top: 50px;
+        }
+        
+        .contact-page-content p {
+            font-size: 1rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            color: #666;
+            width: 75%;
+        }
+        
+        /* Form Styles - matching home page exactly */
+        .contact-page-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+        
+        .contact-page-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-page-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .contact-page-form input[type="text"],
+        .contact-page-form input[type="email"],
+        .contact-page-form select,
+        .contact-page-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .contact-page-form textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        
+        /* Name fields grid - matching home page */
+        .name-fields .name-inputs {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        @media (min-width: 480px) {
+            .name-fields .name-inputs {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Submit button - matching home page exactly */
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            background-color: #1e3a23;
+        }
+        
+        /* Image section - Fixed width and full height */
+        .contact-page-image {
+            width: 100%;
+            height: 900px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        @media (min-width: 992px) {
+            .contact-page-image {
+                width: 500px;
+                height: calc(100vh - 160px);
+                min-height: 500px;
+                position: sticky;
+                top: 100px;
+            }
+        }
+        
+        .contact-page-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 44.299643727732985% 71.20890111263908%;
+        }
+        
+        /* Responsive adjustments - matching home page breakpoints */
+        @media (max-width: 768px) {
+            .contact-page-section {
+                padding: 3rem 1.5rem;
+            }
+            
+            .contact-page-content h1 {
+                font-size: 3rem;
+            }
+            
+            .contact-page-form {
+                padding: 1.5rem;
+            }
+            
+            .contact-page-grid {
+                gap: 3rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .contact-page-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .contact-page-content p {
+                font-size: 1rem;
+            }
+            
+            .name-fields .name-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER INJECTION -->
+    <div id="header-placeholder"></div>
+
+    <!-- Contact Page Section -->
+    <section class="contact-page-section">
+        <div class="container">
+            <div class="contact-page-grid">
+                <!-- Left side: Content and Form -->
+                <div class="contact-page-content">
+                    <h1>Contact Us</h1>
+                    <p>Have questions regarding membership or a specific tournament? Fill out some info and we will be in touch shortly.</p>
+                    
+                    <div class="contact-page-form">
+                        <form>
+                            <div class="form-group name-fields">
+                                <label>Name *</label>
+                                <div class="name-inputs">
+                                    <input type="text" id="first-name" name="first-name" placeholder="First Name" required />
+                                    <input type="text" id="last-name" name="last-name" placeholder="Last Name" required />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email *</label>
+                                <input type="email" id="email" name="email" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="topic">Topic</label>
+                                <select id="topic" name="topic">
+                                    <option value="membership">Membership</option>
+                                    <option value="tournament">Tournament</option>
+                                    <option value="results">Results</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Message *</label>
+                                <textarea id="message" name="message" required></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">Send</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Right side: Image (500px width, full height) -->
+                <div class="contact-page-image">
+                    <img 
+                        src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310568234-IEFCFMC1A0MNK2XDY7X1/IMG_0613.JPG?format=2500w" 
+                        alt="Skylinks Men's Golf Club" 
+                        loading="lazy"
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER INJECTION -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="/js/menu.js"></script>
+    <script>
+        // Load header + footer on page
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("header-placeholder").innerHTML = html;
+                // Initialize menu if the function exists
+                if (typeof initMenu === 'function') {
+                    initMenu();
+                }
+            });
+
+        fetch("/footer.html")
+            .then(res => res.text())
+            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+        // Form submission handling - matching home page
+        document.querySelector('.contact-page-form form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Basic form validation
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!firstName || !lastName || !email || !message) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            // Simulate form submission
+            const submitBtn = this.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            
+            // In a real implementation, you would send this data to a server
+            setTimeout(() => {
+                alert('Thank you! Your message has been sent.');
+                this.reset();
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
+        });
+
+        // Add focus effects to form fields
+        document.querySelectorAll('.contact-page-form input, .contact-page-form select, .contact-page-form textarea').forEach(field => {
+            field.addEventListener('focus', function() {
+                this.style.borderColor = '#333';
+                this.style.outline = 'none';
+            });
+            
+            field.addEventListener('blur', function() {
+                this.style.borderColor = '#ddd';
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Membership Renewal - Skylinks Men's Golf Club</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Additional styles for product page matching original */
+        .product-page {
+            padding: 100px 0;
+            background: #fff;
+        }
+        
+        .product-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .product-content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+        }
+        
+        .product-image-container {
+            padding: 100px 0;
+            width: 100%;
+            position: relative;
+        }
+        
+        .product-image {
+            width: 600px;
+            height: 400px;
+            display: block;
+            object-fit: cover;
+            background: #f9f9f9;
+        }
+        
+        .product-meta {
+            padding-top: 10px;
+        }
+        
+        .product-title {
+            font-size: 3rem;
+            font-weight: 400;
+            margin-bottom: 20px;
+            color: #000;
+            letter-spacing: -0.5px;
+        }
+        
+        .product-price {
+            font-size: 1.6rem;
+            font-weight: 400;
+            color: #000;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .product-price-value {
+            font-weight: 400;
+        }
+        
+        .product-description {
+            margin: 30px 0;
+            line-height: 1.6;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .product-description p {
+            margin-bottom: 15px;
+        }
+        
+        .product-description strong {
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .product-description a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        
+        .product-description a:hover {
+            color: #004499;
+        }
+        
+        .product-add-to-cart {
+            margin-top: 40px;
+            border-top: 1px solid #eee;
+            padding-top: 30px;
+        }
+        
+        .product-quantity-input-wrapper {
+            margin-bottom: 25px;
+        }
+        
+        .quantity-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #000;
+            font-size: 0.95rem;
+        }
+        
+        .product-quantity-input {
+            width: 120px;
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            font-size: 1rem;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+        
+        .product-quantity-input:focus {
+            outline: none;
+            border-color: #999;
+        }
+        
+        .sqs-add-to-cart-button {
+            background-color: #000;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 32px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            width: 100%;
+            max-width: 300px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .sqs-add-to-cart-button:hover {
+            background-color: #333;
+        }
+        
+        .sqs-add-to-cart-button-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+        }
+        
+        .add-to-cart-text {
+            display: block;
+        }
+        
+        .cart-loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .cart-added-text {
+            display: none;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .product-content-wrapper {
+                gap: 50px;
+            }
+            
+            .product-title {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+
+            .product-image-container {
+                padding: 20px 0;
+                width: 100%;
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .product-content-wrapper {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .product-image {
+            width: 480px;
+            height: 320px;
+        }
+            
+            .product-price {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .product-page {
+                padding: 40px 0;
+            }
+            
+            .product-container {
+                padding: 0 15px;
+            }
+            
+            .product-title {
+                font-size: 1.6rem;
+            }
+            
+            .sqs-add-to-cart-button {
+                max-width: 100%;
+                padding: 14px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER INJECTION -->
+    <div id="header-placeholder"></div>
+
+    <!-- Product Page Content -->
+    <section class="product-page">
+        <div class="product-container">
+            <div class="product-content-wrapper">
+                <div class="product-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg?format=1500w" 
+                         alt="New Membership" 
+                         class="product-image">
+                </div>
+
+                <div class="product-meta">
+                    <h1 class="product-title">New Membership</h1>
+                    
+                    <div id="main-product-price" class="product-price" data-animation-role="content">
+                        <div class="product-price-value">$109.00</div>
+                        <div class="product-payment-method-messaging"></div>
+                    </div>
+                    
+                    <div class="product-description">
+                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true">One year membership for the Skylinks Men’s Golf Club</p>
+                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"></p>
+                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"><strong>*** SCGA Multi-Member Rebate Program***</strong></p>
+                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"><span>For each membership year, anyone who is a member of the SCGA through more than one club is eligible to apply for and receive a rebate directly from the SCGA for any dues they pay the SCGA that exceed $55.</span></p>
+                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"><a href="https://help.scga.org/knowledge/multi-member-rebate">https://help.scga.org/knowledge/multi-member-rebate</a></p>
+                    </div>
+                    
+                    <div class="product-add-to-cart">
+                        <div class="product-add-to-cart-layout-wrapper">
+                            <div class="product-quantity-input-wrapper" data-animation-role="content">
+                                <label class="quantity-label" for="product-quantity-input-678d6299b3a0fc4bc2ba994f">
+                                    Quantity:
+                                </label>
+                                <input id="product-quantity-input-678d6299b3a0fc4bc2ba994f" class="product-quantity-input" type="number" value="1" min="1" step="1" size="4" max="9999" aria-label="Quantity">
+                            </div>
+                            
+                            <div class="sqs-add-to-cart-button-wrapper" data-animation-role="button" style="visibility: visible;">
+                                <button class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
+                                    <div class="sqs-add-to-cart-button-inner">
+                                        <span class="add-to-cart-text">Add To Cart</span>
+                                        <span class="cart-loader"></span>
+                                        <span class="cart-added-text">Added!</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER INJECTION -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="/js/menu.js"></script>
+    <script src="/js/image.js"></script>
+
+    <script>
+        // Load header + footer on page
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("header-placeholder").innerHTML = html;
+                initMenu(); // initialize after header loads
+            });
+
+        fetch("/footer.html")
+            .then(res => res.text())
+            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+            
+        // Simple add to cart functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const addToCartButton = document.querySelector('.sqs-add-to-cart-button');
+            
+            if (addToCartButton) {
+                addToCartButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const buttonInner = this.querySelector('.sqs-add-to-cart-button-inner');
+                    const addText = buttonInner.querySelector('.add-to-cart-text');
+                    const loader = buttonInner.querySelector('.cart-loader');
+                    const addedText = buttonInner.querySelector('.cart-added-text');
+                    
+                    // Show loader
+                    addText.style.display = 'none';
+                    loader.style.display = 'block';
+                    
+                    // Simulate API call
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        addedText.style.display = 'inline';
+                        
+                        // Reset after 2 seconds
+                        setTimeout(() => {
+                            addedText.style.display = 'none';
+                            addText.style.display = 'inline';
+                        }, 2000);
+                    }, 1000);
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
