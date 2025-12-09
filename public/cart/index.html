@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart - Skylinks Men's Golf Club</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Cart Page Specific Styles */
+        .cart-page-section {
+            padding: 105.266px 2rem 4rem;
+            background-color: #fff;
+            min-height: 100vh;
+        }
+        
+        .cart-page-section .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .cart-title {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .empty-message {
+            font-size: 1rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            color: #666;
+            text-align: center;
+        }
+        
+        .cart-continue-button {
+            background-color: transparent;
+            color: #000;
+            border: 1px solid #000;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: inline-block;
+            border-radius: 40px;
+        }
+        
+        .cart-continue-button:hover {
+            background-color: #000;
+            color: #fff;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .cart-page-section {
+                padding: 105.266px 1.5rem 3rem;
+            }
+            
+            .cart-title {
+                font-size: 1.75rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .cart-title {
+                font-size: 1.5rem;
+            }
+            
+            .empty-message {
+                font-size: 0.9rem;
+            }
+            
+            .cart-continue-button {
+                padding: 0.875rem 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER INJECTION -->
+    <div id="header-placeholder"></div>
+
+    <!-- Cart Page Section -->
+    <section class="cart-page-section">
+        <div class="container">
+            <h1 class="cart-title">Shopping Cart</h1>
+            <p class="empty-message">You have nothing in your shopping cart.</p>
+            <a class="cart-continue-button" href="/">Continue Shopping</a>
+        </div>
+    </section>
+
+    <!-- FOOTER INJECTION -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="/js/menu.js"></script>
+    <script>
+        // Load header + footer on page
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("header-placeholder").innerHTML = html;
+                // Initialize menu if the function exists
+                if (typeof initMenu === 'function') {
+                    initMenu();
+                }
+            });
+
+        fetch("/footer.html")
+            .then(res => res.text())
+            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+    </script>
+
+</body>
+</html>
