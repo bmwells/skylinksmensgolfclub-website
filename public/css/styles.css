@@ -426,7 +426,7 @@ body {
     cursor: pointer;
     color: var(--primary);
     padding: 0.5rem;
-    padding-right: 3rem;
+    padding-right: 1rem;
     z-index: 1002;
     margin-left: auto;
 }
@@ -560,8 +560,6 @@ body {
         display: block;
     }
 
-    /* Remove hover rule that interfered with mobile dropdowns */
-    /* (Intentionally not reintroducing .nav-menu li:hover .dropdown-menu {display:none;} ) */
 }
 
 /* small animation for menu open */

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Order Success - Skylinks Men's Golf Club</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    body { font-family: system-ui, sans-serif; background:#fff; margin:0; }
+    .success-wrap { max-width:900px; margin:120px auto; padding:0 20px; text-align:center; }
+    h1 { font-size:2.2rem; margin-bottom:6px; color:#111; font-weight: 400; }
+    .order-summary { margin-top:20px; text-align:left; border:1px solid #eee; border-radius:8px; padding:20px; background:#fafafa; }
+    .item-row { padding:12px 0; border-bottom:1px solid #eaeaea; display:flex; justify-content:space-between; }
+    .item-row:last-child { border-bottom:none; }
+    .btn { display:inline-block; margin-top:18px; padding:12px 28px; background:#000; color:#fff; border-radius:32px; text-decoration:none; }
+  </style>
+</head>
+<body>
+
+    <!-- HEADER INJECTION -->
+    <div id="header-placeholder"></div>
+
+    <div class="success-wrap">
+      <h1>Thank you — your order is complete</h1>
+      <p id="subtext">A receipt will be sent to the email used at checkout.</p>
+
+      <div id="order-info" class="order-summary" style="display:none;"></div>
+
+      <a class="btn" href="/">Return Home</a>
+    </div>
+
+    <!-- FOOTER INJECTION -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="/js/menu.js"></script>
+    <script>
+      // Load header + footer on page
+      fetch("/header.html")
+          .then(res => res.text())
+          .then(html => {
+              document.getElementById("header-placeholder").innerHTML = html;
+              if (typeof initMenu === "function") initMenu();
+          });
+
+      fetch("/footer.html")
+          .then(res => res.text())
+          .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+      // Clear client cart
+      try { localStorage.removeItem('skylinks_cart_v1'); } catch (e) { /* ignore */ }
+
+      // Show order info by fetching session details from server
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+
+      if (!sessionId) {
+        document.getElementById('order-info').style.display = 'block';
+        document.getElementById('order-info').innerHTML = '<p>We could not locate your order details.</p>';
+      } else {
+        fetch('/checkout-session?session_id=' + encodeURIComponent(sessionId))
+          .then(r => r.json())
+          .then(session => {
+            if (session.error) {
+              document.getElementById('order-info').style.display = 'block';
+              document.getElementById('order-info').innerHTML = '<p>Unable to load order details.</p>';
+              return;
+            }
+
+            const container = document.getElementById('order-info');
+            container.style.display = 'block';
+
+            const cust = session.customer_details || {};
+            container.innerHTML = `<div style="font-weight:600;">Customer</div>
+                                   <div>${cust.name || ''}<br/>${cust.email || ''}</div>
+                                   <div style="margin-top:14px; font-weight:600;">Items</div>`;
+
+            // line_items is expanded in server-side retrieval
+            if (session.line_items && session.line_items.data && session.line_items.data.length) {
+              session.line_items.data.forEach(li => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                row.innerHTML = `<div>${li.description} (x${li.quantity})</div><div>$${(li.amount_total/100).toFixed(2)}</div>`;
+                container.appendChild(row);
+              });
+            } else {
+              const p = document.createElement('p');
+              p.textContent = 'No line items found.';
+              container.appendChild(p);
+            }
+
+            const total = session.amount_total || (session.amount_subtotal || 0);
+            const totalRow = document.createElement('div');
+            totalRow.style.marginTop = '12px';
+            totalRow.innerHTML = `<div style="font-weight:700;">Total</div><div style="font-weight:700;">$${(total/100).toFixed(2)}</div>`;
+            container.appendChild(totalRow);
+          })
+          .catch(err => {
+            console.error(err);
+            document.getElementById('order-info').style.display = 'block';
+            document.getElementById('order-info').innerHTML = '<p>Error loading order details.</p>';
+          });
+      }
+    </script>
+</body>
+</html>

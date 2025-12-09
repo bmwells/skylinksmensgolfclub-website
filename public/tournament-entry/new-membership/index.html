@@ -184,7 +184,6 @@
         }
         
         @media (max-width: 768px) {
-
             .product-image-container {
                 padding: 20px 0;
                 width: 100%;
@@ -200,9 +199,9 @@
             }
 
             .product-image {
-            width: 480px;
-            height: 320px;
-        }
+                width: 480px;
+                height: 320px;
+            }
             
             .product-price {
                 font-size: 1.4rem;
@@ -229,8 +228,7 @@
         }
     </style>
 </head>
-<body>
-
+<body data-product-id="new-membership">
     <!-- HEADER INJECTION -->
     <div id="header-placeholder"></div>
 
@@ -253,7 +251,7 @@
                     </div>
                     
                     <div class="product-description">
-                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true">One year membership for the Skylinks Men’s Golf Club</p>
+                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true">One year membership for the Skylinks Men's Golf Club</p>
                         <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"></p>
                         <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"><strong>*** SCGA Multi-Member Rebate Program***</strong></p>
                         <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"><span>For each membership year, anyone who is a member of the SCGA through more than one club is eligible to apply for and receive a rebate directly from the SCGA for any dues they pay the SCGA that exceed $55.</span></p>
@@ -270,7 +268,7 @@
                             </div>
                             
                             <div class="sqs-add-to-cart-button-wrapper" data-animation-role="button" style="visibility: visible;">
-                                <button class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
+                                <button id="open-product-modal" class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
                                     <div class="sqs-add-to-cart-button-inner">
                                         <span class="add-to-cart-text">Add To Cart</span>
                                         <span class="cart-loader"></span>
@@ -285,12 +283,17 @@
         </div>
     </section>
 
+    <!-- Modal placeholder - will be populated by JavaScript -->
+    <div id="product-modal-placeholder"></div>
+
     <!-- FOOTER INJECTION -->
     <div id="footer-placeholder"></div>
 
     <!-- Scripts -->
     <script src="/js/menu.js"></script>
     <script src="/js/image.js"></script>
+    <script src="/js/cart.js"></script>
+    <script src="/js/product.js"></script>
 
     <script>
         // Load header + footer on page
@@ -298,45 +301,49 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                initMenu(); // initialize after header loads
+                if (typeof initMenu === "function") initMenu();
             });
 
         fetch("/footer.html")
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
-            
-        // Simple add to cart functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const addToCartButton = document.querySelector('.sqs-add-to-cart-button');
-            
-            if (addToCartButton) {
-                addToCartButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    const buttonInner = this.querySelector('.sqs-add-to-cart-button-inner');
-                    const addText = buttonInner.querySelector('.add-to-cart-text');
-                    const loader = buttonInner.querySelector('.cart-loader');
-                    const addedText = buttonInner.querySelector('.cart-added-text');
-                    
-                    // Show loader
-                    addText.style.display = 'none';
-                    loader.style.display = 'block';
-                    
-                    // Simulate API call
-                    setTimeout(() => {
-                        loader.style.display = 'none';
-                        addedText.style.display = 'inline';
-                        
-                        // Reset after 2 seconds
-                        setTimeout(() => {
-                            addedText.style.display = 'none';
-                            addText.style.display = 'inline';
-                        }, 2000);
-                    }, 1000);
-                });
-            }
-        });
-    </script>
 
+        // Load product modal
+        fetch("/tournament-entry/product-modal.html")
+            .then(res => {
+                if (!res.ok) throw new Error('Modal not found');
+                return res.text();
+            })
+            .then(html => {
+                document.getElementById("product-modal-placeholder").innerHTML = html;
+                // Re-initialize product modal after loading
+                if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.init === 'function') {
+                    window.ProductModal.init();
+                }
+            })
+            .catch(error => {
+                console.warn('Product modal could not be loaded:', error);
+                // Simple fallback modal
+                const fallbackModal = `
+                    <div class="product-modal-backdrop" id="product-modal-backdrop" aria-hidden="true">
+                        <div class="product-modal" role="dialog" aria-modal="true">
+                            <h3>Membership Details</h3>
+                            <p>Modal could not be loaded. Please refresh the page.</p>
+                            <div class="actions">
+                                <button id="product-modal-cancel" class="btn ghost">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                    <style>
+                        .product-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:2000; }
+                        .product-modal-backdrop.active { display:flex; }
+                        .product-modal { background:#fff; padding:30px; border-radius:8px; max-width:400px; }
+                        .btn { padding:10px 20px; border-radius:28px; cursor:pointer; }
+                        .btn.ghost { background:transparent; border:1px solid #ddd; }
+                    </style>
+                `;
+                document.getElementById("product-modal-placeholder").innerHTML = fallbackModal;
+            });
+    </script>
 </body>
 </html>
