@@ -5,6 +5,9 @@ const Stripe = require('stripe');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Set domain configuration
+const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
+
 const stripeSecret = process.env.STRIPE_SECRET_KEY || ''; // Set STRIPE_SECRET_KEY in env
 if (!stripeSecret) {
   console.warn('WARNING: STRIPE_SECRET_KEY is not set. Checkout will not work until you set it.');
@@ -31,6 +34,11 @@ app.get('/tournament-entry/p/new-membership-f4s6k', (req, res) => {
 // Cart page
 app.get('/cart', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'cart.html'));
+});
+
+// Success page
+app.get('/success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
 
 // Create Stripe Checkout Session
@@ -65,13 +73,17 @@ app.post('/create-checkout-session', async (req, res) => {
       skylinks_cart: JSON.stringify(cart).substring(0, 5000) // truncated if large
     };
 
+    // Use provided URLs or default to domain-based URLs
+    const defaultSuccessUrl = `${DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`;
+    const defaultCancelUrl = `${DOMAIN}/cart`;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
       line_items,
       metadata,
-      success_url: successUrl || `http://localhost:${PORT}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `http://localhost:${PORT}/cart`
+      success_url: successUrl || defaultSuccessUrl,
+      cancel_url: cancelUrl || defaultCancelUrl
     });
 
     res.json({ url: session.url });
@@ -99,7 +111,11 @@ app.get('/checkout-session', async (req, res) => {
   }
 });
 
-
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on ${DOMAIN}`);
+  console.log(`- Home page: ${DOMAIN}/`);
+  console.log(`- Cart page: ${DOMAIN}/cart`);
+  console.log(`- Success page: ${DOMAIN}/success`);
+  console.log(`- Default success URL: ${DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`);
+  console.log(`- Default cancel URL: ${DOMAIN}/cart`);
 });
