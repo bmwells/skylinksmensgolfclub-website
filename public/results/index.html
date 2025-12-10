@@ -1802,15 +1802,6 @@
             const expandBtn = expandBtns[index];
             const detail = details[index];
             
-            // Close all other events
-            eventItems.forEach((item, i) => {
-                if (i !== index && item.classList.contains('expanded')) {
-                    item.classList.remove('expanded');
-                    expandBtns[i].classList.remove('expanded');
-                    details[i].classList.remove('expanded');
-                }
-            });
-            
             // Toggle current event
             eventItem.classList.toggle('expanded');
             expandBtn.classList.toggle('expanded');
