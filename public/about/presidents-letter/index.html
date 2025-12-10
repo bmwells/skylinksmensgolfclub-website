@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>President's Letter - Skylinks Men's Golf Club</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+        <style>
+        /* Main page styling */
+        .presidents-letter-page {
+            margin-top: 80px;
+        }
+
+        .full-bleed-section {
+            width: 100%;
+            position: relative;
+        }
+
+        .content-width--wide {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-height--custom {
+            padding: 4rem 0;
+        }
+
+        .letter-section {
+            padding: 4.4rem 0 0 0;
+            margin-top: 0;
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .letter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 4rem;
+            align-items: start;
+            height: 100%;
+        }
+
+        .letter-text-container {
+            padding: 3rem 0;
+            padding-right: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .letter-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .letter-content h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin: 0 0 1rem 0;
+            font-weight: 500;
+            padding-top: 0;
+        }
+
+        .letter-content p {
+            margin-bottom: 1.2rem;
+        }
+
+        .letter-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .letter-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .letter-image-container {
+            width: 100%;
+            height: 550px;
+            min-height: 500px;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-top: 7.4rem;
+            padding-top: 30px;
+        }
+
+        .letter-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+        }
+
+        .signature {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .signature-name {
+            font-size: 1.4rem;
+            color: var(--primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .signature-role {
+            color: #666;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        @media (max-width: 992px) {
+            .letter-grid {
+                gap: 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .letter-section {
+                min-height: auto;
+                padding: 0 0;
+                margin-top: 0;
+            }
+            
+            .letter-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                position: relative;
+                margin-bottom: 4rem;
+            }
+            
+            .letter-text-container {
+                padding: 3rem 0 2rem 0;
+                order: 1;
+                position: relative;
+                min-height: 200px;
+            }
+            
+            .letter-image-container {
+                height: 200px;
+                min-height: 150px;
+                width: 150px;
+                margin-top: 0;
+                padding-top: 0;
+                position: absolute;
+                bottom: -30px;
+                right: 0;
+                border-radius: 8px;
+                order: 2;
+                z-index: 1;
+            }
+            
+            .letter-image {
+                height: 100%;
+                object-fit: cover;
+                object-position: center top;
+            }
+            
+            .signature {
+                margin-top: 3rem;
+                padding-top: 2rem;
+                padding-right: 170px;
+                border-top: none;
+                position: relative;
+            }
+            
+            .letter-section {
+                padding: 4rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .letter-content {
+                font-size: 1rem;
+            }
+            
+            .letter-image-container {
+                height: 120px;
+                min-height: 120px;
+                width: 120px;
+                bottom: 20px;
+            }
+            
+            .signature {
+                padding-right: 140px;
+            }
+            
+            .letter-grid {
+                margin-bottom: 3rem;
+            }
+        }
+
+        /* Ensure no space between header and first section */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #header-placeholder + main {
+            margin-top: 0;
+        }
+
+        /* Fix for header spacing */
+        .presidents-letter-page {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER INJECTION -->
+    <div id="header-placeholder"></div>
+
+    <main class="presidents-letter-page">
+    <!-- President's Letter Section -->
+    <section class="full-bleed-section letter-section">
+        <div class="content-width--wide">
+            <!-- December 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – December 2025</strong></h2>
+                        <p>Dear Skylinks Men's Club Members,</p>
+                        <p>As we step into December, I hope this message finds you in good spirits and ready to embrace the final month of the year. It's hard to believe we're already gearing up for the last tournament of 2025! This year has been both quiet and exhilarating, particularly with the transition we've experienced within the board. I would like to take this opportunity to express my heartfelt gratitude to all the board members for their hard work, dedication, and commitment. A special thanks goes out to those who will be continuing their roles into 2026—you are truly appreciated!</p>
+                        <p>Reflecting on the year, we've certainly experienced our share of peaks and valleys. From exciting tournaments to new initiatives, there's been a lot to celebrate. While we faced challenges—including the unfortunate cancellation of last month's tournament due to inclement weather, I firmly believe such obstacles only set the stage for an even more rewarding year ahead. For everyone who signed up for that November tournament, your entry fees will be seamlessly carried over to the January tournament, so there's no need to worry! Thank you for your understanding and continued support.</p>
+                        <p>As we look ahead, I want to remind everyone that the deadline to sign up for our much-anticipated Christmas tournament is December 3rd. Following the sign-up, we will have our tournament tee assignment party on December 10th, where we can finalize the details and share in the camaraderie that makes our club so special. Mark your calendars, as this occasion will not only feature our meeting but also a holiday party filled with festive food and enjoyable company.</p>
+                        <p>Additionally, on December 14th, we will host our final tournament of the year. This event is designed to be more than just a competition; it will include a delightful luncheon, exciting giveaways, and the presentation of trophies to celebrate our achievements throughout the year. It's an excellent opportunity to reflect on the bonds we've created and the challenges we've overcome together on the course.</p>
+                        <p>I also want to take a moment to recognize our most improved golfers for this year, showcasing the talent and dedication within our ranks:</p>
+                        <ul>
+                            <li>First Quarter: Leo Corrales</li>
+                            <li>Second Quarter: Colin Holmes</li>
+                            <li>Third Quarter: Jeff Mort</li>
+                        </ul>
+                        <p>Stay tuned for the announcement of the most improved golfer for the fourth quarter, along with the overall most improved golfer of the year, which will be featured in January's president's letter. It's always inspiring to see the growth among our members!</p>
+                        <p>Looking ahead, I want to assure everyone that we are diligently working on finalizing next year's tournament schedule. We aim to have it available on our website as soon as possible, which will allow everyone ample time to plan and decide on the tournaments they would like to participate in. Your participation in those tournaments has been invaluable, and I hope you had as much fun competing as we did organize the events.</p>
+                        <p>In closing, I want to express my sincerest gratitude to each and every one of you for making this year a memorable one. Your enthusiasm, sportsmanship, and camaraderie have truly brought the Skylinks Men's Club to life. I am excited to see you all out on the course for the final tournament and the festivities surrounding it.</p>
+                        <p>Wishing you all a wonderful holiday season filled with joy and laughter!</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">President, Skylinks Men's Golf Club</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+
+            <!-- November 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – November 2025</strong></h2>
+                        <p>Happy November, everyone!</p>
+                        <p>As we step into this exciting month, it's incredible to think that we have only two months left until the end of the year. November brings with it a sense of anticipation, and for many of us, it's a time filled with family, gratitude, and, of course, golf!</p>
+                        <p>One of my favorite events, the Turkey Shootout, is just around the corner, set to take place on November 15. This tournament not only promises a day of fun and friendly competition, but it's also a wonderful opportunity to come together as a community and enjoy our love of golf. A quick reminder for all participants: the deadline to sign up is November 4, so please make sure you secure your spot before it's too late!</p>
+                        <p>In addition to our tournament, I want to remind everyone about our upcoming general meeting scheduled for November 13th at 6 PM, which will be held at the Skylinks Café. This meeting is crucial for all active members, as we will be holding elections for the new board for 2026. Your voice matters, and I sincerely invite everyone to join us. It's a great opportunity for you to express your opinions, ask questions, and gain a better understanding of how our club operates. Plus, as a little incentive, we'll be raffling off a $25 gift card to the pro shop, so don't miss out on that chance!</p>
+                        <p>As we enter this season of gratitude, I would like to extend my warmest wishes to all board members and members of the Skylinks Golf Club. I hope you all have a joyful and fulfilling Thanksgiving, surrounded by family and friends. Let's make this month a memorable one, both on and off the course.</p>
+                        <p>Looking forward to seeing you all at the meeting and on the greens!</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">President<br>Skylinks Golf Club</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+
+            <!-- October 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – October 2025</strong></h2>
+                        <p>Dear Skylink Men's Club Members,</p>
+                        <p>As the crisp air of October settles in, we find ourselves reflecting on the successes and camaraderie we have shared throughout the year. With just a few tournaments left before our much-anticipated Christmas tournament, there are exciting times ahead. This holiday season, we have planned an array of fantastic prizes to give to our members—a heartfelt gesture to express our gratitude for your continued support and participation.</p>
+                        <p>First and foremost, let's take a moment to honor our flight winners from the September tournament. Their skill and dedication shone brightly in their respective categories, and we applaud their accomplishments:</p>
+                        <ul>
+                            <li>Flight A: Rudolph Gamarnik & Dan Valdes</li>
+                            <li>Flight B: Gary Rowe & Bryan Rowe</li>
+                            <li>Flight C: Joshua Myers & Alvaro Rubalcaba</li>
+                        </ul>
+                        <p>Congratulations to each of you! Your hard work and passion for the game continue to inspire all of us within the club.</p>
+                        <p>As we transition into October, it's also time to prepare for our upcoming elections next month. These elections are a crucial opportunity for you, the members, to have a say in the direction and leadership of our club. Below are the current positions on the board along with the individuals currently filling them:</p>
+                        <ul>
+                            <li>President: Ted Lewandowski</li>
+                            <li>Vice President: Sean Sochecki</li>
+                            <li>Treasurer: Troy Ward</li>
+                            <li>Secretary: Sean Williams</li>
+                            <li>Tournament Director: Kevin Ryan</li>
+                            <li>Away Tournament Director: Neo Aoga</li>
+                            <li>Handicap Chairman: Sean Getz</li>
+                            <li>Medium Director: Ramon Aldana</li>
+                            <li>Social Media Director: Trevor King</li>
+                            <li>Membership Director: Open</li>
+                        </ul>
+                        <p>If you have ever considered taking on a more active role or feel inspired to contribute your ideas, we encourage you to consider running for a position on the board. Your voice matters, and participation in leadership roles is what keeps our club thriving. Please email us to express your interest in the position you would like to run for. We will announce the details of the General Meeting soon, where all members will have the opportunity to vote and have their say in our leadership.</p>
+                        <p>Additionally, I want to remind everyone about the upcoming tournament scheduled for October 18. This is a wonderful opportunity not only to showcase your skills and compete, but also to connect with fellow members and enjoy the camaraderie that makes Skylink Men's Club so special. Please make sure to sign up early to secure your spot!</p>
+                        <p>Thank you once again to each one of you for your commitment to making Skylink Men's Club the best in Long Beach. It's your passion and participation that enriches our community and elevate our experience as golfers and friends.</p>
+                        <p>Looking forward to seeing everyone on the course and at our upcoming elections!</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">President<br>Skylink Men's Club</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+
+            <!-- September 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – September 2025</strong></h2>
+                        <p>Hello everyone,</p>
+                        <p>Happy September! I hope August treated you all well. We had an exciting club championship tournament with fantastic scores and impressive play. A big congratulations to our winners:</p>
+                        <ul>
+                            <li>Overall Gross Winner: Ted Shankle</li>
+                            <li>Overall Net Winner: Trevor King</li>
+                            <li>A Flight Winner: James Snider</li>
+                            <li>B Flight Winner: David Curiel</li>
+                            <li>C Flight Winner: Jamie Beltran</li>
+                            <li>D Flight Winner: Ted Lewandowski</li>
+                        </ul>
+                        <p>Thank you to everyone who participated! Your enthusiasm makes our tournaments truly special.</p>
+                        <p>Looking ahead, our next tournament is the Heritage Cup, featuring a team play format. Please ensure your teams are signed up by September 9 at midnight.</p>
+                        <p>Thank you to all who signed up for the away tournament at Santa Anita Golf Course in Arcadia. The details for our next away tournament are still to be determined. If you have any recommendations, please feel free to reach out via email or join us at the general meeting on the Thursday before the monthly tournament to share your thoughts.</p>
+                        <p>Additionally, we are considering organizing a travel tournament to Las Vegas for the end of July or the beginning of August. We'd love to know if this is something the club would support!</p>
+                        <p>Thank you all, and here's to a wonderful September!</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">President, Skylinks Men's Club</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+
+            <!-- August 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – August 2025</strong></h2>
+                        <p>Dear Skylinks Men's Club Members,</p>
+                        <p>I hope this message finds you all well and enjoying your time on the course. As we look ahead to the remainder of our golfing season, I wanted to take a moment to highlight some exciting upcoming events and celebrate some fantastic performances from our members.</p>
+                        <p>First and foremost, mark your calendars for our Club Championship Tournament taking place on August 16-17! This is a premier event on our schedule, and I encourage all eligible members to participate. It's a great opportunity to showcase your skills and compete for the title. Let's all come together for what promises to be a thrilling weekend filled with camaraderie and great golf.</p>
+                        <p>Additionally, we have our Away Tournament scheduled for September 6 at the Santa Anita Golf Course. I look forward to seeing many of you take part in this exciting event! It is always a pleasure to explore new courses and enjoy the company of fellow members.</p>
+                        <p>I would also like to extend a hearty congratulations to our recent tournament winners:</p>
+                        <p>Net A Flight Winners:</p>
+                        <ul>
+                            <li>Alex Reuss & Lester Perry</li>
+                        </ul>
+                        <p>Net B Flight Winners:</p>
+                        <ul>
+                            <li>Brad Kaiser & Michael Boggs</li>
+                        </ul>
+                        <p>Net C Flight Winners:</p>
+                        <ul>
+                            <li>Kevin Ashworth & Rick Green</li>
+                        </ul>
+                        <p>Gross A Flight Winners:</p>
+                        <ul>
+                            <li>Kevin Ryan & Todd Carcelero</li>
+                        </ul>
+                        <p>Gross B Flight Winners:</p>
+                        <ul>
+                            <li>Jamon Gurnick & Mark Pollard</li>
+                        </ul>
+                        <p>Gross C Flight Winners:</p>
+                        <ul>
+                            <li>Robert Griggs & Michael Letender</li>
+                        </ul>
+                        <p>Your hard work and dedication to the game have truly paid off, and you have made us all proud. Well done!</p>
+                        <p>I would also like to take a moment to welcome our newest members to the Skylinks family: Jeremy Jones, Kenny Tsuji, John Ingwersen, Charle Wicker, and Junior Fasavalu. We're excited to have you join our club and look forward to seeing you on the course. Please feel free to reach out to any of us if you have questions or need assistance as you settle in.</p>
+                        <p>Thank you all for being part of Skylinks Men's Club. Let's continue to support each other, enjoy the game we love, and make wonderful memories together!</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">President, Skylinks Men's Club</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+
+            <!-- July 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – July 2025</strong></h2>
+                        <p>Dear Members,</p>
+                        <p>Welcome to July! It's hard to believe how quickly this year has flown by. As we embrace the summer season, I hope you're all gearing up for a fantastic Fourth of July weekend filled with joy, laughter, and cherished moments. Whether you're hosting a festive barbecue, spending time with family, or hitting the links with friends, let's celebrate our independence and make the most of this time together.</p>
+                        <p>I want to take a moment to express my heartfelt gratitude to everyone who participated in June's tournament. We had an incredible turnout, showcasing impressive skills on the course and the camaraderie that makes our club truly special. The Big Game was a highlight, and I appreciate your sportsmanship and spirited involvement.</p>
+                        
+                        <h3>Upcoming Events</h3>
+                        <p>As we look forward, we have some exciting events lined up for July that you won't want to miss:</p>
+                        <p><strong>Member-Guest Tournament:</strong></p>
+                        <p>Time is running out! Sign-ups for our highly anticipated Member-Guest Tournament will close on July 8 at midnight. This is one of our premier events of the year, and it draws participants from across the club. If you haven't registered with your guest yet, make sure you do so to be part of this fantastic experience. It's a wonderful opportunity to showcase your skills and strengthen bonds with friends or family.</p>
+                        <p><strong>Mayor's Cup:</strong></p>
+                        <p>We are now officially in the Elite Eight of the Mayor's Cup! The competition is heating up as we approach the final stages. Whether you're playing or cheering from the sidelines, I encourage you to come out and support your fellow members. The atmosphere promises to be exhilarating, and your support makes a significant difference—let's create unforgettable memories together!</p>
+                        
+                        <p>I'd also like to extend my congratulations to a few of our lucky members:</p>
+                        <ul>
+                            <li>Kevin Hoodward won a $25 American Golf gift card just for attending last month's general meeting!</li>
+                            <li>Richard Fernandez has once again proven his luck by winning the 50/50 drawing—congratulations, Richard!</li>
+                            <li>Although we faced a scheduling conflict at Skylinks in June that led to the cancellation of the skins game, I'm excited to announce that we're back on track this July! Stay tuned for further details.</li>
+                        </ul>
+                        
+                        <h3>Join Us!</h3>
+                        <p>I would love to see you at our next general meeting, scheduled for the Thursday before the tournament at 6 PM at the Skylinks Café. This is a great opportunity for all members to gather, share ideas, and foster a sense of community.</p>
+                        <p>By attending the meeting, you will enjoy some exciting benefits:</p>
+                        <ul>
+                            <li>You'll be entered to win a $25 gift card, our way of thanking you for your participation.</li>
+                            <li>Plus, attending will secure you preferential tee times for the next month's tournament—who wouldn't want to kick off their tournament experience on a winning note?</li>
+                        </ul>
+                        
+                        <p>Additionally, I'd like to extend a warm welcome to the new members who joined our club in May and June:</p>
+                        <ul>
+                            <li>Allen Hessler</li>
+                            <li>Chris Henderson</li>
+                            <li>Dean Abatayo</li>
+                            <li>Jimmy Benitez</li>
+                            <li>Easton Karsman</li>
+                            <li>Patrick Coniglio</li>
+                            <li>Brendan Loftus</li>
+                            <li>Matt Ross</li>
+                            <li>Marshal Goodman</li>
+                        </ul>
+                        
+                        <p>Thank you for joining, and I hope your experience with us is everything you hoped for and more!</p>
+                        <p>Thank you all for embodying the spirit of our club and for your ongoing support. Together, let's make July a truly memorable month both on and off the course.</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">President</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+
+            <!-- June 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – June 2025</strong></h2>
+                        <p>Welcome to June, everyone!</p>
+                        <p>I hope you all had a fantastic Memorial Day weekend! With June here, many of us are gearing up to celebrate graduations and Father's Day. I imagine a lot of us will be firing up the barbecue for some delicious home-cooked meals this holiday.</p>
+                        <p>Last month, we enjoyed two great tournaments with some incredible outcomes and generous payouts for participants. We're now in the second and third rounds of the Mayor's Cup tournament, and I hope everyone involved is having a blast!</p>
+                        <p>Just a reminder: we have our general board meeting on the third Thursday of this month. It's a great opportunity to discuss general club business. Plus, if you attend, you could win a $25 gift card from American Golf and secure preferential tee times for the next tournament. Also, I'd like to kindly remind everyone to use full names when signing your group up for tournaments, rather than nicknames (e.g., please write John Clark instead of JC). It can get a bit confusing, as we don't always recognize everyone's nicknames.</p>
+                        <p>Looking ahead, the Saturday following our general meeting will feature another exciting tournament—The Big Game. Additionally, I want to remind everyone about the fantastic benefits of purchasing a range key as a member of the men's club. Not only will you receive a dollar-for-dollar match on your investment, but you'll also enjoy a generous 20% discount on apparel in the pro shop!</p>
+                        <p>We're also in the process of enhancing our website by adding tabs specifically for the club, including a section for the President's monthly letter and one for the general club meeting minutes. This will help keep everyone informed about club activities and updates.</p>
+                        <p>Thank you all for your continued support, and I look forward to seeing everyone out on the course!</p>
+                        <p>Wishing everyone a fantastic June, and remember, fairways and greens, everyone!</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">Skylinks Men's Club President</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+
+            <!-- May 2025 -->
+            <div class="letter-grid">
+                <div class="letter-text-container">                        
+                    <div class="letter-content">
+                        <h2><strong>President's Letter – May 2025</strong></h2>
+                        <p>Welcome to May!</p>
+                        <p>As we step into the month of May, it's a great opportunity to reflect on how the first four months of this year have flown by. Time seems to have passed quickly, and as we look back, I want to express my heartfelt appreciation to everyone in the club for your continued support, patience, and understanding as we have transitioned from the old board to the new board. Your engagement and positive attitudes have made this process much smoother, and it truly embodies the spirit of our community.</p>
+                        <p>I'd like to take a moment to recognize the hard work and dedication of the new board members. Each of you has committed your valuable time and effort over these past few months, and I am grateful for the incredible job you've done. The level of commitment you've shown has likely exceeded what we all anticipated at the outset. With the successful completion of our first four tournaments, we've created a strong foundation for the rest of the year, and I'm excited about what's ahead!</p>
+                        <p>I'm thrilled to announce that the club has awarded over 15,000 points to our members thus far. This number is bound to grow as we continue to host more tournaments and engage more participants throughout the year. These points contribute to enhancing the competitive spirit within our club and are a testament to the enthusiasm of our members. I would like to emphasize that this impressive total does not even account for the contributions from our ongoing 50-50 raffle.</p>
+                        <p>Now, let's take a moment to celebrate our tournament winners! I want to extend my congratulations to all those who participated in our tournaments this year. Your participation not only enhances the competition but also strengthens the camaraderie among us. Thank you all for upholding the values of the club – sportsmanship, respect, and enjoyment of the game – which truly embody our mission.</p>
+                        <p>We have seen some thrilling tournaments unfold this year. We kicked things off in January with the Kickoff Tournament, which sparked a great deal of enthusiasm amongst the members. The Past Presidents Tournament followed, and it was fantastic to hear so much positive feedback about it. A special thank you goes out to those who helped organize this event, ensuring everything goes smoothly.</p>
+                        <p>We also introduced a new format with the 4-Man Memorial Tournament, which added a refreshing twist to our competitive line-up. I had the pleasure of participating in this event last month, and I can confidently say it was a lot of fun for everyone involved!</p>
+                        <p>As we move forward, I would like to highlight the Mayor's Cup Match Play Qualifier. Congratulations to all 64 players advancing to the next round! I encourage you to enjoy this unique format, embrace the competition, and best of luck to each of you. I'm eager to hear about the exciting matches and stories that emerge from this tournament. The camaraderie and friendly rivalries that develop during match play are what truly make these events special.</p>
+                        <p>I also want to extend a heartfelt thank you to everyone who volunteered their time to participate in the Quad Tournament held in mid-April. Despite facing less-than-ideal weather conditions, your commitment to the game was nothing short of inspiring. It takes great resilience and passion to compete under those circumstances, and you all demonstrate an unwavering spirit. Although we fell short in the competition, I am optimistic about our chances next year, and I know we can come back even stronger!</p>
+                        <p>Finally, I would like to reiterate my appreciation to all club members and the executive board for your incredible dedication and support. Your efforts play a significant role in making our club an enjoyable and enriching environment for all members. I look forward to seeing you out on the golf course soon, sharing stories and experiences as we continue this wonderful season together.</p>
+                        <p>As we move forward, I encourage everyone to engage in our upcoming activities. Additionally, I'm excited to remind everyone about our new initiative: any member who attends our meetings will receive a chance to win a $25 gift card as a token of our appreciation for your involvement. It's our way of saying thank you for your commitment to the club.</p>
+                        <p>Here's to a great May ahead and many exciting tournaments to come!</p>
+                        
+                        <div class="signature">
+                            <div class="signature-name">Ted Lewandowski</div>
+                            <div class="signature-role">Skylinks Men's Club President</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="letter-image-container">
+                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
+                         alt="Ted Lewandowski - President of Skylinks Men's Golf Club" 
+                         class="letter-image"
+                         loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+    <!-- FOOTER INJECTION -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="/js/menu.js"></script>
+
+    <script>
+        // Load header + footer on page
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("header-placeholder").innerHTML = html;
+                if (typeof initMenu === 'function') {
+                    initMenu();
+                }
+            });
+
+        fetch("/footer.html")
+            .then(res => res.text())
+            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+    </script>
+
+</body>
+</html>
