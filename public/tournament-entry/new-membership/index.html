@@ -268,7 +268,7 @@
                             </div>
                             
                             <div class="sqs-add-to-cart-button-wrapper" data-animation-role="button" style="visibility: visible;">
-                                <button id="open-product-modal" class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
+                                <button id="open-member-modal" class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
                                     <div class="sqs-add-to-cart-button-inner">
                                         <span class="add-to-cart-text">Add To Cart</span>
                                         <span class="cart-loader"></span>
@@ -284,7 +284,7 @@
     </section>
 
     <!-- Modal placeholder - will be populated by JavaScript -->
-    <div id="product-modal-placeholder"></div>
+    <div id="member-modal-placeholder"></div>
 
     <!-- FOOTER INJECTION -->
     <div id="footer-placeholder"></div>
@@ -309,13 +309,13 @@
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
         // Load product modal
-        fetch("/tournament-entry/product-modal.html")
+        fetch("/tournament-entry/member-modal.html")
             .then(res => {
                 if (!res.ok) throw new Error('Modal not found');
                 return res.text();
             })
             .then(html => {
-                document.getElementById("product-modal-placeholder").innerHTML = html;
+                document.getElementById("member-modal-placeholder").innerHTML = html;
                 // Re-initialize product modal after loading
                 if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.init === 'function') {
                     window.ProductModal.init();
@@ -325,24 +325,24 @@
                 console.warn('Product modal could not be loaded:', error);
                 // Simple fallback modal
                 const fallbackModal = `
-                    <div class="product-modal-backdrop" id="product-modal-backdrop" aria-hidden="true">
-                        <div class="product-modal" role="dialog" aria-modal="true">
+                    <div class="member-modal-backdrop" id="member-modal-backdrop" aria-hidden="true">
+                        <div class="member-modal" role="dialog" aria-modal="true">
                             <h3>Membership Details</h3>
                             <p>Modal could not be loaded. Please refresh the page.</p>
                             <div class="actions">
-                                <button id="product-modal-cancel" class="btn ghost">Close</button>
+                                <button id="member-modal-cancel" class="btn ghost">Close</button>
                             </div>
                         </div>
                     </div>
                     <style>
-                        .product-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:2000; }
-                        .product-modal-backdrop.active { display:flex; }
-                        .product-modal { background:#fff; padding:30px; border-radius:8px; max-width:400px; }
+                        .member-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:2000; }
+                        .member-modal-backdrop.active { display:flex; }
+                        .member-modal { background:#fff; padding:30px; border-radius:8px; max-width:400px; }
                         .btn { padding:10px 20px; border-radius:28px; cursor:pointer; }
                         .btn.ghost { background:transparent; border:1px solid #ddd; }
                     </style>
                 `;
-                document.getElementById("product-modal-placeholder").innerHTML = fallbackModal;
+                document.getElementById("member-modal-placeholder").innerHTML = fallbackModal;
             });
     </script>
 </body>

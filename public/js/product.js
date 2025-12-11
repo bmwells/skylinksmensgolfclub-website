@@ -47,10 +47,10 @@
     
     function getModalElements() {
         return {
-            openBtn: document.getElementById('open-product-modal'),
-            backdrop: document.getElementById('product-modal-backdrop'),
-            cancelBtn: document.getElementById('product-modal-cancel'),
-            saveBtn: document.getElementById('product-modal-save')
+            openBtn: document.getElementById('open-member-modal'),
+            backdrop: document.getElementById('member-modal-backdrop'),
+            cancelBtn: document.getElementById('member-modal-cancel'),
+            saveBtn: document.getElementById('member-modal-save')
         };
     }
     
