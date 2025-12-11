@@ -149,7 +149,7 @@
 
     @media (max-width: 768px) {
     .product-image-container {
-        padding: 20px 0;
+        padding: 60px 0;
         width: 100%;
         position: relative;
         display: flex;
@@ -195,4 +195,77 @@
         max-width: 100%;
         padding: 14px 30px;
     }
+    }
+
+    .back-to-tournaments {
+        position: absolute;
+        top: 90px;
+        left: 20px;
+    }
+    
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 25px 25px;
+        background-color: transparent;
+        border: transparent;
+        border-radius: 30px;
+        color:black;
+        transition: all 0.3s ease;
+    }
+    
+    .back-button:hover {
+        transform: translateY(-2px);
+    }
+    
+    .back-button svg {
+        transition: transform 0.3s ease;
+        stroke: black;
+    }
+    
+    .back-button:hover svg {
+        transform: translateX(-4px);
+    }
+    
+    /* Ensure it doesn't overlap with header on mobile */
+    @media (max-width: 768px) {
+        .back-to-tournaments {
+            top: 85px;
+            left: 5px;
+            z-index: 9998;
+        }
+        
+        .back-button {
+            padding: 20px 20px;
+            font-size: 14px;
+        }
+        
+        .back-button svg {
+            width: 30px;
+            height: 30px;
+        }
+    }
+    
+    /* Extra small screens */
+    @media (max-width: 480px) {
+        .back-to-tournaments {
+            top: 10px;
+            left: 10px;
+        }
+        
+        .back-button {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+        
+        .back-button span {
+            display: none; /* Hide text on very small screens */
+        }
+        
+        .back-button svg {
+            margin-right: 0;
+            width: 24px;
+            height: 24px;
+        }
     }
