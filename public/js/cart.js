@@ -108,33 +108,11 @@ function renderCart() {
     desc.appendChild(titleDiv);
     desc.appendChild(editDetailsBtn);
 
-    /* Quantity selector */
-    const qtyWrap = document.createElement("div");
-    qtyWrap.className = "cart-row-qty sqs-cart-qty";
-
-    const dec = document.createElement("button");
-    dec.className = "cart-btn dec-btn";
-    dec.textContent = "-";
-
-    const qty = document.createElement("input");
-    qty.className = "qty-input";
-    qty.type = "number";
-    qty.min = "1";
-    qty.value = item.quantity;
-
-    const inc = document.createElement("button");
-    inc.className = "cart-btn inc-btn";
-    inc.textContent = "+";
-
-    qtyWrap.appendChild(dec);
-    qtyWrap.appendChild(qty);
-    qtyWrap.appendChild(inc);
-
     /* Price */
     const price = document.createElement("div");
     price.className = "cart-row-price sqs-cart-price";
-    price.textContent = `$${(item.price * item.quantity).toFixed(2)}`;
-    subtotal += item.price * item.quantity;
+    price.textContent = `$${item.price.toFixed(2)}`;
+    subtotal += item.price;
 
     /* Actions (remove only - edit button removed from here) */
     const actions = document.createElement("div");
@@ -149,35 +127,10 @@ function renderCart() {
     /* Build row */
     row.appendChild(imgWrap);
     row.appendChild(desc);
-    row.appendChild(qtyWrap);
     row.appendChild(price);
     row.appendChild(actions);
 
     rows.appendChild(row);
-
-    /* ======================================================
-       Quantity Handlers
-       ====================================================== */
-    dec.addEventListener("click", () => {
-      const newQty = Math.max(1, parseInt(qty.value) - 1);
-      qty.value = newQty;
-      updateCartItem(item.id, { quantity: newQty });
-      renderCart();
-    });
-
-    inc.addEventListener("click", () => {
-      const newQty = parseInt(qty.value) + 1;
-      qty.value = newQty;
-      updateCartItem(item.id, { quantity: newQty });
-      renderCart();
-    });
-
-    qty.addEventListener("change", () => {
-      const newQty = Math.max(1, parseInt(qty.value));
-      qty.value = newQty;
-      updateCartItem(item.id, { quantity: newQty });
-      renderCart();
-    });
 
     /* ======================================================
        Remove Handler
@@ -267,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
       items: cart.map(item => ({
         name: item.name,
         amount: Math.round(item.price * 100),
-        quantity: item.quantity,
+        quantity: 1, // Always quantity of 1 since each row is one item
         metadata: item.form || {}
       }))
     };
