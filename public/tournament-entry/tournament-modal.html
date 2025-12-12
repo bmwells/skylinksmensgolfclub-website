@@ -8,7 +8,12 @@
         <div class="row">
             <div class="col">
                 <label for="modal-name">Name *</label>
-                <input id="modal-name" placeholder="" required />
+                <div class="input-wrapper">
+                    <input id="modal-name" placeholder="Start typing name..." required />
+                    <div class="loading-spinner" id="name-loading" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -18,14 +23,14 @@
                 <input id="modal-email" type="email" placeholder="" required />
             </div>
             <div class="col">
-                <label for="modal-phone">Phone *</label>
+                <label for="modal-phone">Phone</label>
                 <input id="modal-phone" placeholder="" />
             </div>
         </div>
 
          <div class="row">
             <div class="col">
-                <label for="modal-ghin">GHIN Number *</label>
+                <label for="modal-ghin">GHIN # *</label>
                 <input id="modal-ghin" placeholder="" />
             </div>
         </div>
@@ -91,7 +96,7 @@
         padding: 12px 15px;
         border: 1px solid #ddd;
         border-radius: 6px;
-        margin-bottom: 20px;
+        margin-bottom: 5px;
         box-sizing: border-box;
         font-size: 1rem;
         transition: border-color 0.2s, box-shadow 0.2s;
@@ -117,6 +122,96 @@
     
     .member-modal .row .col {
         flex: 1;
+        position: relative;
+    }
+    
+    /* Input wrapper for loading spinner */
+    .input-wrapper {
+        position: relative;
+    }
+    
+    .loading-spinner {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #000;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    /* Autocomplete styles */
+    .autocomplete-container {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 10000;
+        display: none;
+        width: 100%;
+        margin-top: 2px;
+        animation: fadeInDown 0.2s ease-out;
+    }
+    
+    .autocomplete-item {
+        padding: 12px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #f5f5f5;
+        transition: background-color 0.2s;
+        font-size: 0.95rem;
+    }
+    
+    .autocomplete-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    
+    .autocomplete-item .name {
+        font-weight: 500;
+        color: #000;
+        margin-bottom: 3px;
+    }
+    
+    .autocomplete-item .details {
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .autocomplete-item .ghin-badge {
+        display: inline-block;
+        background: #f0f0f0;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+    }
+    
+    .no-results {
+        color: #666;
+        font-style: italic;
+        padding: 12px 15px;
+        text-align: center;
+    }
+    
+    /* Input hint text */
+    .input-hint {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 5px;
+        margin-bottom: 15px;
+        font-style: italic;
     }
     
     .member-modal .modal-footer {
@@ -187,6 +282,22 @@
         }
     }
     
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
     /* Responsive styles for modal */
     @media (max-width: 768px) {
         .member-modal {
@@ -207,6 +318,13 @@
         .member-modal h3 {
             font-size: 1.3rem;
         }
+        
+        .autocomplete-container {
+            position: fixed;
+            width: calc(100% - 40px);
+            left: 20px !important;
+            max-width: calc(100vw - 40px);
+        }
     }
     
     @media (max-width: 480px) {
@@ -220,6 +338,13 @@
         
         .btn {
             width: 100%;
+        }
+        
+        .autocomplete-container {
+            position: fixed;
+            width: calc(100% - 30px);
+            left: 15px !important;
+            max-width: calc(100vw - 30px);
         }
     }
 </style>
