@@ -4,13 +4,13 @@
 
 <div class="member-modal-backdrop" id="member-modal-backdrop" aria-hidden="true">
     <div class="member-modal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
-        <h3 id="member-modal-title" style="margin-top:0;">Membership Details</h3>
+        <h3 id="member-modal-title" style="margin-top:0;">Tournament Entry</h3>
         
         <div class="row">
             <div class="col">
                 <label for="modal-name">Name *</label>
                 <div class="input-wrapper">
-                    <input id="modal-name" placeholder="Start typing name..." required 
+                    <input id="modal-name" placeholder="Start typing name..." required autocomplete="off"  
                            pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]+$"
                            title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
                     <div class="loading-spinner" id="name-loading" style="display: none;">
@@ -27,7 +27,7 @@
             </div>
             <div class="col">
                 <label for="modal-phone">Phone</label>
-                <input id="modal-phone" placeholder="" 
+                <input id="modal-phone" placeholder="" required
                        maxlength="14"
                        title="10-digit phone number" />
             </div>
@@ -36,7 +36,7 @@
         <div class="row">
             <div class="col">
                 <label for="modal-ghin">GHIN # *</label>
-                <input id="modal-ghin" placeholder="" 
+                <input id="modal-ghin" placeholder=""  required
                        maxlength="8"
                        pattern="\d{1,8}"
                        title="Up to 8-digit GHIN number" />

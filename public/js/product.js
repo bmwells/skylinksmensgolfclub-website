@@ -14,6 +14,12 @@
             name: 'Membership Renewal',
             price: 89.00,
             image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG?format=1500w',
+        },
+        'monthly-tournament': {
+            id: 'monthly-tournament',
+            name: 'Monthly Tournament',
+            price: 90.00,
+            image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg?format=1500w',
         }
     };
 
@@ -242,6 +248,7 @@
             .join(' ');
 
         return {
+            id: currentProduct.id,
             name: currentProduct.name,
             price: currentProduct.price,
             image: currentProduct.image,
