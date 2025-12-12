@@ -96,15 +96,34 @@ class MemberAutocomplete {
         this.nameInput.value = `${m.firstName} ${m.lastName}`;
         this.emailInput.value = m.email || '';
 
-        // Use proper regex to clean phone number
+        // Format phone number using the same formatting function
         const cleanPhone = m.phoneNum
             ? String(m.phoneNum).replace(/\D/g, '')  // Remove all non-digit characters
             : '';
-
-        this.phoneInput.value = cleanPhone;
+        
+        // Apply phone formatting
+        this.phoneInput.value = this.formatPhoneNumber(cleanPhone);
+        
         this.ghinInput.value = m.ghin || '';
 
         this.hide();
+    }
+
+    // Phone number formatting function (same as in product.js)
+    formatPhoneNumber(value) {
+        const numbers = value.replace(/\D/g, '');
+        
+        if (numbers.length === 0) return '';
+        
+        if (numbers.length <= 3) {
+            return `(${numbers}`;
+        }
+        
+        if (numbers.length <= 6) {
+            return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
+        }
+        
+        return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
     }
 
     hide() {
