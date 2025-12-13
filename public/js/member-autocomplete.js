@@ -1,115 +1,163 @@
 class MemberAutocomplete {
     constructor() {
         this.baseUrl = '/api';
-        this.debounceTimer = null;
-        this.autocompleteContainer = null;
+        this.debounceTimers = {};
+        this.autocompleteContainers = {};
+        this.currentActiveInput = null;
     }
 
     init() {
-        this.nameInput = document.getElementById('modal-name');
-        this.emailInput = document.getElementById('modal-email');
-        this.phoneInput = document.getElementById('modal-phone');
-        this.ghinInput = document.getElementById('modal-ghin');
-
-        if (!this.nameInput) return;
-
-        this.autocompleteContainer = document.createElement('div');
-        this.autocompleteContainer.className = 'autocomplete-container';
-        this.autocompleteContainer.style.position = 'fixed';
-        this.autocompleteContainer.style.display = 'none';
-        this.autocompleteContainer.style.zIndex = '999999';
-        document.body.appendChild(this.autocompleteContainer);
-
-        this.bindEvents();
+        // Initialize autocomplete for all name inputs (player 1-4)
+        for (let i = 1; i <= 4; i++) {
+            const nameInput = document.getElementById(`modal-name${i}`);
+            if (nameInput) {
+                this.setupAutocompleteForInput(`modal-name${i}`, i);
+            }
+        }
+        
+        // Also set up for modal-name (player 1) if it exists
+        const player1Input = document.getElementById('modal-name');
+        if (player1Input && !document.getElementById('modal-name1')) {
+            this.setupAutocompleteForInput('modal-name', 1);
+        }
     }
 
-    bindEvents() {
-        this.nameInput.addEventListener('input', () => {
-            const val = this.nameInput.value.trim();
-            clearTimeout(this.debounceTimer);
+    setupAutocompleteForInput(inputId, playerNumber) {
+        const nameInput = document.getElementById(inputId);
+        if (!nameInput) return;
+
+        // Create autocomplete container for this input
+        const container = document.createElement('div');
+        container.className = 'autocomplete-container';
+        container.id = `autocomplete-${inputId}`;
+        container.style.position = 'fixed';
+        container.style.display = 'none';
+        container.style.zIndex = '999999';
+        document.body.appendChild(container);
+
+        this.autocompleteContainers[inputId] = container;
+
+        // Get corresponding form fields for this player
+        const getPlayerField = (fieldName) => {
+            if (playerNumber === 1 && inputId === 'modal-name') {
+                return document.getElementById(`modal-${fieldName}`);
+            }
+            return document.getElementById(`modal-${fieldName}${playerNumber}`);
+        };
+
+        nameInput.addEventListener('input', () => {
+            const val = nameInput.value.trim();
+            clearTimeout(this.debounceTimers[inputId]);
 
             if (val.length < 3) {
-                this.hide();
+                this.hide(inputId);
                 return;
             }
 
-            this.debounceTimer = setTimeout(() => {
-                this.search(val);
+            this.debounceTimers[inputId] = setTimeout(() => {
+                this.currentActiveInput = inputId;
+                this.search(val, inputId, getPlayerField);
             }, 250);
         });
 
-        document.addEventListener('click', e => {
-            if (
-                !this.autocompleteContainer.contains(e.target) &&
-                e.target !== this.nameInput
-            ) {
-                this.hide();
-            }
+        nameInput.addEventListener('focus', () => {
+            this.currentActiveInput = inputId;
+        });
+
+        nameInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (this.currentActiveInput === inputId) {
+                    this.hide(inputId);
+                }
+            }, 200);
         });
     }
 
-    async search(query) {
+    async search(query, inputId, getPlayerField) {
         try {
             const res = await fetch(
                 `${this.baseUrl}/members/search?q=${encodeURIComponent(query)}`
             );
             const members = await res.json();
-            this.render(members);
+            this.render(members, inputId, getPlayerField);
         } catch {
-            this.hide();
+            this.hide(inputId);
         }
     }
 
-    render(members) {
-        this.autocompleteContainer.innerHTML = '';
+    render(members, inputId, getPlayerField) {
+    const container = this.autocompleteContainers[inputId];
+    if (!container) return;
 
-        if (!members.length) {
-            this.autocompleteContainer.innerHTML =
-                `<div class="autocomplete-item">No results</div>`;
-        } else {
-            members.forEach(m => {
-                const row = document.createElement('div');
-                row.className = 'autocomplete-item';
+    container.innerHTML = '';
 
-                const fullName = `${m.firstName} ${m.lastName}`;
-                const ghin = m.ghin ? ` - ${m.ghin}` : '';
+    if (!members.length) {
+        container.innerHTML =
+            `<div class="no-results">No results found</div>`;
+    } else {
+        members.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'autocomplete-item';
 
-                row.textContent = `${fullName}${ghin}`;
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'name';
+            nameDiv.textContent = `${m.firstName} ${m.lastName}`;
 
-                row.onclick = () => this.select(m);
-                this.autocompleteContainer.appendChild(row);
-            });
+            // Add GHIN in parentheses
+            if (m.ghin) {
+                const ghinSpan = document.createElement('span');
+                ghinSpan.className = 'ghin-badge';
+                ghinSpan.textContent = `(${m.ghin})`;
+                nameDiv.appendChild(ghinSpan);
+            }
+
+            row.appendChild(nameDiv);
+
+            row.onclick = () => this.select(m, inputId, getPlayerField);
+            container.appendChild(row);
+        });
+    }
+
+    this.position(inputId);
+    container.style.display = 'block';
+}
+
+    position(inputId) {
+        const nameInput = document.getElementById(inputId);
+        if (!nameInput) return;
+
+        const container = this.autocompleteContainers[inputId];
+        if (!container) return;
+
+        const rect = nameInput.getBoundingClientRect();
+        container.style.top = `${rect.bottom + 4}px`;
+        container.style.left = `${rect.left}px`;
+        container.style.width = `${rect.width}px`;
+    }
+
+    select(member, inputId, getPlayerField) {
+        const nameInput = document.getElementById(inputId);
+        if (nameInput) {
+            nameInput.value = `${member.firstName} ${member.lastName}`;
         }
 
-        this.position();
-        this.autocompleteContainer.style.display = 'block';
-    }
+        // Fill corresponding form fields
+        const emailField = getPlayerField('email');
+        const phoneField = getPlayerField('phone');
+        const ghinField = getPlayerField('ghin');
 
-    position() {
-        const rect = this.nameInput.getBoundingClientRect();
-        this.autocompleteContainer.style.top = `${rect.bottom + 4}px`;
-        this.autocompleteContainer.style.left = `${rect.left}px`;
-        this.autocompleteContainer.style.width = `${rect.width}px`;
-    }
-
-    select(m) {
-        this.nameInput.value = `${m.firstName} ${m.lastName}`;
-        this.emailInput.value = m.email || '';
-
-        // Format phone number using the same formatting function
-        const cleanPhone = m.phoneNum
-            ? String(m.phoneNum).replace(/\D/g, '')  // Remove all non-digit characters
-            : '';
+        if (emailField) emailField.value = member.email || '';
         
-        // Apply phone formatting
-        this.phoneInput.value = this.formatPhoneNumber(cleanPhone);
+        if (phoneField && member.phoneNum) {
+            const cleanPhone = String(member.phoneNum).replace(/\D/g, '');
+            phoneField.value = this.formatPhoneNumber(cleanPhone);
+        }
         
-        this.ghinInput.value = m.ghin || '';
+        if (ghinField) ghinField.value = member.ghin || '';
 
-        this.hide();
+        this.hide(inputId);
     }
 
-    // Phone number formatting function (same as in product.js)
     formatPhoneNumber(value) {
         const numbers = value.replace(/\D/g, '');
         
@@ -126,8 +174,11 @@ class MemberAutocomplete {
         return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
     }
 
-    hide() {
-        this.autocompleteContainer.style.display = 'none';
+    hide(inputId) {
+        const container = this.autocompleteContainers[inputId];
+        if (container) {
+            container.style.display = 'none';
+        }
     }
 }
 

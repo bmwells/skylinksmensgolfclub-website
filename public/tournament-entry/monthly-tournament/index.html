@@ -100,33 +100,17 @@
             })
             .then(html => {
                 document.getElementById("member-modal-placeholder").innerHTML = html;
-                // Re-initialize product modal after loading
+                console.log('Tournament modal loaded');
+                
+                // Initialize product modal
                 if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.init === 'function') {
-                    window.ProductModal.init();
+                    setTimeout(() => {
+                        window.ProductModal.init();
+                    }, 500);
                 }
             })
             .catch(error => {
-                console.warn('Product modal could not be loaded:', error);
-                // Simple fallback modal
-                const fallbackModal = `
-                    <div class="member-modal-backdrop" id="member-modal-backdrop" aria-hidden="true">
-                        <div class="member-modal" role="dialog" aria-modal="true">
-                            <h3>Membership Details</h3>
-                            <p>Modal could not be loaded. Please refresh the page.</p>
-                            <div class="actions">
-                                <button id="member-modal-cancel" class="btn ghost">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                    <style>
-                        .member-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:2000; }
-                        .member-modal-backdrop.active { display:flex; }
-                        .member-modal { background:#fff; padding:30px; border-radius:8px; max-width:400px; }
-                        .btn { padding:10px 20px; border-radius:28px; cursor:pointer; }
-                        .btn.ghost { background:transparent; border:1px solid #ddd; }
-                    </style>
-                `;
-                document.getElementById("member-modal-placeholder").innerHTML = fallbackModal;
+                console.error('Product modal could not be loaded:', error);
             });
 
         // Add to cart functionality - always adds quantity of 1

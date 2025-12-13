@@ -1,54 +1,250 @@
 <!-- tournament-modal.html -->
 <!-- Modal for tournament entry details collection -->
- <link rel="stylesheet" href="/css/product.css" />
+<link rel="stylesheet" href="/css/product.css" />
 
 <div class="member-modal-backdrop" id="member-modal-backdrop" aria-hidden="true">
     <div class="member-modal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
-        <h3 id="member-modal-title" style="margin-top:0;">Tournament Entry</h3>
-        
-        <div class="row">
-            <div class="col">
-                <label for="modal-name">Name *</label>
-                <div class="input-wrapper">
-                    <input id="modal-name" placeholder="Start typing name..." required autocomplete="off"  
-                           pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]+$"
-                           title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
-                    <div class="loading-spinner" id="name-loading" style="display: none;">
-                        <div class="spinner"></div>
+        <!-- Step 1: Primary Player -->
+        <div id="step1-content">
+            <h3 id="member-modal-title" style="margin-top:0;">Tournament Entry - Player 1</h3>
+            
+            <div class="row">
+                <div class="col">
+                    <label for="modal-name">Name *</label>
+                    <div class="input-wrapper">
+                        <input id="modal-name" placeholder="Start typing name..." required autocomplete="off"  
+                               pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]+$"
+                               title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                        <div class="loading-spinner" id="name-loading" style="display: none;">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <label for="modal-email">Email *</label>
+                    <input id="modal-email" type="email" placeholder="" required />
+                </div>
+                <div class="col">
+                    <label for="modal-phone">Phone</label>
+                    <input id="modal-phone" placeholder="" required
+                           maxlength="14"
+                           title="10-digit phone number" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="modal-ghin">GHIN # *</label>
+                    <input id="modal-ghin" placeholder="" required
+                           maxlength="8"
+                           pattern="\d{1,8}"
+                           title="Up to 8-digit GHIN number" />
+                </div>
+            </div>
+            
+            <!-- Optional Add-ons for Primary Player -->
+            <div class="row">
+                <div class="col">
+                    <div class="addons-section">
+                        <h4 style="margin: 20px 0 10px 0; font-size: 1.1rem;">Optional Add-ons</h4>
+                        
+                        <div class="addon-option">
+                            <input type="checkbox" id="side-pots" name="side-pots" value="25">
+                            <label for="side-pots" style="display: inline-block; margin-left: 8px; font-weight: normal;">
+                                Side Pots ($25)
+                            </label>
+                        </div>
+                        
+                        <div class="addon-option">
+                            <input type="checkbox" id="roulette" name="roulette" value="30">
+                            <label for="roulette" style="display: inline-block; margin-left: 8px; font-weight: normal;">
+                                Roulette ($30)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <p class="required-note">* Required fields</p>
+                <div class="actions">
+                    <button id="member-modal-cancel" class="btn ghost">Cancel</button>
+                    <button id="member-modal-next" class="btn primary">Next</button>
                 </div>
             </div>
         </div>
         
-        <div class="row">
-            <div class="col">
-                <label for="modal-email">Email *</label>
-                <input id="modal-email" type="email" placeholder="" required />
-            </div>
-            <div class="col">
-                <label for="modal-phone">Phone</label>
-                <input id="modal-phone" placeholder="" required
-                       maxlength="14"
-                       title="10-digit phone number" />
-            </div>
-        </div>
+        <!-- Step 2: Additional Players and Starting Time -->
+        <div id="step2-content" style="display: none;">
+            <h3 id="member-modal-title" style="margin-top:0;">Additional Players (Optional)</h3>
+            
+            <!-- Player 2 -->
+            <div class="additional-player-section">
+                <h4 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: #555;">Player #2 (Optional)</h4>
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-name2">Name</label>
+                        <div class="input-wrapper">
+                            <input id="modal-name2" placeholder="Start typing name..." autocomplete="off" 
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
+                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                            <div class="loading-spinner" id="name2-loading" style="display: none;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-email2">Email</label>
+                        <input id="modal-email2" type="email" placeholder="" />
+                    </div>
+                    <div class="col">
+                        <label for="modal-phone2">Phone</label>
+                        <input id="modal-phone2" placeholder="" maxlength="14" />
+                    </div>
+                </div>
 
-        <div class="row">
-            <div class="col">
-                <label for="modal-ghin">GHIN # *</label>
-                <input id="modal-ghin" placeholder=""  required
-                       maxlength="8"
-                       pattern="\d{1,8}"
-                       title="Up to 8-digit GHIN number" />
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-ghin2">GHIN #</label>
+                        <input id="modal-ghin2" placeholder="" maxlength="8" pattern="\d{1,8}" />
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <div class="modal-footer">
-            <p class="required-note">* Required fields</p>
-            <div class="actions">
-                <button id="member-modal-cancel" class="btn ghost">Cancel</button>
-                <button id="member-modal-save" class="btn primary">Add To Cart</button>
+            
+            <!-- Player 3 -->
+            <div class="additional-player-section">
+                <h4 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: #555;">Player #3 (Optional)</h4>
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-name3">Name</label>
+                        <div class="input-wrapper">
+                            <input id="modal-name3" placeholder="Start typing name..." autocomplete="off" 
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
+                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                            <div class="loading-spinner" id="name3-loading" style="display: none;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-email3">Email</label>
+                        <input id="modal-email3" type="email" placeholder="" />
+                    </div>
+                    <div class="col">
+                        <label for="modal-phone3">Phone</label>
+                        <input id="modal-phone3" placeholder="" maxlength="14" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-ghin3">GHIN #</label>
+                        <input id="modal-ghin3" placeholder="" maxlength="8" pattern="\d{1,8}" />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Player 4 -->
+            <div class="additional-player-section">
+                <h4 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: #555;">Player #4 (Optional)</h4>
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-name4">Name</label>
+                        <div class="input-wrapper">
+                            <input id="modal-name4" placeholder="Start typing name..." autocomplete="off" 
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
+                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                            <div class="loading-spinner" id="name4-loading" style="display: none;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-email4">Email</label>
+                        <input id="modal-email4" type="email" placeholder="" />
+                    </div>
+                    <div class="col">
+                        <label for="modal-phone4">Phone</label>
+                        <input id="modal-phone4" placeholder="" maxlength="14" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-ghin4">GHIN #</label>
+                        <input id="modal-ghin4" placeholder="" maxlength="8" pattern="\d{1,8}" />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Starting Time Selection -->
+            <div class="row" style="margin-top: 20px;">
+                <div class="col">
+                    <label for="starting-time">Requested Starting Time *</label>
+                    <select id="starting-time" required style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                        <option value="">Select a starting time</option>
+                        <option value="6am">6am</option>
+                        <option value="7am">7am</option>
+                        <option value="8am">8am</option>
+                        <option value="9am">9am</option>
+                        <option value="10am">10am</option>
+                        <option value="11am">11am</option>
+                        <option value="Doesn't Matter">Doesn't Matter</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <p class="required-note">* Required fields</p>
+                <div class="actions">
+                    <button id="member-modal-back" class="btn ghost">Back</button>
+                    <button id="member-modal-cancel2" class="btn ghost">Cancel</button>
+                    <button id="member-modal-save" class="btn primary">Add To Cart</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .addon-option {
+        margin-bottom: 12px;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        background: #f9f9f9;
+    }
+    
+    .addon-option input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        vertical-align: middle;
+    }
+    
+    .additional-player-section {
+        margin-bottom: 25px;
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+    
+    .addons-section {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+</style>

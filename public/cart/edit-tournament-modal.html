@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Tournament Details</title>
+    <link rel="stylesheet" href="/css/product.css" />
+    <style>
+        .edit-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .edit-modal {
+            width: 680px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,.25);
+        }
+        
+        .edit-modal h3 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .edit-modal label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+        
+        .edit-modal input,
+        .edit-modal textarea,
+        .edit-modal select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .edit-modal .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .edit-modal .row .col {
+            flex: 1;
+            position: relative;
+        }
+        
+        .edit-modal .modal-footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .edit-modal .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .additional-player-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        
+        .addon-option {
+            margin-bottom: 12px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+        
+        .addon-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+        }
+        
+        @media (max-width: 768px) {
+            .edit-modal {
+                padding: 25px 20px;
+                width: 95%;
+            }
+            
+            .edit-modal .row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+    <script>
+        // Phone number formatting function (same as in product.js and cart.js)
+        function formatPhoneNumber(value) {
+            // Remove all non-numeric characters
+            const numbers = value.replace(/\D/g, '');
+            
+            if (numbers.length === 0) return '';
+            
+            if (numbers.length <= 3) {
+                return `(${numbers}`;
+            }
+            
+            if (numbers.length <= 6) {
+                return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
+            }
+            
+            return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
+        }
+        
+        // Setup phone formatting for this modal
+        function setupPhoneFormatting() {
+            const phoneInputs = document.querySelectorAll('input[id*="phone"]');
+            phoneInputs.forEach(input => {
+                // Format existing value on load
+                if (input.value) {
+                    input.value = formatPhoneNumber(input.value);
+                }
+                
+                // Add input event listener for real-time formatting
+                input.addEventListener('input', function(e) {
+                    const cursorPosition = this.selectionStart;
+                    const originalLength = this.value.length;
+                    
+                    this.value = formatPhoneNumber(this.value);
+                    
+                    const newLength = this.value.length;
+                    const lengthDifference = newLength - originalLength;
+                    const newCursorPosition = cursorPosition + lengthDifference;
+                    
+                    this.setSelectionRange(newCursorPosition, newCursorPosition);
+                });
+                
+                // Only allow numbers and navigation keys
+                input.addEventListener('keydown', function(e) {
+                    // Allow navigation keys, delete, backspace, tab
+                    if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
+                        return;
+                    }
+                    
+                    // Allow numbers only
+                    if (!/\d/.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
+
+        // GHIN formatting function - limit to 8 digits only
+    function setupGHINFormatting() {
+        const ghinInputs = document.querySelectorAll('input[id*="ghin"]');
+        ghinInputs.forEach(input => {
+            // Format existing value on load - remove non-numeric and limit to 8
+            if (input.value) {
+                input.value = input.value.replace(/\D/g, '').slice(0, 8);
+            }
+            
+            // Add input event listener for real-time formatting
+            input.addEventListener('input', function(e) {
+                // Remove non-numeric characters and limit to 8 digits
+                this.value = this.value.replace(/\D/g, '').slice(0, 8);
+            });
+            
+            // Only allow numbers and navigation keys
+            input.addEventListener('keydown', function(e) {
+                // Allow navigation keys, delete, backspace, tab
+                if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
+                    return;
+                }
+                
+                // Allow numbers only
+                if (!/\d/.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setupPhoneFormatting();
+            setupGHINFormatting();
+        });
+    </script>
+</head>
+<body>
+    <div class="edit-modal-backdrop" id="edit-modal">
+        <div class="edit-modal" role="dialog" aria-modal="true">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
+                <h3 style="margin:0;">Edit Tournament Details</h3>
+                <button id="modal-close" style="background:transparent; border:none; font-size:24px; cursor:pointer; color: #666;">×</button>
+            </div>
+            
+            <!-- Primary Player -->
+            <h4 style="margin: 0 0 15px 0; font-size: 1.1rem;">Primary Player</h4>
+            <div class="row">
+                <div class="col">
+                    <label for="modal-name">Name *</label>
+                    <div class="input-wrapper">
+                        <input id="modal-name" placeholder="Start typing name..." required autocomplete="off" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <label for="modal-email">Email *</label>
+                    <input id="modal-email" type="email" required />
+                </div>
+                <div class="col">
+                    <label for="modal-phone">Phone</label>
+                    <input id="modal-phone" maxlength="14" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="modal-ghin">GHIN # *</label>
+                    <input id="modal-ghin" required maxlength="8" pattern="\d{1,8}" />
+                </div>
+            </div>
+            
+            <!-- Optional Add-ons -->
+            <div class="row">
+                <div class="col">
+                    <div class="addons-section">
+                        <h4 style="margin: 20px 0 10px 0; font-size: 1.1rem;">Optional Add-ons</h4>
+                        
+                        <div class="addon-option">
+                            <input type="checkbox" id="side-pots" name="side-pots">
+                            <label for="side-pots" style="display: inline-block; margin-left: 8px; font-weight: normal;">
+                                Side Pots ($25)
+                            </label>
+                        </div>
+                        
+                        <div class="addon-option">
+                            <input type="checkbox" id="roulette" name="roulette">
+                            <label for="roulette" style="display: inline-block; margin-left: 8px; font-weight: normal;">
+                                Roulette ($30)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Players -->
+            <h4 style="margin: 30px 0 15px 0; font-size: 1.1rem;">Additional Players (Optional)</h4>
+            
+            <!-- Player 2 -->
+            <div class="additional-player-section">
+                <h5 style="margin: 0 0 10px 0; font-size: 1rem; color: #555;">Player #2</h5>
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-name2">Name</label>
+                        <input id="modal-name2" autocomplete="off" />
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-email2">Email</label>
+                        <input id="modal-email2" type="email" />
+                    </div>
+                    <div class="col">
+                        <label for="modal-phone2">Phone</label>
+                        <input id="modal-phone2" maxlength="14" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-ghin2">GHIN #</label>
+                        <input id="modal-ghin2" maxlength="8" pattern="\d{1,8}" />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Player 3 -->
+            <div class="additional-player-section">
+                <h5 style="margin: 0 0 10px 0; font-size: 1rem; color: #555;">Player #3</h5>
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-name3">Name</label>
+                        <input id="modal-name3" autocomplete="off" />
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-email3">Email</label>
+                        <input id="modal-email3" type="email" />
+                    </div>
+                    <div class="col">
+                        <label for="modal-phone3">Phone</label>
+                        <input id="modal-phone3" maxlength="14" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-ghin3">GHIN #</label>
+                        <input id="modal-ghin3" maxlength="8" pattern="\d{1,8}" />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Player 4 -->
+            <div class="additional-player-section">
+                <h5 style="margin: 0 0 10px 0; font-size: 1rem; color: #555;">Player #4</h5>
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-name4">Name</label>
+                        <input id="modal-name4" autocomplete="off" />
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-email4">Email</label>
+                        <input id="modal-email4" type="email" />
+                    </div>
+                    <div class="col">
+                        <label for="modal-phone4">Phone</label>
+                        <input id="modal-phone4" maxlength="14" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="modal-ghin4">GHIN #</label>
+                        <input id="modal-ghin4" maxlength="8" pattern="\d{1,8}" />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Starting Time Selection -->
+            <div class="row" style="margin-top: 20px;">
+                <div class="col">
+                    <label for="starting-time">Requested Starting Time *</label>
+                    <select id="starting-time" required>
+                        <option value="">Select a starting time</option>
+                        <option value="6am">6am</option>
+                        <option value="7am">7am</option>
+                        <option value="8am">8am</option>
+                        <option value="9am">9am</option>
+                        <option value="10am">10am</option>
+                        <option value="11am">11am</option>
+                        <option value="Doesn't Matter">Doesn't Matter</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <p class="required-note">* Required fields</p>
+                <div class="actions">
+                    <button id="modal-close-2" class="btn ghost">Cancel</button>
+                    <button id="modal-save" class="btn primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

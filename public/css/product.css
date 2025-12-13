@@ -318,7 +318,8 @@
     }
     
     .member-modal input,
-    .member-modal textarea {
+    .member-modal textarea,
+    .member-modal select {
         width: 100%;
         padding: 12px 15px;
         border: 1px solid #ddd;
@@ -330,7 +331,8 @@
     }
     
     .member-modal input:focus,
-    .member-modal textarea:focus {
+    .member-modal textarea:focus,
+    .member-modal select:focus {
         outline: none;
         border-color: #000;
         box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
@@ -486,6 +488,36 @@
     .btn.ghost:hover {
         background: #f9f9f9;
         border-color: #ccc;
+    }
+    
+    /* Additional styles for tournament modal */
+    .addon-option {
+        margin-bottom: 12px;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        background: #f9f9f9;
+    }
+    
+    .addon-option input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        vertical-align: middle;
+    }
+    
+    .additional-player-section {
+        margin-bottom: 25px;
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+    
+    .addons-section {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #eee;
     }
     
     /* Animations */
