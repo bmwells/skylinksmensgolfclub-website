@@ -14,12 +14,13 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
+            padding-top: 80px;
         }
         
         .edit-modal {
             width: 680px;
             max-width: 95%;
-            max-height: 90vh;
+            max-height: 80vh;
             overflow-y: auto;
             background: #fff;
             border-radius: 12px;
@@ -65,6 +66,7 @@
         .edit-modal .row .col {
             flex: 1;
             position: relative;
+            align-items: center;
         }
         
         .edit-modal .modal-footer {
@@ -87,18 +89,74 @@
             background: #fafafa;
         }
         
-        .addon-option {
-            margin-bottom: 12px;
-            padding: 10px;
-            border: 1px solid #eee;
+        /* Autocomplete styles */
+        .autocomplete-container {
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
             border-radius: 6px;
-            background: #f9f9f9;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,.15);
+            z-index: 999999;
         }
         
-        .addon-option input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            vertical-align: middle;
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .autocomplete-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .autocomplete-item .name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .autocomplete-item .ghin-badge {
+            margin-left: 8px;
+            font-size: 0.85em;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .no-results {
+            padding: 12px 15px;
+            color: #999;
+            font-style: italic;
+            text-align: center;
+        }
+        
+        /* Input wrapper for loading spinner */
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .loading-spinner {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+        }
+        
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         @media (max-width: 768px) {
@@ -171,40 +229,45 @@
         }
 
         // GHIN formatting function - limit to 8 digits only
-    function setupGHINFormatting() {
-        const ghinInputs = document.querySelectorAll('input[id*="ghin"]');
-        ghinInputs.forEach(input => {
-            // Format existing value on load - remove non-numeric and limit to 8
-            if (input.value) {
-                input.value = input.value.replace(/\D/g, '').slice(0, 8);
-            }
-            
-            // Add input event listener for real-time formatting
-            input.addEventListener('input', function(e) {
-                // Remove non-numeric characters and limit to 8 digits
-                this.value = this.value.replace(/\D/g, '').slice(0, 8);
-            });
-            
-            // Only allow numbers and navigation keys
-            input.addEventListener('keydown', function(e) {
-                // Allow navigation keys, delete, backspace, tab
-                if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
-                    return;
+        function setupGHINFormatting() {
+            const ghinInputs = document.querySelectorAll('input[id*="ghin"]');
+            ghinInputs.forEach(input => {
+                // Format existing value on load - remove non-numeric and limit to 8
+                if (input.value) {
+                    input.value = input.value.replace(/\D/g, '').slice(0, 8);
                 }
                 
-                // Allow numbers only
-                if (!/\d/.test(e.key)) {
-                    e.preventDefault();
-                }
+                // Add input event listener for real-time formatting
+                input.addEventListener('input', function(e) {
+                    // Remove non-numeric characters and limit to 8 digits
+                    this.value = this.value.replace(/\D/g, '').slice(0, 8);
+                });
+                
+                // Only allow numbers and navigation keys
+                input.addEventListener('keydown', function(e) {
+                    // Allow navigation keys, delete, backspace, tab
+                    if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
+                        return;
+                    }
+                    
+                    // Allow numbers only
+                    if (!/\d/.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
             });
-        });
-    }
+        }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        setupPhoneFormatting();
+        setupGHINFormatting();
         
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            setupPhoneFormatting();
-            setupGHINFormatting();
-        });
+        // Initialize member autocomplete if the function exists
+        if (typeof initMemberAutocomplete === 'function') {
+            initMemberAutocomplete();
+        }
+    });
     </script>
 </head>
 <body>
@@ -221,7 +284,12 @@
                 <div class="col">
                     <label for="modal-name">Name *</label>
                     <div class="input-wrapper">
-                        <input id="modal-name" placeholder="Start typing name..." required autocomplete="off" />
+                        <input id="modal-name" placeholder="Start typing name..." required autocomplete="off" 
+                               pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
+                               title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                        <div class="loading-spinner" id="name-loading" style="display: none;">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -244,25 +312,21 @@
                 </div>
             </div>
             
-            <!-- Optional Add-ons -->
+            <!-- Optional Add-ons - SIMPLIFIED -->
             <div class="row">
-                <div class="col">
-                    <div class="addons-section">
-                        <h4 style="margin: 20px 0 10px 0; font-size: 1.1rem;">Optional Add-ons</h4>
-                        
-                        <div class="addon-option">
-                            <input type="checkbox" id="side-pots" name="side-pots">
-                            <label for="side-pots" style="display: inline-block; margin-left: 8px; font-weight: normal;">
-                                Side Pots ($25)
-                            </label>
-                        </div>
-                        
-                        <div class="addon-option">
-                            <input type="checkbox" id="roulette" name="roulette">
-                            <label for="roulette" style="display: inline-block; margin-left: 8px; font-weight: normal;">
-                                Roulette ($30)
-                            </label>
-                        </div>
+                <div class="col" style="display: flex; gap: 30px; align-items: center; margin-top: 15px;">
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="side-pots" name="side-pots" value="25" style="width: 18px; height: 18px;">
+                        <label for="side-pots" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
+                            Side Pots ($25)
+                        </label>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="roulette" name="roulette" value="30" style="width: 18px; height: 18px;">
+                        <label for="roulette" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
+                            Roulette ($30)
+                        </label>
                     </div>
                 </div>
             </div>
@@ -276,7 +340,14 @@
                 <div class="row">
                     <div class="col">
                         <label for="modal-name2">Name</label>
-                        <input id="modal-name2" autocomplete="off" />
+                        <div class="input-wrapper">
+                            <input id="modal-name2" placeholder="Start typing name..." autocomplete="off" 
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
+                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                            <div class="loading-spinner" id="name2-loading" style="display: none;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -305,7 +376,14 @@
                 <div class="row">
                     <div class="col">
                         <label for="modal-name3">Name</label>
-                        <input id="modal-name3" autocomplete="off" />
+                        <div class="input-wrapper">
+                            <input id="modal-name3" placeholder="Start typing name..." autocomplete="off" 
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
+                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                            <div class="loading-spinner" id="name3-loading" style="display: none;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -334,7 +412,14 @@
                 <div class="row">
                     <div class="col">
                         <label for="modal-name4">Name</label>
-                        <input id="modal-name4" autocomplete="off" />
+                        <div class="input-wrapper">
+                            <input id="modal-name4" placeholder="Start typing name..." autocomplete="off" 
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
+                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                            <div class="loading-spinner" id="name4-loading" style="display: none;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -383,5 +468,6 @@
             </div>
         </div>
     </div>
+    
 </body>
 </html>

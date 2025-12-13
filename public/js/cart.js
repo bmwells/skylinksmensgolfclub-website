@@ -476,12 +476,22 @@ function bindEditModalEvents() {
   const closeBtn = document.getElementById("modal-close");
   const closeBtn2 = document.getElementById("modal-close-2");
   const saveBtn = document.getElementById("modal-save");
+  const backdrop = document.querySelector('.edit-modal-backdrop');
 
   [closeBtn, closeBtn2].forEach(btn => {
     if (btn) btn.addEventListener("click", closeEditModal);
   });
 
   if (saveBtn) saveBtn.addEventListener("click", saveEditModal);
+  
+  // Add outside click handler
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        closeEditModal();
+      }
+    });
+  }
 }
 
 function closeEditModal() {

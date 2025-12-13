@@ -7,17 +7,26 @@ class MemberAutocomplete {
     }
 
     init() {
-        // Initialize autocomplete for all name inputs (player 1-4)
+        // 🔥 CLEANUP PREVIOUS STATE
+        Object.values(this.autocompleteContainers).forEach(container => {
+            if (container && container.remove) container.remove();
+        });
+
+        this.autocompleteContainers = {};
+        this.debounceTimers = {};
+        this.currentActiveInput = null;
+
+        // Initialize autocomplete for all name inputs (player 1–4)
         for (let i = 1; i <= 4; i++) {
             const nameInput = document.getElementById(`modal-name${i}`);
             if (nameInput) {
                 this.setupAutocompleteForInput(`modal-name${i}`, i);
             }
         }
-        
-        // Also set up for modal-name (player 1) if it exists
+
+        // Player 1 primary field (modal-name)
         const player1Input = document.getElementById('modal-name');
-        if (player1Input && !document.getElementById('modal-name1')) {
+        if (player1Input) {
             this.setupAutocompleteForInput('modal-name', 1);
         }
     }
@@ -26,7 +35,6 @@ class MemberAutocomplete {
         const nameInput = document.getElementById(inputId);
         if (!nameInput) return;
 
-        // Create autocomplete container for this input
         const container = document.createElement('div');
         container.className = 'autocomplete-container';
         container.id = `autocomplete-${inputId}`;
@@ -37,7 +45,6 @@ class MemberAutocomplete {
 
         this.autocompleteContainers[inputId] = container;
 
-        // Get corresponding form fields for this player
         const getPlayerField = (fieldName) => {
             if (playerNumber === 1 && inputId === 'modal-name') {
                 return document.getElementById(`modal-${fieldName}`);
@@ -86,48 +93,44 @@ class MemberAutocomplete {
     }
 
     render(members, inputId, getPlayerField) {
-    const container = this.autocompleteContainers[inputId];
-    if (!container) return;
+        const container = this.autocompleteContainers[inputId];
+        if (!container) return;
 
-    container.innerHTML = '';
+        container.innerHTML = '';
 
-    if (!members.length) {
-        container.innerHTML =
-            `<div class="no-results">No results found</div>`;
-    } else {
-        members.forEach(m => {
-            const row = document.createElement('div');
-            row.className = 'autocomplete-item';
+        if (!members.length) {
+            container.innerHTML = `<div class="no-results">No results found</div>`;
+        } else {
+            members.forEach(m => {
+                const row = document.createElement('div');
+                row.className = 'autocomplete-item';
 
-            const nameDiv = document.createElement('div');
-            nameDiv.className = 'name';
-            nameDiv.textContent = `${m.firstName} ${m.lastName}`;
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'name';
+                nameDiv.textContent = `${m.firstName} ${m.lastName}`;
 
-            // Add GHIN in parentheses
-            if (m.ghin) {
-                const ghinSpan = document.createElement('span');
-                ghinSpan.className = 'ghin-badge';
-                ghinSpan.textContent = `(${m.ghin})`;
-                nameDiv.appendChild(ghinSpan);
-            }
+                if (m.ghin) {
+                    const ghinSpan = document.createElement('span');
+                    ghinSpan.className = 'ghin-badge';
+                    ghinSpan.textContent = `(${m.ghin})`;
+                    nameDiv.appendChild(ghinSpan);
+                }
 
-            row.appendChild(nameDiv);
+                row.appendChild(nameDiv);
+                row.onclick = () => this.select(m, inputId, getPlayerField);
 
-            row.onclick = () => this.select(m, inputId, getPlayerField);
-            container.appendChild(row);
-        });
+                container.appendChild(row);
+            });
+        }
+
+        this.position(inputId);
+        container.style.display = 'block';
     }
-
-    this.position(inputId);
-    container.style.display = 'block';
-}
 
     position(inputId) {
         const nameInput = document.getElementById(inputId);
-        if (!nameInput) return;
-
         const container = this.autocompleteContainers[inputId];
-        if (!container) return;
+        if (!nameInput || !container) return;
 
         const rect = nameInput.getBoundingClientRect();
         container.style.top = `${rect.bottom + 4}px`;
@@ -141,18 +144,17 @@ class MemberAutocomplete {
             nameInput.value = `${member.firstName} ${member.lastName}`;
         }
 
-        // Fill corresponding form fields
         const emailField = getPlayerField('email');
         const phoneField = getPlayerField('phone');
         const ghinField = getPlayerField('ghin');
 
         if (emailField) emailField.value = member.email || '';
-        
+
         if (phoneField && member.phoneNum) {
             const cleanPhone = String(member.phoneNum).replace(/\D/g, '');
             phoneField.value = this.formatPhoneNumber(cleanPhone);
         }
-        
+
         if (ghinField) ghinField.value = member.ghin || '';
 
         this.hide(inputId);
@@ -160,33 +162,24 @@ class MemberAutocomplete {
 
     formatPhoneNumber(value) {
         const numbers = value.replace(/\D/g, '');
-        
-        if (numbers.length === 0) return '';
-        
-        if (numbers.length <= 3) {
-            return `(${numbers}`;
-        }
-        
-        if (numbers.length <= 6) {
-            return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
-        }
-        
+
+        if (!numbers) return '';
+        if (numbers.length <= 3) return `(${numbers}`;
+        if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
         return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
     }
 
     hide(inputId) {
         const container = this.autocompleteContainers[inputId];
-        if (container) {
-            container.style.display = 'none';
-        }
+        if (container) container.style.display = 'none';
     }
 }
 
-// GLOBAL INIT
+// Re-init for dynamically injected modals
 let memberAutocomplete;
 window.initMemberAutocomplete = function () {
     if (!memberAutocomplete) {
         memberAutocomplete = new MemberAutocomplete();
-        memberAutocomplete.init();
     }
+    memberAutocomplete.init();
 };

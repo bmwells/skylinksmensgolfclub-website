@@ -177,7 +177,9 @@
 
     <!-- Scripts -->
     <script src="/js/menu.js"></script>
+    <script src="/js/member-autocomplete.js"></script>
     <script src="/js/cart.js"></script>
+
 
     <script>
       // Load header + footer on page
@@ -191,6 +193,7 @@
       fetch("/footer.html")
           .then(res => res.text())
           .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
 
       // Expose helper to render cart when DOM is ready
       document.addEventListener('DOMContentLoaded', function() {

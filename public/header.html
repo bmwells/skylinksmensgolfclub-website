@@ -2,6 +2,11 @@
     <div class="header-inner">
         <a href="/" class="site-title">Skylinks Men's Golf Club</a>
 
+        <!-- Mobile cart count -->
+        <span id="mobile-cart-count"
+              style="display:none; margin-right:8px; font-weight:600;">
+        </span>
+
         <!-- Mobile Menu Toggle -->
         <button class="mobile-menu-btn"
                 id="mobile-menu-btn"
@@ -34,9 +39,53 @@
                 <li role="none"><a role="menuitem" href="/tournament-entry">Tournament Entry</a></li>
                 <li role="none"><a role="menuitem" href="/results">Tournament Results</a></li>
                 <li role="none"><a role="menuitem" href="/contact">Contact</a></li>
-                <li role="none"><a role="menuitem" href="/cart">Cart</a></li>
+
+                <!-- Cart link with count -->
+                <li role="none">
+                    <a role="menuitem" href="/cart">
+                        Cart <span id="cart-count"></span>
+                    </a>
+                </li>
 
             </ul>
         </nav>
     </div>
+
+    <!-- Cart count logic -->
+    <script>
+        (function () {
+            const CART_KEY = "skylinks_cart_v1";
+
+            function getCartCount() {
+                try {
+                    const raw = localStorage.getItem(CART_KEY);
+                    if (!raw) return 0;
+                    const items = JSON.parse(raw);
+                    return Array.isArray(items) ? items.length : 0;
+                } catch {
+                    return 0;
+                }
+            }
+
+            function updateCartCount() {
+                const count = getCartCount();
+                const desktopSpan = document.getElementById("cart-count");
+                const mobileSpan = document.getElementById("mobile-cart-count");
+
+                if (count > 0) {
+                    if (desktopSpan) desktopSpan.textContent = `(${count})`;
+
+                    if (mobileSpan) {
+                        mobileSpan.textContent = `(${count})`;
+                        mobileSpan.style.display = "inline";
+                    }
+                } else {
+                    if (desktopSpan) desktopSpan.textContent = "";
+                    if (mobileSpan) mobileSpan.style.display = "none";
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", updateCartCount);
+        })();
+    </script>
 </header>

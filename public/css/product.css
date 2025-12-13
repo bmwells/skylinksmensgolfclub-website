@@ -201,6 +201,7 @@
         position: absolute;
         top: 90px;
         left: 20px;
+        z-index: 9990;
     }
     
     .back-button {
@@ -233,7 +234,7 @@
         .back-to-tournaments {
             top: 85px;
             left: 5px;
-            z-index: 9998;
+            z-index: 9990;
         }
         
         .back-button {
@@ -281,8 +282,9 @@
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 2000;
+        z-index: 9997;
         animation: fadeIn 0.2s ease-out;
+        padding-top: 50px;
     }
     
     .member-modal-backdrop.active {
@@ -292,7 +294,7 @@
     .member-modal {
         width: 680px;
         max-width: 95%;
-        max-height: 90vh;
+        max-height: 80vh;
         overflow-y: auto;
         background: #fff;
         border-radius: 12px;
