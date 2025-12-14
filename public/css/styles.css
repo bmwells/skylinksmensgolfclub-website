@@ -2,8 +2,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&display=swap');
 
-/* CSS Variables for Images - CHANGE THESE TO UPDATE ALL IMAGES */
+/* =========================================== */
+/* CSS VARIABLES                              */
+/* =========================================== */
 :root {
+    /* Images */
     --hero-image: url('/images/p1.webp');
     --welcome-image: url('/images/p2.webp');
     --tournament-image1: url('/images/p3.webp');
@@ -18,11 +21,13 @@
     --white: hsla(var(--white-hsl), 1);
     --primary: black;
 
-    /* animation timing */
+    /* Animation */
     --menu-transition: 280ms;
 }
 
-/* Reset and Base Styles */
+/* =========================================== */
+/* RESET & BASE STYLES                        */
+/* =========================================== */
 * {
     margin: 0;
     padding: 0;
@@ -36,7 +41,25 @@ body {
     background-color: #fff;
 }
 
-/* Hero Section - No text overlay */
+/* =========================================== */
+/* LAYOUT & UTILITY                           */
+/* =========================================== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 3rem;
+    font-weight: 400;
+}
+
+/* =========================================== */
+/* HERO SECTION                               */
+/* =========================================== */
 .hero {
     height: 95vh;
     background-image: var(--hero-image);
@@ -46,15 +69,12 @@ body {
     margin-top: 40px;
 }
 
-/* Welcome Section - Image on left, text on right */
+/* =========================================== */
+/* WELCOME SECTION                            */
+/* =========================================== */
 .welcome-section {
     padding: 4rem 2rem;
     background-color: #f8f9fa;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
 .welcome-grid {
@@ -88,18 +108,12 @@ body {
     line-height: 1.8;
 }
 
-/* Tournament Section */
+/* =========================================== */
+/* TOURNAMENT SECTION                         */
+/* =========================================== */
 .tournament-section {
     padding: 4rem 2rem;
     background-color: #fff;
-}
-
-.section-title {
-    text-align: center;
-    font-size: 2.5rem;
-    color: var(--primary);
-    margin-bottom: 3rem;
-    font-weight: 400;
 }
 
 .tournament-grid {
@@ -121,7 +135,6 @@ body {
     color: inherit;
     display: block;
 }
-
 
 .tournament-card:hover {
     transform: translateY(-5px);
@@ -160,7 +173,9 @@ body {
     font-weight: 400;
 }
 
-/* Instagram Section */
+/* =========================================== */
+/* INSTAGRAM SECTION                          */
+/* =========================================== */
 .instagram-section {
     padding: 4rem 2rem;
     background-color: #f8f9fa;
@@ -182,7 +197,9 @@ body {
     border-radius: 8px;
 }
 
-/* Contact Section */
+/* =========================================== */
+/* CONTACT SECTION                            */
+/* =========================================== */
 .contact-section {
     padding: 4rem 2rem;
     background-color: #fff;
@@ -211,16 +228,9 @@ body {
     border-radius: 10px;
 }
 
-.name-fields .name-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.name-fields input {
-    width: 100%;
-}
-
+/* =========================================== */
+/* FORM STYLES                                */
+/* =========================================== */
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -246,6 +256,12 @@ body {
     resize: vertical;
 }
 
+.name-fields .name-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
 .submit-btn {
     background-color: var(--primary);
     color: white;
@@ -261,46 +277,16 @@ body {
     background-color: #1e3a23;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .welcome-grid,
-    .tournament-grid,
-    .contact-grid,
-    .instagram-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .instagram-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .welcome-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .welcome-image {
-        height: 300px;
-        order: -1;
-    }
-
-    .name-fields .name-inputs {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-}
-
 /* =========================================== */
-/* HEADER STYLES */
+/* HEADER STYLES                              */
 /* =========================================== */
-
 .header {
     background-color: #f4f5f4;
     padding: 1rem 0;
     position: fixed;
     width: 100%;
     top: 0;
-    z-index: 9999;;
+    z-index: 9999;
 }
 
 .header-inner {
@@ -317,9 +303,12 @@ body {
     font-weight: 300;
     color: var(--primary);
     text-decoration: none;
+    flex: 1;
 }
 
-/* Use header-specific selectors for nav-menu */
+/* =========================================== */
+/* NAVIGATION MENU                            */
+/* =========================================== */
 .nav-menu {
     display: flex;
     list-style: none;
@@ -340,16 +329,18 @@ body {
     color: var(--primary);
 }
 
-.site-title, .nav-menu a {
+.site-title,
+.nav-menu a {
     font-family: 'Manrope', sans-serif;
 }
 
-/* Dropdown Styles for desktop hover (unchanged behavior) */
+/* =========================================== */
+/* DROPDOWN STYLES - DESKTOP                  */
+/* =========================================== */
 .nav-menu li {
     position: relative;
 }
 
-/* Desktop dropdown (hover) */
 @media (min-width: 1025px) {
     .dropdown-menu {
         position: absolute;
@@ -391,12 +382,11 @@ body {
         transform: translateY(0);
     }
 
-    /* Desktop: show the text but disable summary click behavior */
-    @media (min-width: 1025px) {
+    /* Desktop summary styling */
     .dropdown summary {
-        display: block;          /* show “About” text */
-        cursor: default;         /* no pointer cursor */
-        padding: 0;              /* match normal nav spacing */
+        display: block;
+        cursor: default;
+        padding: 0;
         margin: 0;
         font-size: 16px;
         font-weight: 400;
@@ -404,20 +394,26 @@ body {
         user-select: none;
     }
 
-    /* Remove the default marker */
+    /* Remove default marker */
     .dropdown summary::-webkit-details-marker {
         display: none;
     }
+
     .dropdown summary::marker {
         content: none;
     }
-
-    
 }
 
+/* =========================================== */
+/* MOBILE STYLES                              */
+/* =========================================== */
+.mobile-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
 }
 
-/* Mobile styles */
 .mobile-menu-btn {
     display: none;
     background: none;
@@ -426,24 +422,45 @@ body {
     cursor: pointer;
     color: var(--primary);
     padding: 0.5rem;
-    padding-right: 1rem;
     z-index: 1002;
-    margin-left: auto;
 }
 
-/* Mobile (and tablet) behavior */
+/* =========================================== */
+/* RESPONSIVE DESIGN                          */
+/* =========================================== */
 @media (max-width: 1024px) {
+    /* Header & Navigation */
+    .header-inner {
+        padding: 0 1.5rem;
+    }
+
+    .mobile-header-controls {
+        display: flex;
+    }
+
+    #mobile-cart-count {
+        display: inline-block !important;
+        font-weight: 500;
+        font-size: 1.2rem;
+        color: black;
+        width: 1rem;
+        height: 1rem;
+        text-align: center;
+        line-height: 1.2rem;
+        vertical-align: middle;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
     .dropdown-desktop {
         display: none;
     }
-    
+
     .dropdown-mobile {
         display: block;
         width: 100%;
-    }
-
-    .header-inner {
-        padding: 0 1.5rem;
     }
 
     .nav-menu {
@@ -462,7 +479,6 @@ body {
         overflow: hidden;
     }
 
-    /* Active state for the nav (opened by JS) */
     .nav-menu.active {
         display: flex;
         animation: menuFade var(--menu-transition) ease forwards;
@@ -482,7 +498,7 @@ body {
         width: 100%;
     }
 
-    /* Style <details>/<summary> as dropdown for mobile */
+    /* Mobile Dropdown */
     .dropdown details {
         width: 100%;
     }
@@ -499,11 +515,14 @@ body {
         position: relative;
     }
 
-    /* remove default disclosure triangle */
-    .dropdown summary::-webkit-details-marker { display: none; }
-    .dropdown summary::marker { content: none; }
+    .dropdown summary::-webkit-details-marker {
+        display: none;
+    }
 
-    /* Arrow indicator */
+    .dropdown summary::marker {
+        content: none;
+    }
+
     .dropdown summary::after {
         content: '▼';
         position: absolute;
@@ -514,15 +533,13 @@ body {
         transition: transform var(--menu-transition) ease;
     }
 
-    /* When open, rotate arrow */
     .dropdown details[open] summary::after {
         transform: translateY(-50%) rotate(180deg);
     }
 
-    /* The submenu (animated slide) */
     .dropdown .dropdown-menu {
         overflow: hidden;
-        max-height: 0; /* collapsed */
+        max-height: 0;
         transition: max-height var(--menu-transition) ease, opacity var(--menu-transition) ease;
         opacity: 0;
         padding-left: 1.25rem;
@@ -533,9 +550,8 @@ body {
         list-style: none;
     }
 
-    /* When details is open, expand submenu */
     .dropdown details[open] .dropdown-menu {
-        max-height: 500px; /* large enough for content */
+        max-height: 500px;
         opacity: 1;
         padding-bottom: 0.5rem;
     }
@@ -556,14 +572,48 @@ body {
         width: 100%;
     }
 
-    .mobile-menu-btn {
-        display: block;
+    /* Layout Adjustments */
+    .welcome-grid,
+    .tournament-grid,
+    .contact-grid {
+        grid-template-columns: 1fr;
     }
 
+    .instagram-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .welcome-grid {
+        gap: 2rem;
+    }
+
+    .welcome-image {
+        height: 300px;
+        order: -1;
+    }
+
+    .name-fields .name-inputs {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
 }
 
-/* small animation for menu open */
+@media (max-width: 768px) {
+    .instagram-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================== */
+/* ANIMATIONS                                 */
+/* =========================================== */
 @keyframes menuFade {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

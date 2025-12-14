@@ -2,19 +2,19 @@
     <div class="header-inner">
         <a href="/" class="site-title">Skylinks Men's Golf Club</a>
 
-        <!-- Mobile cart count -->
-        <span id="mobile-cart-count"
-              style="display:none; margin-right:8px; font-weight:600;">
-        </span>
+        <!-- Mobile cart count and menu button container -->
+        <div class="mobile-header-controls">
+            <span id="mobile-cart-count"></span>
 
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-btn"
-                id="mobile-menu-btn"
-                aria-controls="primary-navigation"
-                aria-expanded="false"
-                aria-label="Toggle main navigation">
-            ☰
-        </button>
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-btn"
+                    id="mobile-menu-btn"
+                    aria-controls="primary-navigation"
+                    aria-expanded="false"
+                    aria-label="Toggle main navigation">
+                ☰
+            </button>
+        </div>
 
         <nav id="primary-navigation" class="primary-navigation" role="navigation" aria-label="Main">
             <ul class="nav-menu" id="nav-menu" role="menubar">
@@ -50,42 +50,4 @@
             </ul>
         </nav>
     </div>
-
-    <!-- Cart count logic -->
-    <script>
-        (function () {
-            const CART_KEY = "skylinks_cart_v1";
-
-            function getCartCount() {
-                try {
-                    const raw = localStorage.getItem(CART_KEY);
-                    if (!raw) return 0;
-                    const items = JSON.parse(raw);
-                    return Array.isArray(items) ? items.length : 0;
-                } catch {
-                    return 0;
-                }
-            }
-
-            function updateCartCount() {
-                const count = getCartCount();
-                const desktopSpan = document.getElementById("cart-count");
-                const mobileSpan = document.getElementById("mobile-cart-count");
-
-                if (count > 0) {
-                    if (desktopSpan) desktopSpan.textContent = `(${count})`;
-
-                    if (mobileSpan) {
-                        mobileSpan.textContent = `(${count})`;
-                        mobileSpan.style.display = "inline";
-                    }
-                } else {
-                    if (desktopSpan) desktopSpan.textContent = "";
-                    if (mobileSpan) mobileSpan.style.display = "none";
-                }
-            }
-
-            document.addEventListener("DOMContentLoaded", updateCartCount);
-        })();
-    </script>
 </header>

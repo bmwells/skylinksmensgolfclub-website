@@ -119,6 +119,7 @@ function addToCart(item) {
   const cart = loadCart();
   cart.push({ id: generateId(), ...item });
   saveCart(cart);
+  document.dispatchEvent(new Event('cartUpdated'));
 }
 
 /* ============================================================
@@ -140,6 +141,7 @@ function removeCartItem(itemId) {
   let cart = loadCart();
   cart = cart.filter(i => i.id !== itemId);
   saveCart(cart);
+  document.dispatchEvent(new Event('cartUpdated'));
 }
 
 /* ============================================================

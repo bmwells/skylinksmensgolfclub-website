@@ -470,9 +470,7 @@
         goToStep2();
     }
 
-    function handleSave() {
-        console.log('handleSave called, validating form...');
-        
+    function handleSave() {        
         if (currentProduct.type === 'tournament' && modalState.step === 2) {
             if (!validateStep2()) return;
         } else {
@@ -485,6 +483,9 @@
         if (typeof addToCart === 'function') {
             addToCart(item);
             showAddToCartFeedback();
+            
+            // Dispatch cart update event to update header count immediately
+            document.dispatchEvent(new Event('cartUpdated'));
         }
 
         closeModal();
