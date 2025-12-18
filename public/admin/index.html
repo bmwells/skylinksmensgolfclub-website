@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Skylinks Administrator</title>
+<style>
+body { font-family: system-ui; padding: 2rem; }
+input { width: 100%; margin-bottom: 6px; padding: 8px; }
+.row { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; background:#fafafa; }
+button { margin-top: 10px; margin-right: 8px; padding: 8px 16px; cursor: pointer; }
+.admin-links { margin: 2rem 0; }
+.admin-links a { display: block; margin: 0.5rem 0; font-size: 1.1rem; color: #0066cc; text-decoration: none; }
+.admin-links a:hover { text-decoration: underline; }
+.form-row { display: flex; gap: 1rem; }
+.form-row input { flex: 1; }
+.button-group { margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div id="loginPanel">
+  <h2 id="loginTitle">Skylinks Admin Login</h2>
+  <input id="pw" type="password" placeholder="Admin Password">
+  <div class="button-group">
+    <button onclick="login()">Enter</button>
+    <button onclick="returnToHome()">Return to Home Page</button>
+  </div>
+</div>
+
+<div id="adminPanel" style="display:none;">
+  <h2>Skylinks Administrator Panel</h2>
+  <div class="button-group">
+    <button onclick="returnToHome()">Return to Home Page</button>
+  </div>
+  
+  <div class="admin-links">
+    <a href="/admin/results">Results Editor</a>
+    <a href="/admin/schedule">Schedule Editor</a>
+    <a href="/admin/monthly-tournament">Monthly Tournament Editor</a>
+    <a href="/admin/meeting-minutes">Meeting Minutes Editor</a>
+    <a href="/admin/presidents-letter">President's Letter Editor</a>
+    <a href="/admin/who-we-are">Who We Are Editor</a>
+  </div>
+</div>
+
+<script>
+let token = '';
+
+function login() {
+  const password = document.getElementById('pw').value;
+  fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.token) {
+      token = data.token;
+      localStorage.setItem('adminToken', token); // Store for other pages
+      document.getElementById('loginPanel').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('loginTitle').textContent = 'Skylinks Administrator Panel';
+    } else {
+      alert('Login failed: ' + (data.error || 'Invalid password'));
+    }
+  })
+  .catch(err => {
+    alert('Login error: ' + err.message);
+  });
+}
+
+function returnToHome() {
+  // Clear token and localStorage
+  token = '';
+  localStorage.removeItem('adminToken');
+  // Redirect to home page
+  window.location.href = '/';
+}
+
+// Check for existing token on page load
+window.onload = function() {
+  const savedToken = localStorage.getItem('adminToken');
+  if (savedToken) {
+    token = savedToken;
+    document.getElementById('loginPanel').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('loginTitle').textContent = 'Skylinks Administrator Panel';
+  }
+};
+</script>
+
+</body>
+</html>

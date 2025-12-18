@@ -2,13 +2,18 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const Stripe = require('stripe');
 const { MongoClient } = require('mongodb');
 const cors = require('cors');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
+
+const DATA_DIR = path.join(__dirname, 'data');
+const RESULTS_FILE = path.join(DATA_DIR, 'results.json');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = process.env.DB_NAME || 'skylinks';
@@ -16,31 +21,32 @@ const DB_NAME = process.env.DB_NAME || 'skylinks';
 let db;
 let membersCollection;
 
-// Stripe (unchanged)
+// --------------------
+// Simple in-memory token store (can move to sessions/JWT later)
+// --------------------
+const adminTokens = new Set();
+
+// Stripe
 const stripeSecret = process.env.STRIPE_SECRET_KEY || '';
 const stripe = Stripe(stripeSecret);
 
-// MongoDB connection
+// MongoDB
 async function connectToMongoDB() {
     try {
-        if (!MONGODB_URI) {
-            console.warn('MONGODB_URI not set');
-            return;
-        }
+        if (!MONGODB_URI) return;
 
         const client = await MongoClient.connect(MONGODB_URI);
         db = client.db(DB_NAME);
         membersCollection = db.collection('members');
 
-        // Ensure text index
         await membersCollection.createIndex(
             { firstName: 'text', lastName: 'text' },
             { name: 'member_name_text_index' }
         );
 
-        console.log(`MongoDB connected → DB: ${DB_NAME}, Collection: members`);
+        console.log(`MongoDB connected → ${DB_NAME}`);
     } catch (err) {
-        console.error('MongoDB connection error:', err.message);
+        console.error(err.message);
     }
 }
 connectToMongoDB();
@@ -53,63 +59,69 @@ app.use(express.urlencoded({ extended: true }));
 // Static
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ------------------------------------
-// MEMBERS SEARCH API 
-// ------------------------------------
-app.get('/api/members/search', async (req, res) => {
+// --------------------
+// ADMIN AUTH
+// --------------------
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+
+    if (password === process.env.ADMIN_PW) {
+        const token = crypto.randomBytes(24).toString('hex');
+        adminTokens.add(token);
+        return res.json({ success: true, token });
+    }
+
+    res.status(401).json({ error: 'Invalid password' });
+});
+
+function requireAdmin(req, res, next) {
+    const authHeader = req.headers.authorization;
+    
+    // Handle both "Bearer <token>" and plain token
+    let token;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7); // Remove "Bearer " prefix
+    } else {
+        token = authHeader; // Plain token
+    }
+    
+    if (token && adminTokens.has(token)) {
+        return next();
+    }
+    res.status(403).json({ error: 'Unauthorized' });
+}
+
+// --------------------
+// RESULTS DATA API
+// --------------------
+app.get('/api/results', (req, res) => {
     try {
-        if (!membersCollection) return res.json([]);
-
-        const q = req.query.q?.trim();
-        if (!q || q.length < 3) return res.json([]);
-
-        const tokens = q
-            .split(/\s+/)
-            .filter(Boolean)
-            .map(t =>
-                new RegExp(
-                    t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-                    'i'
-                )
-            );
-
-        const query = {
-            $and: tokens.map(regex => ({
-                $or: [
-                    { firstName: regex },
-                    { lastName: regex }
-                ]
-            }))
-        };
-
-        const members = await membersCollection
-            .find(query)
-            .project({
-                _id: 0,
-                firstName: 1,
-                lastName: 1,
-                email: 1,
-                phoneNum: 1,
-                ghin: 1,
-                index: 1,
-                entryNum: 1
-            })
-            .limit(20)
-            .toArray();
-
-        res.json(members);
+        const data = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf8'));
+        res.json(data);
     } catch (err) {
-        console.error('Member search error:', err);
-        res.status(500).json([]);
+        console.error('Error reading results file:', err);
+        res.status(500).json({ error: 'Failed to read results data' });
+    }
+});
+
+app.post('/api/results', requireAdmin, (req, res) => {
+    try {
+        fs.writeFileSync(RESULTS_FILE, JSON.stringify(req.body, null, 2));
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error writing results file:', err);
+        res.status(500).json({ error: 'Failed to save results' });
     }
 });
 
 // Health
 app.get('/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        mongodb: membersCollection ? 'connected' : 'disconnected'
-    });
+    res.json({ status: 'ok' });
+});
+
+// Admin routes
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
 // Catch-all

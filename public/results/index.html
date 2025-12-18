@@ -3,36 +3,38 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
     <title>Tournament Results - Skylinks Men's Golf Club</title>
+
     <link rel="stylesheet" href="/css/styles.css" />
+
     <style>
-        /* Additional styles for results page */
-        .results-page {
+        body.results-page {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+
+        /* ---------------- HERO ---------------- */
         .hero-section {
             position: relative;
             height: 50vh;
             min-height: 400px;
-            overflow: hidden;
-            margin-bottom: 3rem;
             margin-top: 60px;
+            overflow: hidden;
         }
-        
+
         .hero-background {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
+            background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/9cdae476-9d68-45a9-87e9-80615a519e47/202501+Results.jpg');
             background-size: cover;
             background-position: 28% 50%;
-            background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/9cdae476-9d68-45a9-87e9-80615a519e47/202501+Results.jpg');
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(0,0,0,0.25);
             background-blend-mode: multiply;
         }
-        
+
         .hero-content {
             position: relative;
             height: 100%;
@@ -41,156 +43,117 @@
             justify-content: center;
             text-align: center;
         }
-        
+
         .hero-content h1 {
+            color: white;
             font-size: 3rem;
             font-weight: 400;
-            margin-bottom: 1rem;
-            color: white;
         }
-        
+
+        /* ---------------- RESULTS ---------------- */
         .results-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 3rem 2rem;
         }
-        
-        .results-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .results-header h2 {
-            font-size: 2.5rem;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-        
+
         .event-list {
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
         }
-        
+
         .event-item {
-            background: white;
+            background: #fff;
             border-radius: 12px;
-            overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
             border: 1px solid #e9ecef;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
         }
-        
+
         .event-item.expanded {
             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
-        .event-item:last-child {
-            margin-bottom: 3rem; 
-        }
-        
         .event-main {
             display: flex;
+            align-items: center;
             padding: 1rem;
             cursor: pointer;
-            align-items: center;
             min-height: 120px;
         }
-        
+
         .event-image {
             width: 160px;
             height: 90px;
-            min-width: 160px;
             border-radius: 8px;
-            overflow: hidden;
-            margin-right: 1.5rem;
             background-size: cover;
             background-position: center;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
         }
-        
+
         .event-date {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-width: 80px;
-            padding: 0.75rem;
             background: #2c3e50;
             color: white;
             border-radius: 8px;
+            padding: 0.75rem;
+            min-width: 80px;
+            text-align: center;
             margin-right: 1.5rem;
         }
-        
+
         .event-month {
             font-size: 0.9rem;
             font-weight: 600;
             text-transform: uppercase;
-            margin-bottom: 0.25rem;
         }
-        
+
         .event-day {
             font-size: 2rem;
             font-weight: bold;
             line-height: 1;
         }
-        
+
         .event-info {
             flex: 1;
-            padding-right: 1rem;
         }
-        
+
         .event-title {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.7rem;
+            font-weight: 400;
             color: #2c3e50;
             margin-bottom: 0.5rem;
         }
-        
+
         .event-meta {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
-            color: #6c757d;
             font-size: 0.9rem;
+            color: #6c757d;
         }
-        
-        .event-time {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
+
         .event-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            margin-left: 1rem;
         }
-        
+
         .expand-btn {
-            background: none;
-            border: none;
-            color: #2c3e50;
-            font-size: 1.25rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             width: 36px;
             height: 36px;
             border-radius: 50%;
+            border: none;
             background: #f8f9fa;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            font-size: 1.1rem;
         }
-        
-        .expand-btn:hover {
-            background: #e9ecef;
-        }
-        
+
         .expand-btn.expanded {
             transform: rotate(180deg);
         }
-        
+
         .event-details {
             display: none;
             background: #f8f9fa;
@@ -200,50 +163,9 @@
         .event-details.expanded {
             display: block;
         }
-        
+
         .details-content {
             padding: 2rem;
-        }
-        
-        .details-content h3 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
-        }
-        
-        .details-content h4 {
-            color: #2c3e50;
-            margin: 1.5rem 0 0.5rem 0;
-            font-size: 1.1rem;
-        }
-        
-        .details-content ul, .details-content ol {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-        }
-        
-        .details-content li {
-            margin-bottom: 0.5rem;
-            line-height: 1.6;
-        }
-        
-        .details-content p {
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-        
-        /* Results link styling - UPDATED TO CENTER */
-        .results-link-container {
-            margin: 1rem 0;
-            text-align: center;
-            width: 100%;
-        }
-
-        .results-link-container h4 {
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             text-align: center;
         }
 
@@ -252,412 +174,136 @@
             color: #2c3e50;
             text-decoration: none;
             border-bottom: 2px solid #2c3e50;
-            padding-bottom: 2px;
-            text-align: center;
-            display: inline-block;
         }
 
-        .results-link-container a:hover {
-            color: #1a252f;
-            border-bottom-color: #1a252f;
+        /* ---------------- ADMIN ACCESS ---------------- */
+        #admin-access {
+            position: absolute;
+            bottom: 295px;
+            width: 30px;
+            height: 30px;
+            background: transparent;
+            cursor: pointer;
+            z-index: 9999;
         }
-        
+
+        #admin-access:hover {
+            opacity: 0.5;
+        }
+
+        /* ---------------- MOBILE ---------------- */
         @media (max-width: 768px) {
             .hero-section {
-                position: relative;
                 height: 20vh;
                 min-height: 200px;
             }
 
             .event-main {
                 flex-direction: column;
-                align-items: stretch;
             }
-            
+
             .event-image {
                 width: 100%;
-                height: 250px;
-                min-width: auto;
-                margin-right: 0;
+                height: 220px;
                 margin-bottom: 1rem;
             }
-            
+
             .event-date {
-                margin-right: 0;
-                margin-bottom: 1rem;
-                min-width: auto;
                 width: 100%;
-                flex-direction: row;
-                justify-content: center;
-                gap: 1rem;
-            }
-            
-            .event-month {
-                margin-bottom: 0;
-                font-size: 2rem;
-            }
-            
-            .event-meta {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            
-            .event-actions {
-                margin-top: 1rem;
-                justify-content: center;
-            }
-            
-            .hero-content h1 {
-                font-size: 2rem;
-            }
-            
-            .results-header h2 {
-                font-size: 1.75rem;
+                margin-bottom: 1rem;
             }
         }
     </style>
 </head>
+
 <body class="results-page">
-    <!-- HEADER INJECTION -->
+
+    <!-- HEADER -->
     <div id="header-placeholder"></div>
 
-    <!-- Hero Section -->
+    <!-- HERO -->
     <section class="hero-section">
         <div class="hero-background"></div>
         <div class="hero-content">
-            <div>
-                <h1>Tournament Results</h1>
-            </div>
+            <h1>Tournament Results</h1>
         </div>
     </section>
 
-    <!-- Results Section -->
+    <!-- RESULTS -->
     <section class="results-section">
         <div class="results-container">
-            
-            <div class="event-list">
-                
-                <!-- October 18, 2025 - Individual Stroke Play -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(0)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1758488594508-AVLKYFHPNJWKERSEAA1N/202510Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Oct</span>
-                            <span class="event-day">18</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">October 18th - Individual Stroke Play</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, October 18, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="https://www.golfgenius.com/ggid/epbmbx">https://www.golfgenius.com/ggid/epbmbx</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- September 20, 2025 - 2 Man Best Ball -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(1)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1758424599575-1TE0UQIMSHK91WKBRKO1/202509+Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Sep</span>
-                            <span class="event-day">20</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">September 20th - 2 Man Best Ball</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, September 20, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 9:00 AM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="https://www.golfgenius.com/pages/12014598284522852897">https://www.golfgenius.com/pages/12014598284522852897</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- August 16-17, 2025 - Club Championship -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(2)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1755874972767-HCSMLGVK9QU66U1Z7H2T/202508Thumbnail2X3.jpeg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Aug</span>
-                            <span class="event-day">16-17</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">August 16th - Club Championship</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Sat, Aug 16 - Sun, Aug 17, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="https://www.golfgenius.com/pages/11912680781333435281">https://www.golfgenius.com/pages/11912680781333435281</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- July 19, 2025 - Member Guest Scramble -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(3)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1754885750018-WEWUZ3GHVMJNRK8NE25V/202507Thumbnail2X3.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Jul</span>
-                            <span class="event-day">19</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">July 19th - Member Guest Scramble</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, July 19, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="https://smsgc-memberguestjuly2025.golfgenius.com/pages/11820420114321281774">https://smsgc-memberguestjuly2025.golfgenius.com/pages/11820420114321281774</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- June 21, 2025 - The Big Game (Individual) -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(4)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/2d290474-22f2-40b3-8208-5e204d12b7ba/202506Picture.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Jun</span>
-                            <span class="event-day">21</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">June 21st - The Big Game (Individual)</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, June 21, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="https://www.golfgenius.com/pages/11748526368520966722">https://www.golfgenius.com/pages/11748526368520966722</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- May 17, 2025 - Member-Member 6-6-6 Tournament -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(5)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1746075363678-J08I7TF37QZHZOVT7WLD/202505+Thumbnail2X3.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">May</span>
-                            <span class="event-day">17</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">May 17th - Member-Member 6-6-6 Tournament</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, May 17, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="#">https://www.golfgenius.com/pages/example-url</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- April 19, 2025 - The Mayor's Cup Match Play Qualifier -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(6)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/0fe2285e-cdec-4e5a-8651-ae98d121a821/MayorsCup.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Apr</span>
-                            <span class="event-day">19</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">April 19th - The Mayor's Cup Match Play Qualifier</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, April 19, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="https://www.golfgenius.com/pages/11433983807607312946">https://www.golfgenius.com/pages/11433983807607312946</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- March 15, 2025 - 4 Man Memorial -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(7)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1740246499828-409HW7C51HWEZVGF0PGD/20250203Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Mar</span>
-                            <span class="event-day">15</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">March 15th - 4 Man Memorial</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, March 15, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 7:30 AM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="http://www.golfgenius.com/pages/11433962777232839203">http://www.golfgenius.com/pages/11433962777232839203</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- February 15, 2025 - Past Presidents -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(8)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1743053751471-W12Z9AGE32S6MCQZ3PGY/202502Thumbnail.JPG')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Feb</span>
-                            <span class="event-day">15</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">February 15th - Past Presidents</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, February 15, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 4:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="https://www.golfgenius.com/pages/11344441988943483723">https://www.golfgenius.com/pages/11344441988943483723</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- January 18, 2025 - Kickoff Tournament -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(9)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737529586068-4KD7K3GA8078B7S2JYWW/202501Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Jan</span>
-                            <span class="event-day">18</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">January 18th - Kickoff Tournament</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, January 18, 2025</span>
-                                <span class="event-time">⏰ 6:30 AM - 3:45 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <div class="results-link-container">
-                                <h4><a href="#">https://www.golfgenius.com/pages/example-url</a></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
+            <div class="event-list"></div>
         </div>
     </section>
 
-    <!-- FOOTER INJECTION -->
+    <!-- FOOTER -->
     <div id="footer-placeholder"></div>
 
-    <!-- Scripts -->
+    <!-- HIDDEN ADMIN ACCESS -->
+    <div id="admin-access" onclick="location.href='/admin/'"></div>
+
+    <!-- SCRIPTS -->
     <script src="/js/menu.js"></script>
     <script src="/js/image.js"></script>
     <script src="/js/cart-count.js"></script>
-    
+
     <script>
-        // Load header + footer on page
         fetch("/header.html")
-            .then(res => res.text())
+            .then(r => r.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                initMenu(); // initialize after header loads
+                initMenu();
             });
 
         fetch("/footer.html")
-            .then(res => res.text())
-            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("footer-placeholder").innerHTML = html;
+            });
 
-        // Event expansion functionality
         function toggleEvent(index) {
-            const eventItems = document.querySelectorAll('.event-item');
-            const expandBtns = document.querySelectorAll('.expand-btn');
-            const details = document.querySelectorAll('.event-details');
-            
-            const eventItem = eventItems[index];
-            const expandBtn = expandBtns[index];
-            const detail = details[index];
-            
-            // Toggle current event
-            eventItem.classList.toggle('expanded');
-            expandBtn.classList.toggle('expanded');
-            detail.classList.toggle('expanded');
+            document.querySelectorAll('.event-item')[index].classList.toggle('expanded');
+            document.querySelectorAll('.expand-btn')[index].classList.toggle('expanded');
+            document.querySelectorAll('.event-details')[index].classList.toggle('expanded');
         }
-    
+
+        fetch('/api/results')
+            .then(res => res.json())
+            .then(results => {
+                const list = document.querySelector('.event-list');
+                list.innerHTML = '';
+
+                results.forEach((r, i) => {
+                    list.innerHTML += `
+                        <div class="event-item">
+                            <div class="event-main" onclick="toggleEvent(${i})">
+                                <div class="event-image" style="background-image:url('${r.image}')"></div>
+                                <div class="event-date">
+                                    <span class="event-month">${r.month}</span>
+                                    <span class="event-day">${r.day}</span>
+                                </div>
+                                <div class="event-info">
+                                    <h3 class="event-title">${r.title}</h3>
+                                    <div class="event-meta">
+                                        <span>📅 ${r.dateText}</span>
+                                        <span>⏰ ${r.timeText}</span>
+                                    </div>
+                                </div>
+                                <div class="event-actions">
+                                    <button class="expand-btn">▼</button>
+                                </div>
+                            </div>
+                            <div class="event-details">
+                                <div class="details-content">
+                                    <div class="results-link-container">
+                                        <a href="${r.link}" target="_blank">${r.link}</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
     </script>
 
 </body>

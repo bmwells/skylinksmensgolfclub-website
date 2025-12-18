@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Results Editor - Skylinks Admin</title>
+<style>
+body { font-family: system-ui; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+input, textarea { width: 100%; margin-bottom: 6px; padding: 8px; box-sizing: border-box; }
+.row { border: 1px solid #ccc; padding: 1.5rem; margin-bottom: 1rem; background: #fafafa; border-radius: 8px; }
+button { margin-bottom: 10px; margin-right: 8px; padding: 8px 16px; cursor: pointer; background: #0066cc; color: white; border: none; border-radius: 4px; }
+button:hover { background: #0052a3; }
+button.delete { background: #cc0000; }
+button.delete:hover { background: #a30000; }
+button.save-order { background: #28a745; }
+button.save-order:hover { background: #218838; }
+.form-row { display: flex; gap: 1rem; margin-bottom: 10px; }
+.form-row input { flex: 1; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; margin-bottom: 4px; font-weight: 600; color: #333; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #eee; }
+.drag-handle { cursor: move; margin-right: 10px; color: #666; }
+.dragging { opacity: 0.5; background: #e0e0e0; }
+.reorder-mode .row { cursor: move; }
+.reorder-mode .edit-buttons { display: none; }
+.reorder-notice { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin-bottom: 1rem; border-radius: 4px; color: #856404; display: flex; justify-content: space-between; align-items: center; }
+.reorder-actions { display: flex; gap: 10px; }
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background: white; padding: 2rem; border-radius: 8px; max-width: 400px; width: 90%; }
+.modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="unsavedModal" style="display: none;">
+  <div class="modal">
+    <h3>⚠️ Unsaved Changes</h3>
+    <p>Changes have not been saved! What would you like to do?</p>
+    <div class="modal-buttons">
+      <button onclick="saveAndExit()" style="background: #28a745;">💾 Save & Exit</button>
+      <button onclick="exitWithoutSaving()" style="background: #6c757d;">Exit without Saving</button>
+      <button onclick="cancelExit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="header">
+  <h1>Results Editor</h1>
+  <div>
+    <button onclick="window.location.href='/admin'">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="edit-buttons" style="margin-top: 2rem;">
+  <button onclick="addRow()">✏️ Add Row</button>
+  <button onclick="toggleReorder()">↕️ Rearrange Rows</button>
+  <button onclick="save()" style="background: #28a745;">💾 Save Changes</button>
+</div>
+
+<div id="reorderNotice" class="reorder-notice" style="display:none;">
+  <span>Drag rows to reorder. Click "Save Order" when done.</span>
+  <div class="reorder-actions">
+    <button class="save-order" onclick="saveOrder()">💾 Save Order</button>
+    <button onclick="toggleReorder()">❌ Cancel</button>
+  </div>
+</div>
+
+<div id="rows"></div>
+
+
+<script>
+let token = '';
+let results = [];
+let originalResults = [];
+let isReorderMode = false;
+let draggedRow = null;
+let hasUnsavedChanges = false;
+
+// Check for existing token or redirect to login
+window.onload = function() {
+  const savedToken = localStorage.getItem('adminToken');
+  if (savedToken) {
+    token = savedToken;
+    loadResults();
+  } else {
+    alert('Please login first');
+    window.location.href = '/admin';
+  }
+  
+  // Intercept back to admin button click
+  const backButton = document.querySelector('button[onclick*="window.location.href=\'/admin\'"]');
+  if (backButton) {
+    backButton.onclick = function(e) {
+      e.preventDefault();
+      checkUnsavedChanges();
+    };
+  }
+};
+
+function loadResults() {
+  fetch('/api/results')
+    .then(res => res.json())
+    .then(data => {
+      results = data;
+      originalResults = JSON.parse(JSON.stringify(data)); // Deep clone for comparison
+      render();
+      
+      // Add event listeners to all inputs to detect changes
+      setTimeout(() => {
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+          input.addEventListener('input', () => {
+            hasUnsavedChanges = true;
+          });
+        });
+      }, 100);
+    })
+    .catch(err => {
+      alert('Error loading results: ' + err.message);
+    });
+}
+
+function render() {
+  const rowsContainer = document.getElementById('rows');
+  rowsContainer.innerHTML = '';
+  
+  results.forEach((r, i) => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row';
+    rowDiv.setAttribute('data-index', i);
+    rowDiv.draggable = isReorderMode;
+    
+    if (isReorderMode) {
+      rowDiv.innerHTML = `
+        <div style="display: flex; align-items: center; padding: 1rem;">
+          <div class="drag-handle">☰</div>
+          <div style="flex: 1;">
+            <strong>${r.title || 'Untitled Result'}</strong>
+            <div style="color: #666; font-size: 0.9rem;">${r.dateText || ''} ${r.timeText || ''}</div>
+          </div>
+        </div>
+      `;
+      
+      // Drag and drop events for reorder mode
+      rowDiv.addEventListener('dragstart', (e) => {
+        draggedRow = rowDiv;
+        rowDiv.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', i);
+      });
+      
+      rowDiv.addEventListener('dragend', () => {
+        rowDiv.classList.remove('dragging');
+        draggedRow = null;
+        hasUnsavedChanges = true; // Reordering counts as a change
+      });
+      
+      rowDiv.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (draggedRow && draggedRow !== rowDiv) {
+          const rowsArray = Array.from(rowsContainer.children);
+          const draggedIndex = rowsArray.indexOf(draggedRow);
+          const targetIndex = rowsArray.indexOf(rowDiv);
+          
+          if (draggedIndex < targetIndex) {
+            rowDiv.parentNode.insertBefore(draggedRow, rowDiv.nextSibling);
+          } else {
+            rowDiv.parentNode.insertBefore(draggedRow, rowDiv);
+          }
+        }
+      });
+    } else {
+      rowDiv.innerHTML = `
+        <div class="input-group">
+          <label>Title</label>
+          <input value="${r.title || ''}" oninput="updateResult(${i}, 'title', this.value)" placeholder="Result title">
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 1;">
+            <label>Date</label>
+            <input value="${r.dateText || ''}" oninput="updateResult(${i}, 'dateText', this.value)" placeholder="e.g., September 15, 2024">
+          </div>
+          <div style="flex: 1;">
+            <label>Time</label>
+            <input value="${r.timeText || ''}" oninput="updateResult(${i}, 'timeText', this.value)" placeholder="e.g., 1:00 PM">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 1;">
+            <label>Month</label>
+            <input value="${r.month || ''}" oninput="updateResult(${i}, 'month', this.value)" placeholder="e.g., September">
+          </div>
+          <div style="flex: 1;">
+            <label>Day</label>
+            <input value="${r.day || ''}" oninput="updateResult(${i}, 'day', this.value)" placeholder="e.g., 15">
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label>Image URL</label>
+          <input value="${r.image || ''}" oninput="updateResult(${i}, 'image', this.value)" placeholder="https://example.com/image.jpg">
+        </div>
+        
+        <div class="input-group">
+          <label>Results Link URL</label>
+          <input value="${r.link || ''}" oninput="updateResult(${i}, 'link', this.value)" placeholder="https://example.com/details">
+        </div>
+        
+        <button class="delete" onclick="deleteRow(${i})">Delete</button>
+      `;
+    }
+    
+    rowsContainer.appendChild(rowDiv);
+  });
+}
+
+function updateResult(index, field, value) {
+  if (results[index]) {
+    results[index][field] = value;
+    hasUnsavedChanges = true;
+  }
+}
+
+function deleteRow(index) {
+  if (confirm('Are you sure you want to delete this result?')) {
+    results.splice(index, 1);
+    hasUnsavedChanges = true;
+    render();
+  }
+}
+
+function addRow() {
+  if (isReorderMode) {
+    alert('Please exit reorder mode before adding new rows.');
+    return;
+  }
+  
+  results.push({
+    title: '',
+    dateText: '',
+    timeText: '',
+    month: '',
+    day: '',
+    image: '',
+    link: ''
+  });
+  hasUnsavedChanges = true;
+  render();
+}
+
+function toggleReorder() {
+  isReorderMode = !isReorderMode;
+  
+  if (isReorderMode) {
+    document.getElementById('reorderNotice').style.display = 'flex';
+    document.body.classList.add('reorder-mode');
+    document.querySelector('.edit-buttons').style.display = 'none';
+  } else {
+    document.getElementById('reorderNotice').style.display = 'none';
+    document.body.classList.remove('reorder-mode');
+    document.querySelector('.edit-buttons').style.display = 'block';
+  }
+  
+  render();
+}
+
+function saveOrder() {
+  // Update results order based on DOM
+  const rowsContainer = document.getElementById('rows');
+  const newOrder = [];
+  const rowElements = rowsContainer.children;
+  
+  for (let element of rowElements) {
+    const index = parseInt(element.getAttribute('data-index'));
+    if (!isNaN(index) && results[index]) {
+      newOrder.push(results[index]);
+    }
+  }
+  
+  results = newOrder;
+  toggleReorder(); // Exit reorder mode
+  save(); // Save the new order
+}
+
+function save() {
+  fetch('/api/results', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token
+    },
+    body: JSON.stringify(results)
+  })
+  .then(res => {
+    if (res.ok) {
+      return res.json();
+    } else {
+      throw new Error('Save failed: ' + res.statusText);
+    }
+  })
+  .then(data => {
+    hasUnsavedChanges = false;
+    originalResults = JSON.parse(JSON.stringify(results)); // Update original
+    alert('Saved successfully!');
+  })
+  .catch(err => {
+    alert('Error saving: ' + err.message);
+    if (err.message.includes('Unauthorized') || err.message.includes('403')) {
+      localStorage.removeItem('adminToken');
+      window.location.href = '/admin';
+    }
+  });
+}
+
+function checkUnsavedChanges() {
+  if (hasUnsavedChanges) {
+    document.getElementById('unsavedModal').style.display = 'flex';
+  } else {
+    window.location.href = '/admin';
+  }
+}
+
+function saveAndExit() {
+  save();
+  document.getElementById('unsavedModal').style.display = 'none';
+  // Redirect after save is complete
+  setTimeout(() => {
+    if (!hasUnsavedChanges) {
+      window.location.href = '/admin';
+    }
+  }, 500);
+}
+
+function exitWithoutSaving() {
+  hasUnsavedChanges = false;
+  document.getElementById('unsavedModal').style.display = 'none';
+  window.location.href = '/admin';
+}
+
+function cancelExit() {
+  document.getElementById('unsavedModal').style.display = 'none';
+}
+
+// Initialize drag and drop for the container
+document.getElementById('rows').addEventListener('dragover', (e) => {
+  e.preventDefault();
+});
+
+// Also check for browser back button
+window.addEventListener('beforeunload', function(e) {
+  if (hasUnsavedChanges) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+  }
+});
+</script>
+
+</body>
+</html>
