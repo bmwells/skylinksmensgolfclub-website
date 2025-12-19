@@ -113,12 +113,21 @@ function initializeDataFiles() {
         fs.writeFileSync(dataFiles['monthly-tournament'], JSON.stringify([], null, 2));
     }
     
-    // President's Letter - single document with title and content
+    // President's Letter - structured document with president info and letters array
     if (!fs.existsSync(dataFiles['presidents-letter'])) {
         const presidentsLetter = {
-            title: "President's Letter",
-            content: "Welcome to the Skylinks Men's Golf Club!",
-            date: new Date().toISOString().split('T')[0]
+            president: {
+                name: 'Ted Lewandowski',
+                imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
+                role: 'President, Skylinks Men\'s Golf Club'
+            },
+            letters: [
+                {
+                    month: 'December',
+                    year: '2025',
+                    content: 'Dear Skylinks Men\'s Club Members,\n\nAs we step into December, I hope this message finds you in good spirits and ready to embrace the final month of the year. It\'s hard to believe we\'re already gearing up for the last tournament of 2025! This year has been both quiet and exhilarating...\n\n* First Quarter: Leo Corrales\n* Second Quarter: Colin Holmes\n* Third Quarter: Jeff Mort'
+                }
+            ]
         };
         fs.writeFileSync(dataFiles['presidents-letter'], JSON.stringify(presidentsLetter, null, 2));
     }
@@ -290,22 +299,62 @@ app.post('/api/monthly-tournament', requireAdmin, (req, res) => {
 });
 
 // --------------------
-// PRESIDENT'S LETTER API (placeholder)
+// PRESIDENT'S LETTER API
 // --------------------
 app.get('/api/presidents-letter', (req, res) => {
     try {
         const data = readDataFile('presidents-letter');
-        res.json(data);
+        
+        // Ensure data structure matches expected format
+        const formattedData = {
+            president: data.president || {
+                name: 'Ted Lewandowski',
+                imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
+                role: 'President, Skylinks Men\'s Golf Club'
+            },
+            letters: data.letters || data || []  // Support both old and new formats
+        };
+        
+        res.json(formattedData);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to read president\'s letter' });
+        console.error('Error reading president\'s letter:', err);
+        res.status(500).json({ 
+            error: 'Failed to read president\'s letter',
+            fallback: {
+                president: {
+                    name: 'Ted Lewandowski',
+                    imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
+                    role: 'President, Skylinks Men\'s Golf Club'
+                },
+                letters: []
+            }
+        });
     }
 });
 
 app.post('/api/presidents-letter', requireAdmin, (req, res) => {
     try {
-        writeDataFile('presidents-letter', req.body);
+        // Validate incoming data structure
+        const data = req.body;
+        
+        if (!data) {
+            return res.status(400).json({ error: 'No data provided' });
+        }
+        
+        // Ensure proper structure
+        const formattedData = {
+            president: data.president || {
+                name: 'Ted Lewandowski',
+                imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
+                role: 'President, Skylinks Men\'s Golf Club'
+            },
+            letters: data.letters || []
+        };
+        
+        writeDataFile('presidents-letter', formattedData);
         res.json({ success: true });
     } catch (err) {
+        console.error('Error saving president\'s letter:', err);
         res.status(500).json({ error: 'Failed to save president\'s letter' });
     }
 });
@@ -341,12 +390,26 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
-// Admin editor routes
+// Admin editor routes  
 app.get('/admin/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
-// Catch-all
+// Wildcard route for all admin editor pages
+app.get('/admin/:page', (req, res) => {
+    const page = req.params.page || 'index';
+    const filePath = path.join(__dirname, 'public', 'admin', `${page}.html`);
+    
+    // Check if file exists
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        // Fall back to admin index
+        res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
+    }
+});
+
+// Catch-all for main site pages
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

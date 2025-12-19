@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>President's Letter Editor - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>President's Letter Editor</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="addLetter()">📝 Add New Letter</button>
+  <button onclick="AdminCommon.toggleReorder()">↕️ Rearrange Letters</button>
+  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
+</div>
+
+<div id="reorderNotice" class="reorder-notice" style="display:none;">
+  <span>Drag letters to reorder. Click "Save Order" when done.</span>
+  <div class="reorder-actions">
+    <button class="save-order" onclick="AdminCommon.saveOrder('letters')">💾 Save Order</button>
+    <button onclick="AdminCommon.toggleReorder()">❌ Cancel</button>
+  </div>
+</div>
+
+<!-- President Letters Section -->
+<div id="letters"></div>
+
+<script>
+// Make render globally accessible
+window.render = render;
+
+// Store president data separately
+let presidentData = {
+  name: '',
+  imageUrl: '',
+  role: 'President, Skylinks Men\'s Golf Club'
+};
+
+function init() {
+  if (AdminCommon.init('presidents-letter', [])) {
+    loadLetters();
+  }
+}
+
+function loadLetters() {
+  AdminCommon.load().then((data) => {
+    // Store president data separately
+    if (data.president) {
+      presidentData = data.president;
+    }
+    
+    // Store letters in AdminCommon.data
+    AdminCommon.data = data.letters || [];
+    AdminCommon.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
+    
+    render();
+    // Setup drag and drop container
+    AdminCommon.setupDragAndDrop('letters');
+    // Setup input listeners after render
+    AdminCommon.setupInputListeners();
+  }).catch(err => {
+    alert('Error loading president\'s letters: ' + err.message);
+  });
+}
+
+function render() {
+  const lettersContainer = document.getElementById('letters');
+  lettersContainer.innerHTML = '';
+  
+  // Create president info section (always show this)
+  const presidentDiv = document.createElement('div');
+  presidentDiv.className = 'row';
+  presidentDiv.innerHTML = `
+    <h3>President Information</h3>
+    <div class="form-row">
+      <div style="flex: 1;">
+        ${AdminCommon.templates.textInput('President Name', presidentData.name, `updatePresident('name', this.value)`, 'President Name')}
+      </div>
+      <div style="flex: 2;">
+        ${AdminCommon.templates.textInput('Image URL', presidentData.imageUrl, `updatePresident('imageUrl', this.value)`, 'Image URL for President Photo')}
+      </div>
+    </div>
+  `;
+  lettersContainer.appendChild(presidentDiv);
+  
+  // Now render the letters
+  AdminCommon.data.forEach((letter, letterIndex) => {
+    const letterDiv = document.createElement('div');
+    letterDiv.className = 'row';
+    letterDiv.setAttribute('data-index', letterIndex);
+    
+    if (AdminCommon.isReorderMode) {
+      letterDiv.draggable = true;
+      
+      // Minimal view for reordering
+      const title = `President's Letter – ${letter.month || ''} ${letter.year || ''}`;
+      letterDiv.innerHTML = AdminCommon.templates.minimalRow(title, '');
+      
+      // Add drag events
+      AdminCommon.addDragEvents(letterDiv, letterIndex);
+    } else {
+      letterDiv.draggable = false;
+      
+      // Month dropdown options
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      
+      const monthOptions = months.map(m => 
+        `<option value="${m}" ${letter.month === m ? 'selected' : ''}>${m}</option>`
+      ).join('');
+      
+      // Full edit view
+      const html = `
+        <div class="section-header">
+          <h3>President's Letter – ${letter.month || ''} ${letter.year || ''}</h3>
+          <div>
+            ${AdminCommon.templates.deleteButton(`deleteLetter(${letterIndex})`, 'Delete', true)}
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 1;">
+            <div class="input-group">
+              <label>Month</label>
+              <select onchange="updateLetter(${letterIndex}, 'month', this.value)">
+                <option value="">Select Month</option>
+                ${monthOptions}
+              </select>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            ${AdminCommon.templates.textInput('Year', letter.year, `updateLetter(${letterIndex}, 'year', this.value)`, 'e.g., 2025')}
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label>Letter Content</label>
+            <button onclick="addBulletPoint(${letterIndex})" style="background: #6c757d; padding: 6px 12px; font-size: 0.9rem;">• Add Bullet Point</button>
+          </div>
+          <textarea 
+            oninput="updateLetter(${letterIndex}, 'content', this.value)"
+            placeholder="Write your letter here..."
+            style="min-height: 300px; font-family: system-ui; line-height: 1.6;"
+          >${AdminCommon.escapeHtml(letter.content || '')}</textarea>
+          <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
+            Tip: Use Enter for new paragraphs. Click 'Add Bullet Point' or Type \"*\" at the beginning of a line to insert a bullet point.
+          </div>
+        </div>
+      `;
+      
+      letterDiv.innerHTML = html;
+    }
+    
+    lettersContainer.appendChild(letterDiv);
+  });
+  
+  // Remove the old code that tried to update president info in first row
+  // Re-setup input listeners after rendering new inputs
+  if (!AdminCommon.isReorderMode) {
+    AdminCommon.setupInputListeners();
+  }
+}
+
+function updatePresident(field, value) {
+  presidentData[field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function updateLetter(letterIndex, field, value) {
+  AdminCommon.updateItem(letterIndex, field, value);
+  
+  // Update the title display if month or year changes
+  if (field === 'month' || field === 'year') {
+    const letterDiv = document.querySelector(`.row[data-index="${letterIndex}"] .section-header h3`);
+    if (letterDiv) {
+      const letter = AdminCommon.data[letterIndex];
+      letterDiv.textContent = `President's Letter – ${letter.month || ''} ${letter.year || ''}`;
+    }
+  }
+}
+
+function addLetter() {
+  if (AdminCommon.isReorderMode) {
+    alert('Please exit reorder mode before adding new letters.');
+    return;
+  }
+  
+  AdminCommon.addItem({
+    month: '',
+    year: new Date().getFullYear().toString(),
+    content: ''
+  });
+  render();
+}
+
+function addBulletPoint(letterIndex) {
+  const textarea = document.querySelector(`.row[data-index="${letterIndex}"] textarea`);
+  if (!textarea) return;
+  
+  const cursorPos = textarea.selectionStart;
+  const currentValue = textarea.value;
+  
+  // Check if we're at the beginning of a line or on a new line
+  const beforeCursor = currentValue.substring(0, cursorPos);
+  const lastNewLine = beforeCursor.lastIndexOf('\n');
+  const currentLineStart = lastNewLine === -1 ? 0 : lastNewLine + 1;
+  const currentLine = beforeCursor.substring(currentLineStart);
+  
+  // If the current line already starts with a bullet, don't add another one
+  if (currentLine.trim().startsWith('* ')) {
+    return;
+  }
+  
+  // Insert bullet point at current position
+  const newValue = currentValue.substring(0, currentLineStart) + 
+                  '* ' + 
+                  currentValue.substring(currentLineStart);
+  
+  textarea.value = newValue;
+  updateLetter(letterIndex, 'content', newValue);
+  
+  // Set cursor position after bullet
+  setTimeout(() => {
+    textarea.focus();
+    textarea.setSelectionRange(cursorPos + 2, cursorPos + 2);
+  }, 10);
+}
+
+function deleteLetter(letterIndex) {
+  if (AdminCommon.deleteItem(letterIndex, 'Are you sure you want to delete this letter?')) {
+    render();
+  }
+}
+
+// Override save function to include president data
+const originalSave = AdminCommon.save;
+AdminCommon.save = function() {
+  // Prepare full data structure
+  const fullData = {
+    president: presidentData,
+    letters: AdminCommon.data
+  };
+  
+  return fetch(`/api/presidents-letter`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': this.token
+    },
+    body: JSON.stringify(fullData)
+  })
+  .then(res => {
+    if (res.ok) {
+      this.hasUnsavedChanges = false;
+      this.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
+      return res.json();
+    } else {
+      throw new Error('Save failed: ' + res.statusText);
+    }
+  });
+};
+
+window.onload = init;
+</script>
+</body>
+</html>
