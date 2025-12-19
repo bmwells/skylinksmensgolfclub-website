@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Schedule Editor - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+<style>
+    .status-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .status-selector button {
+        background: #e9ecef;
+        color: #495057;
+        flex: 1;
+    }
+    
+    .status-selector button:hover {
+        background: #dee2e6;
+    }
+    
+    .status-selector button.active {
+        background: #0066cc;
+        color: white;
+    }
+    
+    .status-upcoming-btn.active {
+        background: #28a745 !important;
+    }
+    
+    .status-past-btn.active {
+        background: #6c757d !important;
+    }
+    
+    .event-preview {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .event-preview h4 {
+        margin-top: 0;
+        color: #495057;
+    }
+    
+    .bullet-point-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 12px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-right: 5px;
+    }
+    
+    .bullet-point-btn:hover {
+        background: #5a6268;
+    }
+    
+    .details-list {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        min-height: 200px;
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    .details-list div {
+        margin-bottom: 5px;
+        padding: 2px 0;
+    }
+    
+    .details-list .bullet-line {
+        margin-left: 20px;
+    }
+    
+    .date-inputs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .date-inputs input {
+        flex: 1;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Schedule Editor</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="addEvent()">📅 Add New Event</button>
+  <button onclick="AdminCommon.toggleReorder()">↕️ Rearrange Events</button>
+  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
+</div>
+
+<div id="reorderNotice" class="reorder-notice" style="display:none;">
+  <span>Drag events to reorder. Click "Save Order" when done.</span>
+  <div class="reorder-actions">
+    <button class="save-order" onclick="AdminCommon.saveOrder('events')">💾 Save Order</button>
+    <button onclick="AdminCommon.toggleReorder()">❌ Cancel</button>
+  </div>
+</div>
+
+<!-- Schedule Section -->
+<div id="events"></div>
+
+<script>
+// Make render globally accessible
+window.render = render;
+
+// Store hero image separately
+let heroImage = 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG';
+
+function init() {
+  if (AdminCommon.init('schedule', [])) {
+    loadEvents();
+  }
+}
+
+function loadEvents() {
+  AdminCommon.load().then((data) => {
+    // Store events in AdminCommon.data
+    AdminCommon.data = Array.isArray(data) ? data : [];
+    AdminCommon.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
+    
+    render();
+    // Setup drag and drop container
+    AdminCommon.setupDragAndDrop('events');
+    // Setup input listeners after render
+    AdminCommon.setupInputListeners();
+  }).catch(err => {
+    alert('Error loading schedule: ' + err.message);
+  });
+}
+
+function render() {
+  const eventsContainer = document.getElementById('events');
+  eventsContainer.innerHTML = '';
+  
+  // Render hero image section
+  const heroDiv = document.createElement('div');
+  heroDiv.className = 'row';
+  heroDiv.innerHTML = `
+    <h3>Hero Image (Page Banner)</h3>
+    ${AdminCommon.templates.textInput('Hero Image URL', heroImage, `updateHeroImage(this.value)`, 'URL for the large banner image at top of schedule page')}
+  `;
+  eventsContainer.appendChild(heroDiv);
+  
+  AdminCommon.data.forEach((event, eventIndex) => {
+    const eventDiv = document.createElement('div');
+    eventDiv.className = 'row';
+    eventDiv.setAttribute('data-index', eventIndex);
+    
+    if (AdminCommon.isReorderMode) {
+      eventDiv.draggable = true;
+      
+      // Minimal view for reordering
+      const status = event.status === 'upcoming' ? '🟢 Upcoming' : '⚫ Past';
+      eventDiv.innerHTML = AdminCommon.templates.minimalRow(
+        event.title + ' - ' + event.date,
+        status
+      );
+      
+      // Add drag events
+      AdminCommon.addDragEvents(eventDiv, eventIndex);
+    } else {
+      eventDiv.draggable = false;
+      
+      // Parse display date
+      const displayMonth = event.displayDate?.month || '';
+      const displayDay = event.displayDate?.day || '';
+      
+      // Parse details array into text
+      const detailsText = event.details ? event.details.join('\n') : '';
+      
+      // Full edit view
+      const html = `
+        <div class="section-header">
+          <h3>${event.title} - ${event.date}</h3>
+          <div>
+            ${AdminCommon.templates.deleteButton(`deleteEvent(${eventIndex})`, 'Delete', true)}
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 2;">
+            ${AdminCommon.templates.textInput('Event Title', event.title, `updateEvent(${eventIndex}, 'title', this.value)`, 'e.g., Christmas Schamble')}
+          </div>
+          <div style="flex: 1;">
+            ${AdminCommon.templates.textInput('Full Date', event.date, `updateEvent(${eventIndex}, 'date', this.value)`, 'e.g., December 14, 2025')}
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 1;">
+            ${AdminCommon.templates.textInput('Display Month (Short)', displayMonth, `updateDisplayDate(${eventIndex}, 'month', this.value)`, 'e.g., Dec')}
+          </div>
+          <div style="flex: 1;">
+            ${AdminCommon.templates.textInput('Display Day', displayDay, `updateDisplayDate(${eventIndex}, 'day', this.value)`, 'e.g., 14 or 16-17')}
+          </div>
+          <div style="flex: 2;">
+            ${AdminCommon.templates.textInput('Time Range', event.timeRange, `updateEvent(${eventIndex}, 'timeRange', this.value)`, 'e.g., 7:00 AM - 8:00 AM (Shotgun Start)')}
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 1;">
+            ${AdminCommon.templates.textInput('Image URL', event.imageUrl, `updateEvent(${eventIndex}, 'imageUrl', this.value)`, 'URL for event thumbnail')}
+          </div>
+          <div style="flex: 1;">
+            ${AdminCommon.templates.textInput('Entry Fee', event.entryFee, `updateEvent(${eventIndex}, 'entryFee', this.value)`, 'e.g., $84 + $25 side pots')}
+          </div>
+          <div style="flex: 1;">
+            ${AdminCommon.templates.textInput('Format', event.format, `updateEvent(${eventIndex}, 'format', this.value)`, 'e.g., 4-Man Shamble')}
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <div class="status-selector">
+            <button onclick="setEventStatus(${eventIndex}, 'upcoming')" class="status-upcoming-btn ${event.status === 'upcoming' ? 'active' : ''}">
+              🟢 Upcoming Event
+            </button>
+            <button onclick="setEventStatus(${eventIndex}, 'past')" class="status-past-btn ${event.status === 'past' ? 'active' : ''}">
+              ⚫ Past Event
+            </button>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label>Event Details (One per line, use • for bullet points)</label>
+          <div style="margin-bottom: 10px;">
+            <button onclick="addBulletLine(${eventIndex})" class="bullet-point-btn">• Add Bullet Point</button>
+            <button onclick="addSubBulletLine(${eventIndex})" class="bullet-point-btn">  • Add Sub-bullet</button>
+            <button onclick="addEmptyLine(${eventIndex})" class="bullet-point-btn">📝 Add Empty Line</button>
+          </div>
+          <textarea 
+            oninput="updateDetails(${eventIndex}, this.value)"
+            placeholder="Enter event details here. Each line will be displayed separately. Use • for bullet points."
+            style="min-height: 300px; font-family: monospace; line-height: 1.4; white-space: pre;"
+          >${AdminCommon.escapeHtml(detailsText)}</textarea>
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 2;">
+            ${AdminCommon.templates.textInput('Google Calendar Link', event.googleCalendarLink, `updateEvent(${eventIndex}, 'googleCalendarLink', this.value)`, 'Full Google Calendar URL')}
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div style="flex: 2;">
+            ${AdminCommon.templates.textInput('Signup Deadline Text', event.signupDeadline, `updateEvent(${eventIndex}, 'signupDeadline', this.value)`, 'e.g., midnight Wednesday December 3rd, 2025')}
+          </div>
+          <div style="flex: 1;">
+            <div class="input-group">
+              <label>Deadline Status</label>
+              <select onchange="updateEvent(${eventIndex}, 'isPastDeadline', this.value === 'true')">
+                <option value="false" ${!event.isPastDeadline ? 'selected' : ''}>Open / Upcoming</option>
+                <option value="true" ${event.isPastDeadline ? 'selected' : ''}>Past Deadline</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="event-preview">
+          <h4>Preview:</h4>
+          <div><strong>${event.title}</strong> - ${event.date}</div>
+          <div>Status: ${event.status === 'upcoming' ? '🟢 Upcoming' : '⚫ Past'}</div>
+          <div>Display: ${displayMonth} ${displayDay}</div>
+          <div>Time: ${event.timeRange}</div>
+        </div>
+      `;
+      
+      eventDiv.innerHTML = html;
+    }
+    
+    eventsContainer.appendChild(eventDiv);
+  });
+  
+  // Re-setup input listeners after rendering new inputs
+  if (!AdminCommon.isReorderMode) {
+    AdminCommon.setupInputListeners();
+  }
+}
+
+function updateHeroImage(value) {
+  heroImage = value;
+  AdminCommon.markUnsaved();
+}
+
+function updateEvent(eventIndex, field, value) {
+  AdminCommon.updateItem(eventIndex, field, value);
+}
+
+function updateDisplayDate(eventIndex, field, value) {
+  if (!AdminCommon.data[eventIndex].displayDate) {
+    AdminCommon.data[eventIndex].displayDate = {};
+  }
+  AdminCommon.data[eventIndex].displayDate[field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function updateDetails(eventIndex, value) {
+  // Split by newlines to create array
+  const detailsArray = value.split('\n').map(line => line.trimEnd());
+  AdminCommon.data[eventIndex].details = detailsArray;
+  AdminCommon.markUnsaved();
+}
+
+function setEventStatus(eventIndex, status) {
+  AdminCommon.data[eventIndex].status = status;
+  AdminCommon.markUnsaved();
+  render();
+}
+
+function addBulletLine(eventIndex) {
+  const textarea = document.querySelector(`.row[data-index="${eventIndex}"] textarea`);
+  if (!textarea) return;
+  
+  const cursorPos = textarea.selectionStart;
+  const currentValue = textarea.value;
+  const newValue = currentValue.substring(0, cursorPos) + '• ' + currentValue.substring(cursorPos);
+  
+  textarea.value = newValue;
+  updateDetails(eventIndex, newValue);
+  
+  // Set cursor position after bullet
+  setTimeout(() => {
+    textarea.focus();
+    textarea.setSelectionRange(cursorPos + 2, cursorPos + 2);
+  }, 10);
+}
+
+function addSubBulletLine(eventIndex) {
+  const textarea = document.querySelector(`.row[data-index="${eventIndex}"] textarea`);
+  if (!textarea) return;
+  
+  const cursorPos = textarea.selectionStart;
+  const currentValue = textarea.value;
+  const newValue = currentValue.substring(0, cursorPos) + '  • ' + currentValue.substring(cursorPos);
+  
+  textarea.value = newValue;
+  updateDetails(eventIndex, newValue);
+  
+  // Set cursor position after bullet
+  setTimeout(() => {
+    textarea.focus();
+    textarea.setSelectionRange(cursorPos + 4, cursorPos + 4);
+  }, 10);
+}
+
+function addEmptyLine(eventIndex) {
+  const textarea = document.querySelector(`.row[data-index="${eventIndex}"] textarea`);
+  if (!textarea) return;
+  
+  const cursorPos = textarea.selectionStart;
+  const currentValue = textarea.value;
+  const newValue = currentValue.substring(0, cursorPos) + '\n' + currentValue.substring(cursorPos);
+  
+  textarea.value = newValue;
+  updateDetails(eventIndex, newValue);
+  
+  // Set cursor position on new line
+  setTimeout(() => {
+    textarea.focus();
+    textarea.setSelectionRange(cursorPos + 1, cursorPos + 1);
+  }, 10);
+}
+
+function addEvent() {
+  if (AdminCommon.isReorderMode) {
+    alert('Please exit reorder mode before adding new events.');
+    return;
+  }
+  
+  const currentDate = new Date();
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthName = monthNames[currentDate.getMonth()];
+  
+  AdminCommon.addItem({
+    id: 'new-event-' + Date.now(),
+    title: 'New Tournament',
+    date: `${monthName} ${currentDate.getDate()}, ${currentDate.getFullYear()}`,
+    displayDate: {
+      month: monthName,
+      day: currentDate.getDate().toString()
+    },
+    timeRange: '6:00 AM - 3:00 PM',
+    imageUrl: '',
+    status: 'upcoming',
+    details: ['Event details go here...'],
+    googleCalendarLink: '',
+    signupDeadline: 'midnight Tuesday before the event',
+    isPastDeadline: false,
+    entryFee: '$84 + $25 side pots',
+    format: 'Individual Stroke Play'
+  });
+  render();
+}
+
+function deleteEvent(eventIndex) {
+  if (AdminCommon.deleteItem(eventIndex, 'Are you sure you want to delete this event?')) {
+    render();
+  }
+}
+
+// Override save function to include hero image
+const originalSave = AdminCommon.save;
+AdminCommon.save = function() {
+  // We need to store hero image somewhere - for simplicity, add it to first event
+  // or create a separate API endpoint for hero image
+  // For now, we'll just save the events array
+  return originalSave.call(this);
+};
+
+window.onload = init;
+</script>
+</body>
+</html>

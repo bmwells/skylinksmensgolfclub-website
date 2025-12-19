@@ -103,9 +103,46 @@ function initializeDataFiles() {
         fs.writeFileSync(dataFiles['meeting-minutes'], JSON.stringify(defaultMeetingMinutes, null, 2));
     }
     
-    // Schedule - array of scheduled events
+    // Schedule - array of scheduled events with full details
     if (!fs.existsSync(dataFiles.schedule)) {
-        fs.writeFileSync(dataFiles.schedule, JSON.stringify([], null, 2));
+        const defaultSchedule = [
+            {
+                "id": "christmas-schamble-2025",
+                "title": "Christmas Schamble",
+                "date": "December 14, 2025",
+                "displayDate": {
+                    "month": "Dec",
+                    "day": "14"
+                },
+                "timeRange": "7:00 AM - 8:00 AM (Shotgun Start)",
+                "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg",
+                "status": "upcoming",
+                "details": [
+                    "December Tournament Format – 4-Man Shamble (SHOTGUN START)",
+                    "",
+                    "• SHOTGUN START AT 7:00AM",
+                    "• INCLUDES 2 FREE DRINK TICKETS",
+                    "• PLAYERS WILL PICK THEIR OWN TEAM",
+                    "• IF YOU DO NOT HAVE A TEAM, WE WILL PLACE YOU IN ONE",
+                    "• This is a 4-man team game",
+                    "• The team uses the two best balls on each hole (Gross & Net) to get a total score for each hole",
+                    "• All four players hit a tee shot on each hole",
+                    "• The team selects the best tee shot, and all players play their OWN ball from that tee shot until holing out. This is NOT a scramble. Play your own ball where it lies.",
+                    "• Each player must place their ball within one club length of the selected tee shot, staying in the same playing condition:",
+                    "  • Fairway stays in fairway",
+                    "  • Rough stays in rough",
+                    "  • Bunker stays in bunker",
+                    "  • Penalty area stays in penalty area"
+                ],
+                "googleCalendarLink": "http://www.google.com/calendar/event?action=TEMPLATE&text=Christmas%20Schamble&dates=20251214T150000Z/20251214T160000Z",
+                "signupDeadline": "midnight Wednesday December 3rd, 2025",
+                "isPastDeadline": false,
+                "entryFee": "$84 + $25 side pots",
+                "format": "4-Man Shamble",
+                "heroImage": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG"
+            }
+        ];
+        fs.writeFileSync(dataFiles.schedule, JSON.stringify(defaultSchedule, null, 2));
     }
     
     // Monthly Tournament - array of monthly tournaments
@@ -257,23 +294,44 @@ app.post('/api/meeting-minutes', requireAdmin, (req, res) => {
 });
 
 // --------------------
-// SCHEDULE API (placeholder)
+// SCHEDULE API
 // --------------------
 app.get('/api/schedule', (req, res) => {
     try {
         const data = readDataFile('schedule');
         res.json(data);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to read schedule' });
+        console.error('Error reading schedule:', err);
+        res.status(500).json({ 
+            error: 'Failed to read schedule data',
+            fallback: []
+        });
     }
 });
 
 app.post('/api/schedule', requireAdmin, (req, res) => {
     try {
-        writeDataFile('schedule', req.body);
+        // Validate incoming data structure
+        const data = req.body;
+        
+        if (!data || !Array.isArray(data)) {
+            return res.status(400).json({ error: 'Invalid data format. Expected array.' });
+        }
+        
+        // Validate each event has required fields
+        for (const event of data) {
+            if (!event.title || !event.date) {
+                return res.status(400).json({ 
+                    error: 'Event missing required fields: title and date are required' 
+                });
+            }
+        }
+        
+        writeDataFile('schedule', data);
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to save schedule' });
+        console.error('Error saving schedule:', err);
+        res.status(500).json({ error: 'Failed to save schedule data' });
     }
 });
 

@@ -56,7 +56,7 @@
         
         .events-header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 0.5rem;
         }
         
         .events-header h2 {
@@ -212,6 +212,11 @@
             font-size: 1.25rem;
         }
         
+        .details-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
         .details-content ul {
             margin-bottom: 1.5rem;
             padding-left: 1.5rem;
@@ -289,17 +294,17 @@
         
         .past-divider {
             border: none;
-            border-top: 3px solid #dc3545;
+            border-top: 3px solid #6c757d;
             margin: 3rem 0;
             opacity: 0.5;
         }
         
         @media (max-width: 768px) {
-        .hero-section {
-            position: relative;
-            height: 20vh;
-            min-height: 200px;
-        }
+            .hero-section {
+                position: relative;
+                height: 20vh;
+                min-height: 200px;
+            }
 
             .event-main {
                 flex-direction: column;
@@ -367,6 +372,18 @@
         .calendar-links a:hover {
             background: #e9ecef;
         }
+        
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: #666;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 4rem;
+            color: #dc3545;
+        }
     </style>
 </head>
 <body class="schedule-page">
@@ -375,10 +392,10 @@
 
     <!-- Hero Section -->
     <section class="hero-section">
-        <div class="hero-background" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG')"></div>
+        <div class="hero-background" id="hero-background"></div>
         <div class="hero-content">
             <div>
-                <h1>Upcoming Tournaments</h1>
+                <h1>Tournament Schedule</h1>
             </div>
         </div>
     </section>
@@ -386,706 +403,8 @@
     <!-- Events Section -->
     <section class="events-section">
         <div class="events-container">
-            
-            <div class="event-list">
-                
-                <!-- December 14, 2025 - Christmas Schamble -->
-                <div class="event-item">
-                    <div class="event-main" onclick="toggleEvent(0)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Dec</span>
-                            <span class="event-day">14</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Christmas Schamble</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Sunday, December 14, 2025</span>
-                                <span class="event-time">⏰ 7:00 AM - 8:00 AM (Shotgun Start)</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-upcoming">Upcoming</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <h3>December Tournament Format – 4-Man Shamble (SHOTGUN START)</h3>
-                            <ul>
-                                <li>SHOTGUN START AT 7:00AM</li>
-                                <li>INCLUDES 2 FREE DRINK TICKETS</li>
-                                <li>PLAYERS WILL PICK THEIR OWN TEAM</li>
-                                <li>IF YOU DO NOT HAVE A TEAM, WE WILL PLACE YOU IN ONE</li>
-                                <li>This is a 4-man team game</li>
-                                <li>The team uses the two best balls on each hole (Gross & Net) to get a total score for each hole</li>
-                                <li>All four players <strong>hit a tee shot</strong> on each hole</li>
-                                <li>The team <strong>selects the best tee shot</strong>, and all players play their OWN ball from that tee shot until holing out. This is NOT a scramble. Play your own ball where it lies.</li>
-                                <li><strong>Each player must place their ball within one club length</strong> of the selected tee shot, staying in the same playing condition:</li>
-                                <ul>
-                                    <li><strong>Fairway stays in fairway</strong></li>
-                                    <li><strong>Rough stays in rough</strong></li>
-                                    <li><strong>Bunker stays in bunker</strong></li>
-                                    <li><strong>Penalty area stays in penalty area</strong></li>
-                                </ul>
-                            </ul>
-                            <h3>Scoring</h3>
-                            <ul>
-                                <li>Players <strong>must record their individual GROSS score on the scorecard</strong> and in <strong>Golf Genius</strong></li>
-                                <li>The TEAM records the combined <strong>two best gross and two best net scores per hole. GOLF GENIUS WILL KEEP TRACK OF THIS</strong></li>
-                            </ul>
-                            <h3>Drive Requirement</h3>
-                            <ul>
-                                <li>Each player must contribute <strong>at least three (3) tee shots</strong> during the round.</li>
-                            </ul>
-                            <p><strong>Handicaps</strong></p>
-                            <ul>
-                                <li>Players will be playing to 80% of their overall handicap per USGA recommendation for this tournament format in the NET scoring</li>
-                            </ul>
-                            <p><strong>Extra Games: Skins & Polies</strong></p>
-                            <ul>
-                                <li>Gross & Net skins are available in this tournament and are individual skins.</li>
-                                <li>Net Skins are capped at 18 strokes per player (1 stroke per hole)</li>
-                                <li>Polies on par – 3's if your tee shot lands within the length of the flagstick to the hole – you win a polie</li>
-                            </ul>
-                            <p><strong>PACE OF PLAY</strong></p>
-                            <ul>
-                                <li>Play ready golf</li>
-                                <li>Pick up if your score is going to be greater than the lowest two gross and net scores on the hole</li>
-                                <li>If there is a wait on the Par 3, once your group is on the green, waive up the group behind you</li>
-                                <li>On hole 1, waive up the group on the tee once you are all on the green. If you are on the tee on Hole 1 and not going for the green, hit your tee shots before the player trying to drive the green hits. That person(s) should hit last after being waived up</li>
-                                <li>If your group falls behind</li>
-                                <ul>
-                                    <li>After you are done holing out go hit your tee shot while the rest of the group putts out</li>
-                                    <li>Get back in position</li>
-                                </ul>
-                            </ul>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Christmas%20Schamble&amp;dates=20251214T150000Z/20251214T160000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline:</strong> <span class="date-open">midnight Wednesday December 3rd, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- November 15, 2025 - 2-Man Turkey Shootout -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(1)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1761193038880-12C0K7XJWOX52B2JU81G/202511Thumbnail.JPG')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Nov</span>
-                            <span class="event-day">15</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">2-Man Turkey Shootout</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, November 15, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>2-Man Team Best Ball going against other 2-Man team in foursome. Winning team takes purse.</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=2-Man%20Turkey%20Shootout&amp;dates=20251115T140000Z/20251115T230000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday November 4th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- October 18, 2025 - Individual Stroke Play -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(2)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1758488594508-AVLKYFHPNJWKERSEAA1N/202510Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Oct</span>
-                            <span class="event-day">18</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Individual Stroke Play</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, October 18, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Individual Stroke Play - Gross and Net Payouts</p>
-                            <p>3-4 flights depending on registration volume</p>
-                            <p>BLUE and WHITE tees will be used!!!</p>
-                            <p>$90 Entry Fee and $25 Side Pots</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Individual%20Stroke%20Play&amp;dates=20251018T130000Z/20251018T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday October 7th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- September 27, 2025 - $40 Skins Game -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(3)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1747464416765-6KV0LGEF6ENS4VM0ZX8T/IMG_1190.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Sep</span>
-                            <span class="event-day">27</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">$40 Skins Game</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, September 27, 2025</span>
-                                <span class="event-time">⏰ 7:30 AM - 9:30 AM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p><strong>Tournament Format:</strong></p>
-                            <ul>
-                                <li>Net Skins</li>
-                                <li>Tee times will be between 7:30am - 9:30am</li>
-                            </ul>
-                            <p>$110 Entry Fee for walking or $119 with cart.</p>
-                            <p><strong>***LIMITED TO ONLY 48 SLOTS***</strong></p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=%2440%20Skins%20Game&amp;dates=20250927T143000Z/20250927T163000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight September 22nd, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- September 20, 2025 - 2 Man Best Ball -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(4)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1755874613054-RGRBI4X9J1YV2614LL86/202509%2BThumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Sep</span>
-                            <span class="event-day">20</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">2 Man Best Ball</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, September 20, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 2:55 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Format: 2-Man Team Net Best Ball Qualifier – The Heritage Cup</p>
-                            <p>This is a one day 2-man team Net-Best Ball Stroke Play event.</p>
-                            <p>This is a qualifier for team match play and to crown a 2-man team match play champion!</p>
-                            <p>The number of qualifying teams will be based on total entries.</p>
-                            <p>Low 16-32 teams qualify for the Team Match Play portion of the event. (Think March Madness/Mayor's Cup)</p>
-                            <ul>
-                                <li>4-Bracket Format; Brackets divided up based on handicaps & teams within bracket of similar handicaps will play against each other</li>
-                                <li>Seeding within bracket determined by team best ball net score during Net Qualifier</li>
-                                <li>Bracket format (Flights A, B, C, D) based on lowest 16-32 team's net best ball scores divided into flights. Flights will be determined AFTER the qualifier</li>
-                                <li>Semi Finals/Final Four: Winners of Each Flight Face Off</li>
-                                <li>Finals: Winners of each semi final</li>
-                                <li>Flight Champion awarded for each flight</li>
-                                <li>Overall Champion awarded</li>
-                                <li>Match Play rounds to be completed over following weeks (info to follow)</li>
-                                <li>Trophy awarded</li>
-                            </ul>
-                            <p><strong>*** There is no time designation for how long match play will take. We encourage everyone that makes it to match play to try and play their rounds as soon as possible, so that we do not wait on any one match for the rest of the bracket to unfold.</strong></p>
-                            <p><strong>Every winner of their flight will get a purse, and match play rounds will be comped for teams making it to the top 8.</strong></p>
-                            <p><strong>If you end up tying at the end of match play, you will need to continue playing in sudden death. The next hole wins the match.***</strong></p>
-                            <p>More Specific Rules to Follow after the players are identified as to how to set up your matches and tee times.</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=2%20Man%20Best%20Ball&amp;dates=20250920T130000Z/20250920T215500Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday September 9th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- September 6, 2025 - Away Tournament - Santa Anita GC -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(5)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1752114231325-Z695AEILDSY2JAKGSR49/202509+SantaAnitaGC2X3.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Sep</span>
-                            <span class="event-day">6</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Away Tournament - Santa Anita GC</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, September 6, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Individual Stroke Play</p>
-                            <p>Low Gross and Net Winners</p>
-                            <p>First tee time is set at 8:55am</p>
-                            <p>$125 entry</p>
-                            <p><strong>***THIS IS A NON REFUNDABLE TOURNAMENT. IF YOU SIGN UP BUT DO NOT SHOW, WE CANNOT TRANSFER YOUR MONEY TO A FUTURE TOURNAMENT***</strong></p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Away%20Tournament%20-%20Santa%20Anita%20GC&amp;dates=20250906T130000Z/20250906T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Sunday August 24th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- August 16-17, 2025 - Club Championship -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(6)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1754434528687-RWNPB6AE3GJG1M59QO18/202508Thumbnail2X3.jpeg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Aug</span>
-                            <span class="event-day">16-17</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Club Championship - 2 Rounds</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Sat, Aug 16 - Sun, Aug 17, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Individual Stroke Play - Gross and Net Payouts - Must play both rounds. Must have played in 3 tournaments to play.</p>
-                            <p>$143 Entry Fee and $45 Side Pots</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Club%20Championship%20-%202%20Rounds&amp;dates=20250816T130000Z/20250817T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday August 5th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- July 26, 2025 - $40 Skins Game -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(7)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1747464416765-6KV0LGEF6ENS4VM0ZX8T/IMG_1190.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Jul</span>
-                            <span class="event-day">26</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">$40 Skins Game</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, July 26, 2025</span>
-                                <span class="event-time">⏰ 7:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p><strong>Tournament Format:</strong></p>
-                            <ul>
-                                <li>Net Skins</li>
-                                <li>Tee times will be between 7:30am - 9:30am</li>
-                            </ul>
-                            <p>$110 Entry Fee for walking or $119 with cart.</p>
-                            <p><strong>***LIMITED TO ONLY 48 SLOTS***</strong></p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=%2440%20Skins%20Game&amp;dates=20250726T140000Z/20250726T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">noon on Thursday July 24th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- July 19, 2025 - Member Guest -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(8)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1750702345457-6CHGJCK1E2Z1BGLZ42E9/202507Thumbnail2X3.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Jul</span>
-                            <span class="event-day">19</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Member Guest</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, July 19, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p><strong>2 Man Scramble - All Net Payout</strong></p>
-                            <p>Teams may consist of a Member and a Guest or a Member and a Member. Guests do not have to have an established Handicap. This will be a non-posting round.</p>
-                            <p><strong>Format & Key Rules:</strong></p>
-                            <ul>
-                                <li><strong>2-Man Scramble</strong></li>
-                                <li><strong>Flights with Gross & Net Payouts</strong></li>
-                                <li><strong>Handicap Rule:</strong> There is a <strong>10-stroke maximum</strong> difference allowed between team members. If a teammate exceeds this, their handicap will be adjusted to fall within 10 strokes of the lower-handicap player.</li>
-                                <li><strong>Extras:</strong> We'll also be running <strong>Gross & Net Skins</strong> and <strong>Polies</strong> for added action.</li>
-                            </ul>
-                            <p>Grab your guest, bring your A-game, and get ready for a fantastic day on the course!</p>
-                            <p>Playing with a guest is preferred. However, you can also enter with a fellow Skylinks member.</p>
-                            <p><strong>$84 entry fee and $25 side pots</strong></p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Member%20Guest&amp;dates=20250719T130000Z/20250719T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday July 8th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- June 21, 2025 - The Big Game (Individual) -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(9)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1747984332943-2A0F3OLQ94RHA12O89FN/202506Picture.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Jun</span>
-                            <span class="event-day">21</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">The Big Game (Individual)</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, June 21, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Individual Stroke Play</p>
-                            <p>Low Gross and Net Winners</p>
-                            <p>Gross and Net Skins and Polies</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=The%20Big%20Game%20%28Individual%29&amp;dates=20250621T130000Z/20250621T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday June 10th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- May 31, 2025 - $40 Skins Game -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(10)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1747464416765-6KV0LGEF6ENS4VM0ZX8T/IMG_1190.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">May</span>
-                            <span class="event-day">31</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">$40 Skins Game</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, May 31, 2025</span>
-                                <span class="event-time">⏰ 7:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Net Skins Game</p>
-                            <p>40 spots available</p>
-                            <p>Tee times are between 7:00am - 9:00am</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=%2440%20Skins%20Game&amp;dates=20250531T140000Z/20250531T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Wednesday May 21th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- May 17, 2025 - Member-Member 6-6-6 Tournament -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(11)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1746075363678-J08I7TF37QZHZOVT7WLD/202505+Thumbnail2X3.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">May</span>
-                            <span class="event-day">17</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Member-Member 6-6-6 Tournament</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, May 17, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Welcome to the 2nd Major of the season!</p>
-                            <p>This is a two man tournament.</p>
-                            <p><strong>Tournament Format:</strong></p>
-                            <p><strong>First six holes:</strong></p>
-                            <p>Shamble Format: Both players hit drives and select the best drive to play from. Each player plays his own ball in from there. Record the lowest score on the hole.</p>
-                            <p><strong>Second six holes:</strong></p>
-                            <p>Best Ball Format. Take the lowest score of each of your scores on each hole.</p>
-                            <p><strong>Final six holes:</strong></p>
-                            <p>Modified Alternate shot. Both players hit tee shots. After selecting the best tee shot, you play the rest of the hole alternate shot until the ball is holed</p>
-                            <p>More rules and details to come…</p>
-                            <p><strong>THIS ROUND WILL NOT BE POSTED</strong></p>
-                            <p>$84 Entry Fee and $25 Side Pots</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Member-Member%206-6-6%20Tournament&amp;dates=20250517T130000Z/20250517T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday May 6th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- April 19, 2025 - The Mayor's Cup -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(12)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1743046913907-QDQUDUMB14MH2ENCK0P8/MayorsCup.png')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Apr</span>
-                            <span class="event-day">19</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">The Mayor's Cup - Match Play Qualifier</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, April 19, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 2:55 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p><strong>Tournament Format:</strong></p>
-                            <ul>
-                                <li>Individual Net Stroke Play Tournament (Net Qualifier)</li>
-                                <li>Gross & Net Skins; Polies; Net Roulette Available</li>
-                                <li>Top 64 players advance to match play (Bracket Format – Think March Madness)</li>
-                                <li>4-Bracket Format; Brackets divided up based on handicaps & players within bracket of similar handicaps will play against each other</li>
-                                <li>Seeding within bracket determined by score during Net Qualifier</li>
-                                <li>Bracket format (Flights A, B, C, D) based on lowest 64 net scores divided into flights</li>
-                                <li>Semi Finals/Final Four: Winners of Each Flight Face Off</li>
-                                <li>Finals: Winners of each semi final</li>
-                                <li>Flight Champion awarded for each flight</li>
-                                <li>Overall Champion awarded</li>
-                                <li>Match Play rounds to be completed over following 8 weeks (info to follow)</li>
-                                <li>Trophy awarded</li>
-                            </ul>
-                            <p>$84 Entry Fee and $25 Side Pots</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=The%20Mayor%E2%80%99s%20Cup%20-%20Match%20Play%20Qualifier&amp;dates=20250419T130000Z/20250419T215500Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday April 8th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- March 15, 2025 - 4 Man Memorial -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(13)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1740246499828-409HW7C51HWEZVGF0PGD/20250203Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Mar</span>
-                            <span class="event-day">15</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">4 Man Memorial</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, March 15, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p><strong>4-Man Shamble Tournament</strong></p>
-                            <p><strong>Tournament Format:</strong></p>
-                            <ul>
-                                <li>Each player hits a <strong>tee shot</strong> on every hole.</li>
-                                <li>The team selects the <strong>best tee shot</strong> and each player plays their <strong>own ball</strong> from that spot through the hole.</li>
-                                <li>Each team <strong>must use at least three tee shots from each player</strong> during the round.</li>
-                            </ul>
-                            <p><strong>Scoring:</strong></p>
-                            <ul>
-                                <li>Each team's score will consist of:</li>
-                                <ul>
-                                    <li>The <strong>two best gross scores</strong> per hole.</li>
-                                    <li>The <strong>two best net scores</strong> per hole.</li>
-                                </ul>
-                                <li>Both <strong>gross and net scores</strong> will be recorded for the team on each hole.</li>
-                            </ul>
-                            <p><strong>Team Skins Competition:</strong></p>
-                            <ul>
-                                <li>Skins will be determined by the <strong>team's two best total scores</strong> (gross and net) per hole.</li>
-                                <li><strong>To be eligible for skins</strong>, <strong>ALL four team members must be entered</strong> into the skins game/side pots.</li>
-                            </ul>
-                            <p><strong>Team Assignments:</strong></p>
-                            <ul>
-                                <li>If you do not have a team, we will assign you to one.</li>
-                                <li>If you do <strong>not</strong> wish to participate in side pots/skins, not a problem, you will be paired with other players who are also opting out.</li>
-                            </ul>
-                            <p>$80 Entry Fee and $25 Side Pots</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=4%20Man%20Memorial&amp;dates=20250315T130000Z/20250315T220000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday March 4th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- February 15, 2025 - Past Presidents -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(14)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737560342912-F3V28RLYFM5WHGE9FL9Z/202502Thumbnail.JPG')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Feb</span>
-                            <span class="event-day">15</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Past Presidents</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, February 15, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Individual Stableford Play - Gross and Net Payouts</p>
-                            <p>$80 Entry Fee and $25 Side Pots</p>
-                            <p><strong>Format: </strong>Modified Stableford Scoring</p>
-                            <p><strong>Scoring:</strong></p>
-                            <p>Net Double Eagle: 8 points<br>
-                            Net Eagle: 5 points<br>
-                            Net Birdie: 3 points<br>
-                            Net Par: 1 point<br>
-                            Net Bogey: 0 points<br>
-                            Net Double Bogey or worse: -2 points<br>
-                            (Pick up after a net double bogey score has been reached for pace of play)</p>
-                            <p><strong>Tee Setup:</strong> Red, White, Blue, & Black Tees</p>
-                            <p>Players will choose their own tees to hit from during the round, utilizing all the different tee boxes.</p>
-                            <p>You will hit the following number of tee shots from each tee throughout the round, totaling the required shots listed here: <strong>4 RED, 5 WHITE, 5 BLUE, 4 BLACK.</strong> (18 Total)</p>
-                            <p>Each player decides individually (not the foursome) which tees to play on each hole, ensuring they total the required number of tee shots per individual as listed above.</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Past%20Presidents&amp;dates=20250215T140000Z/20250215T230000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday February 4th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- January 18, 2025 - Kickoff Tournament -->
-                <div class="event-item past-event">
-                    <div class="event-main" onclick="toggleEvent(15)">
-                        <div class="event-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737529522678-BXMW0SCR1K9ERINOKY9K/202501Thumbnail.jpg')"></div>
-                        <div class="event-date">
-                            <span class="event-month">Jan</span>
-                            <span class="event-day">18</span>
-                        </div>
-                        <div class="event-info">
-                            <h3 class="event-title">Kickoff Tournament</h3>
-                            <div class="event-meta">
-                                <span class="event-time">📅 Saturday, January 18, 2025</span>
-                                <span class="event-time">⏰ 6:00 AM - 3:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <span class="event-status status-past">Past Event</span>
-                            <button class="expand-btn">▼</button>
-                        </div>
-                    </div>
-                    <div class="event-details">
-                        <div class="details-content">
-                            <p>Individual Stroke Play - Gross and Net Payouts</p>
-                            <p>$80 Entry Fee and $20 Side Pots</p>
-                            <div class="calendar-links">
-                                <a href="http://www.google.com/calendar/event?action=TEMPLATE&amp;text=Kickoff%20Tournament%20&amp;dates=20250118T140000Z/20250118T230000Z" target="_blank">Google Calendar</a>
-                            </div>
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline was:</strong> <span class="date-crossed">midnight Tuesday January 7th, 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
+            <div class="event-list" id="events-container">
+                <div class="loading" id="loading">Loading schedule...</div>
             </div>
         </div>
     </section>
@@ -1104,18 +423,195 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                initMenu(); // initialize after header loads
+                if (typeof initMenu === 'function') {
+                    initMenu();
+                }
             });
 
         fetch("/footer.html")
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
+        // Load schedule from API
+        async function loadSchedule() {
+            try {
+                const response = await fetch('/api/schedule');
+                const events = await response.json();
+                
+                const container = document.getElementById('events-container');
+                container.innerHTML = '';
+                
+                if (!events || events.length === 0) {
+                    container.innerHTML = '<div class="error-message">No events scheduled at this time.</div>';
+                    return;
+                }
+                
+                // Separate upcoming and past events
+                const upcomingEvents = events.filter(event => event.status === 'upcoming');
+                const pastEvents = events.filter(event => event.status === 'past');
+                
+                // Sort by date (assuming date format like "December 14, 2025")
+                const sortByDate = (a, b) => new Date(a.date) - new Date(b.date);
+                upcomingEvents.sort(sortByDate);
+                pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date)); // Reverse for past events
+                
+                // Set hero image if available in first upcoming event
+                if (upcomingEvents.length > 0 && upcomingEvents[0].heroImage) {
+                    document.getElementById('hero-background').style.backgroundImage = `url('${upcomingEvents[0].heroImage}')`;
+                }
+                
+                // Create upcoming events section
+                if (upcomingEvents.length > 0) {
+                    if (pastEvents.length > 0) {
+                        const upcomingHeader = document.createElement('div');
+                        upcomingHeader.className = 'events-header';
+                        upcomingHeader.innerHTML = '<h2>Upcoming Tournament</h2>';
+                        container.appendChild(upcomingHeader);
+                    }
+                    
+                    upcomingEvents.forEach((event, index) => {
+                        const eventElement = createEventElement(event, index);
+                        container.appendChild(eventElement);
+                    });
+                }
+                
+                // Create past events section
+                if (pastEvents.length > 0) {
+                    if (upcomingEvents.length > 0) {
+                        const divider = document.createElement('hr');
+                        divider.className = 'past-divider';
+                        container.appendChild(divider);
+                        
+                        const pastHeader = document.createElement('div');
+                        pastHeader.className = 'events-header';
+                        pastHeader.innerHTML = '<h2>Past Tournaments</h2>';
+                        container.appendChild(pastHeader);
+                    }
+                    
+                    pastEvents.forEach((event, index) => {
+                        const eventElement = createEventElement(event, upcomingEvents.length + index);
+                        eventElement.classList.add('past-event');
+                        container.appendChild(eventElement);
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading schedule:', error);
+                document.getElementById('events-container').innerHTML = 
+                    '<div class="error-message">Error loading schedule. Please try again later.</div>';
+            }
+        }
+
+        function createEventElement(event, index) {
+            const eventItem = document.createElement('div');
+            eventItem.className = 'event-item';
+            
+            // Parse details into HTML
+            const detailsHtml = parseDetails(event.details || []);
+            
+            eventItem.innerHTML = `
+                <div class="event-main" onclick="toggleEvent(${index})">
+                    <div class="event-image" style="background-image: url('${event.imageUrl || ''}')"></div>
+                    <div class="event-date">
+                        <span class="event-month">${event.displayDate?.month || ''}</span>
+                        <span class="event-day">${event.displayDate?.day || ''}</span>
+                    </div>
+                    <div class="event-info">
+                        <h3 class="event-title">${event.title}</h3>
+                        <div class="event-meta">
+                            <span class="event-time">📅 ${event.date}</span>
+                            <span class="event-time">⏰ ${event.timeRange || ''}</span>
+                        </div>
+                    </div>
+                    <div class="event-actions">
+                        <span class="event-status ${event.status === 'upcoming' ? 'status-upcoming' : 'status-past'}">
+                            ${event.status === 'upcoming' ? 'Upcoming' : 'Past Event'}
+                        </span>
+                        <button class="expand-btn">▼</button>
+                    </div>
+                </div>
+                <div class="event-details">
+                    <div class="details-content">
+                        ${detailsHtml}
+                        ${event.entryFee ? `<p><strong>Entry Fee:</strong> ${event.entryFee}</p>` : ''}
+                        ${event.format ? `<p><strong>Format:</strong> ${event.format}</p>` : ''}
+                        ${event.googleCalendarLink ? `
+                            <div class="calendar-links">
+                                <a href="${event.googleCalendarLink}" target="_blank">Google Calendar</a>
+                            </div>
+                        ` : ''}
+                        ${event.signupDeadline ? `
+                            <div class="signup-deadline">
+                                <strong>Sign up deadline:</strong> 
+                                <span class="${event.isPastDeadline ? 'date-crossed' : 'date-open'}">
+                                    ${event.signupDeadline}
+                                </span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            return eventItem;
+        }
+
+        function parseDetails(detailsArray) {
+            if (!detailsArray || detailsArray.length === 0) return '';
+            
+            let html = '';
+            let inList = false;
+            
+            detailsArray.forEach(line => {
+                const trimmed = line.trim();
+                
+                if (trimmed.startsWith('•')) {
+                    if (!inList) {
+                        html += '<ul>';
+                        inList = true;
+                    }
+                    // Check for sub-bullet (starts with spaces before •)
+                    if (line.startsWith('  •')) {
+                        html += `<li style="margin-left: 20px;">${trimmed.substring(1).trim()}</li>`;
+                    } else {
+                        html += `<li>${trimmed.substring(1).trim()}</li>`;
+                    }
+                } else {
+                    // Close list if we were in one
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    
+                    // Check if line looks like a heading (no bullet, not empty)
+                    if (trimmed && !trimmed.includes('•')) {
+                        // Check if it's likely a heading (no period, might be all caps or short)
+                        if (trimmed.length < 50 && !trimmed.endsWith('.') && !trimmed.endsWith(':')) {
+                            html += `<h3>${trimmed}</h3>`;
+                        } else {
+                            html += `<p>${line}</p>`;
+                        }
+                    } else if (trimmed === '') {
+                        // Empty line for spacing
+                        html += '<br>';
+                    }
+                }
+            });
+            
+            // Close list if still open
+            if (inList) {
+                html += '</ul>';
+            }
+            
+            return html;
+        }
+
         // Event expansion functionality
         function toggleEvent(index) {
             const eventItems = document.querySelectorAll('.event-item');
             const expandBtns = document.querySelectorAll('.expand-btn');
             const details = document.querySelectorAll('.event-details');
+            
+            if (index >= eventItems.length) return;
             
             const eventItem = eventItems[index];
             const expandBtn = expandBtns[index];
@@ -1126,7 +622,9 @@
             expandBtn.classList.toggle('expanded');
             detail.classList.toggle('expanded');
         }
-    
+
+        // Load schedule when page is ready
+        document.addEventListener('DOMContentLoaded', loadSchedule);
     </script>
 
 </body>
