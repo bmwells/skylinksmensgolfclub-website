@@ -502,7 +502,6 @@
         
         // Get all modal elements
         const openBtn = document.getElementById('open-member-modal');
-        const backdrop = document.getElementById('member-modal-backdrop');
         const cancelBtn = document.getElementById('member-modal-cancel');
         const cancelBtn2 = document.getElementById('member-modal-cancel2');
         const saveBtn = document.getElementById('member-modal-save');

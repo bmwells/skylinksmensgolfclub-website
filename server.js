@@ -131,7 +131,7 @@ app.post('/api/monthly-tournament', requireAdmin, (req, res) => {
 // --------------------
 // GENERIC DATA ROUTES
 // --------------------
-['results', 'meeting-minutes', 'schedule', 'presidents-letter', 'who-we-are'].forEach(key => {
+['results', 'meeting-minutes', 'schedule', 'presidents-letter', 'who-we-are', 'members'].forEach(key => {
     app.get(`/api/${key}`, (req, res) => res.json(readDataFile(key)));
     app.post(`/api/${key}`, requireAdmin, (req, res) => {
         writeDataFile(key, req.body);

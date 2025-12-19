@@ -399,6 +399,239 @@ button:disabled {
 .mb-4 { margin-bottom: 2rem; }
 
 /* ============================================
+   MEMBER MANAGEMENT SPECIFIC
+   ============================================ */
+
+.member-row {
+        border: 1px solid #ccc;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        background: #fafafa;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .member-row:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .member-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        border-top: 1px solid #dee2e6;
+        padding-top: 15px;
+    }
+    
+    .member-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .member-header h3 {
+        margin: 0;
+        color: #495057;
+        font-size: 1.2rem;
+    }
+    
+    .member-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .ghin-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+        font-family: monospace;
+    }
+    
+    .index-badge {
+        background: #0066cc;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+        font-family: monospace;
+    }
+    
+    .entry-num-badge {
+        background: #28a745;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+        font-family: monospace;
+    }
+    
+    .compact-row {
+        border: 1px solid #ddd;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: white;
+        border-radius: 6px;
+    }
+    
+    .compact-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .compact-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #333;
+    }
+    
+    .compact-badges {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .compact-badges span {
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-family: monospace;
+    }
+    
+    .compact-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .compact-input {
+        margin-bottom: 0;
+    }
+    
+    .compact-input label {
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 3px;
+    }
+    
+    .compact-input input {
+        padding: 6px 8px;
+        font-size: 0.9rem;
+    }
+    
+    /* Search Styles */
+    .search-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .search-section h3 {
+        margin-top: 0;
+        color: #495057;
+        margin-bottom: 15px;
+    }
+    
+    .search-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .search-input {
+        flex: 1;
+        position: relative;
+    }
+    
+    .search-input input {
+        width: 100%;
+        padding: 10px 40px 10px 15px;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    
+    .search-filters {
+        display: none;
+    }
+    
+    .search-results-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .search-clear-btn {
+        background: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .search-clear-btn:hover {
+        background: #f8f9fa;
+    }
+    
+    .no-search-results {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    /* Sorting Controls */
+    .sorting-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .sort-btn {
+        background: #e9ecef;
+        color: #495057;
+        border: none;
+        border-radius: 20px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .sort-btn:hover {
+        background: #dee2e6;
+    }
+    
+    .sort-btn.active {
+        background: #0066cc;
+        color: white;
+    }
+    
+    .sort-icon {
+        font-size: 0.8rem;
+    }
+
+/* ============================================
    RESPONSIVE DESIGN
    ============================================ */
 @media (max-width: 768px) {

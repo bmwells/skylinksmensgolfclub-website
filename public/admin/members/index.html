@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Member Manager - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+
+</head>
+<body>
+
+<div class="header">
+  <h1>Member Manager</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="addMember()">👤 Add New Member</button>
+  <button onclick="exportMembers()">📤 Export All Members</button>
+  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save All Changes</button>
+</div>
+
+<div class="search-section">
+  <h3>🔍 Search Members</h3>
+  <div class="search-controls">
+    <div class="search-input">
+      <input type="text" id="searchInput" placeholder="Search by member name..." oninput="performSearch()">
+    </div>
+    <button onclick="clearSearch()" class="search-clear-btn">Clear</button>
+  </div>
+  
+  <div class="sorting-controls">
+    <span style="font-size: 0.9rem; color: #6c757d;">Sort by:</span>
+    <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+      <button class="sort-btn active" onclick="setSort('name')" id="sortName">
+        <span>Name</span>
+      </button>
+      <button class="sort-btn" onclick="setSort('entryAsc')" id="sortEntryAsc">
+        <span>Entry # (Low to High)</span>
+        <span class="sort-icon">↓</span>
+      </button>
+      <button class="sort-btn" onclick="setSort('entryDesc')" id="sortEntryDesc">
+        <span>Entry # (High to Low)</span>
+        <span class="sort-icon">↑</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="search-results-info" id="searchResultsInfo" style="display: none;">
+    <span id="resultsCount">0 results</span>
+    <button onclick="clearSearch()" class="search-clear-btn">Show All Members</button>
+  </div>
+</div>
+
+<!-- Members List -->
+<div id="membersList"></div>
+
+<script>
+// Make render globally accessible
+window.render = render;
+
+// Search state
+let searchQuery = '';
+let filteredMembers = [];
+let isSearching = false;
+let currentSort = 'name'; // 'name', 'entryAsc', 'entryDesc'
+
+function init() {
+  if (AdminCommon.init('members', [])) {
+    loadMembers();
+  }
+}
+
+function loadMembers() {
+  AdminCommon.load().then((data) => {
+    // Store members in AdminCommon.data
+    AdminCommon.data = Array.isArray(data) ? data : [];
+    AdminCommon.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
+    
+    // Sort members
+    sortMembers();
+    
+    render();
+    AdminCommon.setupInputListeners();
+    setupFormInputs(); // Setup input formatting
+  }).catch(err => {
+    alert('Error loading members: ' + err.message);
+  });
+}
+
+function sortMembers() {
+  switch (currentSort) {
+    case 'name':
+      AdminCommon.data.sort((a, b) => {
+        const nameA = `${a.lastName || ''} ${a.firstName || ''}`.toLowerCase();
+        const nameB = `${b.lastName || ''} ${b.firstName || ''}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+      break;
+      
+    case 'entryAsc':
+      AdminCommon.data.sort((a, b) => {
+        const entryA = parseInt(a.entryNum) || 999999;
+        const entryB = parseInt(b.entryNum) || 999999;
+        return entryA - entryB;
+      });
+      break;
+      
+    case 'entryDesc':
+      AdminCommon.data.sort((a, b) => {
+        const entryA = parseInt(a.entryNum) || 0;
+        const entryB = parseInt(b.entryNum) || 0;
+        return entryB - entryA;
+      });
+      break;
+  }
+  
+  // Also sort filtered members if in search mode
+  if (isSearching && filteredMembers.length > 0) {
+    sortFilteredMembers();
+  }
+}
+
+function sortFilteredMembers() {
+  switch (currentSort) {
+    case 'name':
+      filteredMembers.sort((a, b) => {
+        const nameA = `${a.lastName || ''} ${a.firstName || ''}`.toLowerCase();
+        const nameB = `${b.lastName || ''} ${b.firstName || ''}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+      break;
+      
+    case 'entryAsc':
+      filteredMembers.sort((a, b) => {
+        const entryA = parseInt(a.entryNum) || 999999;
+        const entryB = parseInt(b.entryNum) || 999999;
+        return entryA - entryB;
+      });
+      break;
+      
+    case 'entryDesc':
+      filteredMembers.sort((a, b) => {
+        const entryA = parseInt(a.entryNum) || 0;
+        const entryB = parseInt(b.entryNum) || 0;
+        return entryB - entryA;
+      });
+      break;
+  }
+}
+
+function render() {
+  const membersContainer = document.getElementById('membersList');
+  membersContainer.innerHTML = '';
+  
+  const membersToDisplay = isSearching ? filteredMembers : AdminCommon.data;
+  
+  if (membersToDisplay.length === 0) {
+    if (isSearching) {
+      membersContainer.innerHTML = `
+        <div class="no-search-results">
+          <h3>No Members Found</h3>
+          <p>No members match your search criteria.</p>
+          <button onclick="clearSearch()" style="margin-top: 10px;">Show All Members</button>
+        </div>
+      `;
+    } else {
+      membersContainer.innerHTML = `
+        <div class="row" style="text-align: center; padding: 3rem;">
+          <h3>No Members Found</h3>
+          <p>Click "Add New Member" to create your first member record.</p>
+        </div>
+      `;
+    }
+    return;
+  }
+  
+  // Add sorting indicator header
+  const sortIndicator = document.createElement('div');
+  sortIndicator.className = 'row';
+  sortIndicator.style.padding = '0.75rem 1rem';
+  sortIndicator.style.marginBottom = '1rem';
+  sortIndicator.style.background = '#e9ecef';
+  sortIndicator.style.fontSize = '0.9rem';
+  sortIndicator.style.color = '#495057';
+  
+  let sortText = '';
+  switch (currentSort) {
+    case 'name':
+      sortText = 'Sorted by: Name (A-Z)';
+      break;
+    case 'entryAsc':
+      sortText = 'Sorted by: Entry Number (Low to High)';
+      break;
+    case 'entryDesc':
+      sortText = 'Sorted by: Entry Number (High to Low)';
+      break;
+  }
+  
+  sortIndicator.innerHTML = `<strong>${sortText}</strong>`;
+  membersContainer.appendChild(sortIndicator);
+  
+  membersToDisplay.forEach((member, displayIndex) => {
+    // Find the actual index in AdminCommon.data
+    const actualIndex = AdminCommon.data.findIndex(m => 
+      m.firstName === member.firstName && 
+      m.lastName === member.lastName &&
+      m.email === member.email
+    );
+    
+    const memberIndex = actualIndex !== -1 ? actualIndex : displayIndex;
+    
+    const memberDiv = document.createElement('div');
+    memberDiv.className = 'compact-row';
+    memberDiv.setAttribute('data-index', memberIndex);
+    
+    // Format phone number for display
+    const formatPhoneForDisplay = (phone) => {
+      if (!phone) return '';
+      const numbers = phone.replace(/\D/g, '');
+      if (numbers.length === 0) return '';
+      if (numbers.length <= 3) return `(${numbers}`;
+      if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
+      return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
+    };
+    
+    const displayPhone = formatPhoneForDisplay(member.phoneNum || '');
+    
+    // Highlight search matches
+    const highlightName = (text) => {
+      if (!isSearching || !searchQuery) return AdminCommon.escapeHtml(text || '');
+      
+      const escapedText = AdminCommon.escapeHtml(text || '');
+      const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return escapedText.replace(regex, '<mark>$1</mark>');
+    };
+    
+    // Full edit view
+    const html = `
+      <div class="compact-header">
+        <div class="compact-name">${highlightName(member.firstName)} ${highlightName(member.lastName)}</div>
+        <div class="compact-badges">
+          ${member.ghin ? `<span style="background: #e9ecef; color: #495057;">GHIN: ${member.ghin}</span>` : ''}
+          ${member.index ? `<span style="background: #0066cc; color: white;">Index: ${member.index}</span>` : ''}
+          ${member.entryNum ? `<span style="background: #28a745; color: white;">Entry #: ${member.entryNum}</span>` : ''}
+        </div>
+      </div>
+      
+      <div class="compact-fields">
+        <div class="compact-input">
+          <label>First Name</label>
+          <input value="${AdminCommon.escapeHtml(member.firstName || '')}" oninput="updateMember(${memberIndex}, 'firstName', this.value)" placeholder="First Name" class="name-input">
+        </div>
+        
+        <div class="compact-input">
+          <label>Last Name</label>
+          <input value="${AdminCommon.escapeHtml(member.lastName || '')}" oninput="updateMember(${memberIndex}, 'lastName', this.value)" placeholder="Last Name" class="name-input">
+        </div>
+        
+        <div class="compact-input">
+          <label>Email</label>
+          <input type="email" value="${AdminCommon.escapeHtml(member.email || '')}" oninput="updateMember(${memberIndex}, 'email', this.value)" placeholder="email@example.com">
+        </div>
+        
+        <div class="compact-input">
+          <label>Phone</label>
+          <input value="${AdminCommon.escapeHtml(displayPhone)}" oninput="updatePhone(${memberIndex}, this.value)" placeholder="(123) 456-7890" class="phone-input">
+        </div>
+        
+        <div class="compact-input">
+          <label>GHIN Number</label>
+          <input value="${AdminCommon.escapeHtml(member.ghin || '')}" oninput="updateGHIN(${memberIndex}, this.value)" placeholder="1234567" class="ghin-input">
+        </div>
+        
+        <div class="compact-input">
+          <label>Handicap Index</label>
+          <input value="${AdminCommon.escapeHtml(member.index || '')}" oninput="updateMember(${memberIndex}, 'index', this.value)" placeholder="12.4">
+        </div>
+        
+        <div class="compact-input">
+          <label>Entry Number</label>
+          <input value="${AdminCommon.escapeHtml(member.entryNum || '')}" oninput="updateMember(${memberIndex}, 'entryNum', this.value)" placeholder="123">
+        </div>
+      </div>
+      
+      <div class="member-controls">
+        <button class="delete" onclick="deleteMember(${memberIndex})" style="padding: 6px 12px; font-size: 0.9rem;">Delete Member</button>
+      </div>
+    `;
+    
+    memberDiv.innerHTML = html;
+    membersContainer.appendChild(memberDiv);
+  });
+  
+  // Re-setup input listeners after rendering
+  AdminCommon.setupInputListeners();
+  setupFormInputs(); // Re-setup formatting
+}
+
+// Phone formatting function (same as product.js)
+function formatPhoneNumber(value) {
+  const numbers = value.replace(/\D/g, '');
+  
+  if (numbers.length === 0) return '';
+  if (numbers.length <= 3) return `(${numbers}`;
+  if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
+  return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
+}
+
+function setupFormInputs() {
+  // Name inputs - prevent numbers and auto-capitalize
+  document.querySelectorAll('.name-input').forEach(input => {
+    // Remove existing listeners
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    
+    newInput.addEventListener('input', function(e) {
+      // Prevent numbers
+      if (/\d/.test(e.data)) {
+        this.value = this.value.replace(/\d/g, '');
+      }
+    });
+    
+    newInput.addEventListener('blur', function() {
+      const trimmedValue = this.value.trim();
+      if (trimmedValue) {
+        this.value = trimmedValue
+          .split(/\s+/)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+        // Trigger the updateMember function
+        const match = this.oninput.toString().match(/updateMember\((\d+),\s*['"]([^'"]+)['"]/);
+        if (match) {
+          updateMember(parseInt(match[1]), match[2], this.value);
+        }
+      }
+    });
+  });
+  
+  // Phone inputs - format as (123) 456-7890
+  document.querySelectorAll('.phone-input').forEach(input => {
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    
+    newInput.addEventListener('input', function(e) {
+      const cursorPosition = this.selectionStart;
+      const originalLength = this.value.length;
+      
+      this.value = formatPhoneNumber(this.value);
+      
+      const newLength = this.value.length;
+      const lengthDifference = newLength - originalLength;
+      const newCursorPosition = cursorPosition + lengthDifference;
+      
+      this.setSelectionRange(newCursorPosition, newCursorPosition);
+      
+      // Trigger update
+      const match = this.oninput.toString().match(/updatePhone\((\d+)/);
+      if (match) {
+        updatePhone(parseInt(match[1]), this.value);
+      }
+    });
+    
+    newInput.addEventListener('keydown', function(e) {
+      // Allow navigation, deletion, tab, enter keys
+      if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) return;
+      // Prevent non-numeric input
+      if (!/\d/.test(e.key)) e.preventDefault();
+    });
+  });
+  
+  // GHIN inputs - numbers only, max 8 digits
+  document.querySelectorAll('.ghin-input').forEach(input => {
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    
+    newInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/\D/g, '');
+      if (this.value.length > 8) {
+        this.value = this.value.slice(0, 8);
+      }
+      // Trigger update
+      const match = this.oninput.toString().match(/updateGHIN\((\d+)/);
+      if (match) {
+        updateGHIN(parseInt(match[1]), this.value);
+      }
+    });
+    
+    newInput.addEventListener('keydown', function(e) {
+      if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) return;
+      if (!/\d/.test(e.key)) e.preventDefault();
+    });
+  });
+}
+
+function updateMember(memberIndex, field, value) {
+  AdminCommon.updateItem(memberIndex, field, value);
+}
+
+function updatePhone(memberIndex, value) {
+  // Store phone number with formatting
+  AdminCommon.updateItem(memberIndex, 'phoneNum', value);
+}
+
+function updateGHIN(memberIndex, value) {
+  // Store GHIN as numbers only
+  AdminCommon.updateItem(memberIndex, 'ghin', value);
+}
+
+function addMember() {
+  AdminCommon.addItem({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNum: '',
+    ghin: '',
+    index: '',
+    entryNum: ''
+  });
+  
+  // Sort again to maintain current sort order
+  sortMembers();
+  
+  render();
+}
+
+function deleteMember(memberIndex) {
+  const member = AdminCommon.data[memberIndex];
+  const memberName = `${member.firstName} ${member.lastName}`.trim() || 'Unnamed Member';
+  
+  if (confirm(`Are you sure you want to delete "${memberName}"?`)) {
+    // Remove from AdminCommon.data (this marks unsaved changes)
+    AdminCommon.data.splice(memberIndex, 1);
+    AdminCommon.markUnsaved();
+    
+    // Update search results if in search mode
+    if (isSearching) {
+      performSearch();
+    } else {
+      sortMembers();
+      render();
+    }
+  }
+}
+
+function exportMembers() {
+  const dataStr = JSON.stringify(AdminCommon.data, null, 2);
+  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+  
+  const exportFileDefaultName = `skylinks-members-${new Date().toISOString().split('T')[0]}.json`;
+  
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', exportFileDefaultName);
+  linkElement.click();
+}
+
+// Sorting functionality
+function setSort(sortType) {
+  currentSort = sortType;
+  
+  // Update button states
+  document.getElementById('sortName').classList.toggle('active', sortType === 'name');
+  document.getElementById('sortEntryAsc').classList.toggle('active', sortType === 'entryAsc');
+  document.getElementById('sortEntryDesc').classList.toggle('active', sortType === 'entryDesc');
+  
+  // Apply sorting
+  if (isSearching) {
+    sortFilteredMembers();
+  } else {
+    sortMembers();
+  }
+  
+  render();
+}
+
+// Search functionality
+function performSearch() {
+  const searchInput = document.getElementById('searchInput');
+  searchQuery = searchInput.value.trim().toLowerCase();
+  
+  if (!searchQuery) {
+    clearSearch();
+    return;
+  }
+  
+  isSearching = true;
+  
+  // Filter members based on name only
+  filteredMembers = AdminCommon.data.filter(member => {
+    if (!searchQuery) return true;
+    
+    const searchTerms = searchQuery.toLowerCase();
+    const fullName = `${member.firstName || ''} ${member.lastName || ''}`.toLowerCase();
+    const lastNameFirst = `${member.lastName || ''} ${member.firstName || ''}`.toLowerCase();
+    
+    // Search in both name formats
+    return fullName.includes(searchTerms) || lastNameFirst.includes(searchTerms);
+  });
+  
+  // Sort filtered results
+  sortFilteredMembers();
+  
+  // Update results info
+  const resultsInfo = document.getElementById('searchResultsInfo');
+  const resultsCount = document.getElementById('resultsCount');
+  
+  resultsCount.textContent = `${filteredMembers.length} result${filteredMembers.length !== 1 ? 's' : ''} found`;
+  resultsInfo.style.display = 'flex';
+  
+  render();
+}
+
+function clearSearch() {
+  searchQuery = '';
+  isSearching = false;
+  filteredMembers = [];
+  
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResultsInfo').style.display = 'none';
+  
+  render();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
