@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Who We Are Editor - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>Who We Are Editor</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="edit-buttons">
+  <button onclick="addBoardMember()">👤 Add Board Member</button>
+  <button onclick="AdminCommon.toggleReorder()">↕️ Rearrange Board Members</button>
+  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
+</div>
+
+<div id="reorderNotice" class="reorder-notice" style="display:none;">
+  <span>Drag board members to reorder. Click "Save Order" when done.</span>
+  <div class="reorder-actions">
+    <button class="save-order" onclick="AdminCommon.saveOrder('board-members')">💾 Save Order</button>
+    <button onclick="AdminCommon.toggleReorder()">❌ Cancel</button>
+  </div>
+</div>
+
+<div id="main-content"></div>
+<div id="board-members"></div>
+
+<script>
+// Make render globally accessible
+window.render = render;
+
+function init() {
+    if (AdminCommon.init('who-we-are', {})) {
+        loadWhoWeAre();
+    }
+}
+
+function loadWhoWeAre() {
+    AdminCommon.load().then((data) => {
+        // Ensure data structure
+        if (!data.boardMembers) {
+            AdminCommon.data.boardMembers = [];
+        }
+        render();
+        // Setup drag and drop container
+        AdminCommon.setupDragAndDrop('board-members');
+        // Setup input listeners after render
+        AdminCommon.setupInputListeners();
+    }).catch(err => {
+        alert('Error loading who we are data: ' + err.message);
+    });
+}
+
+function render() {
+    const mainContentContainer = document.getElementById('main-content');
+    const boardContainer = document.getElementById('board-members');
+    
+    // Clear containers
+    mainContentContainer.innerHTML = '';
+    boardContainer.innerHTML = '';
+    
+    if (!AdminCommon.data.boardMembers || !Array.isArray(AdminCommon.data.boardMembers)) {
+        AdminCommon.data.boardMembers = [];
+    }
+    
+    // Create main content section (similar to President's Letter)
+    const mainContentDiv = document.createElement('div');
+    mainContentDiv.className = 'row';
+    mainContentDiv.innerHTML = `
+        <h3>Main Content</h3>
+        <div class="form-row">
+            <div style="flex: 1;">
+                ${AdminCommon.templates.textInput('Page Title', AdminCommon.data.title || '', `updateMainField('title', this.value)`, 'Who we are')}
+            </div>
+            <div style="flex: 1;">
+                ${AdminCommon.templates.textInput('Board Year', AdminCommon.data.boardYear || '', `updateMainField('boardYear', this.value)`, '2025')}
+            </div>
+        </div>
+        ${AdminCommon.templates.textInput('Main Image URL', AdminCommon.data.imageUrl || '', `updateMainField('imageUrl', this.value)`, 'https://example.com/image.jpg')}
+        ${AdminCommon.templates.textareaInput('Main Content', AdminCommon.data.content || '', `updateMainField('content', this.value)`, 'Description about the club...')}
+    `;
+    mainContentContainer.appendChild(mainContentDiv);
+    
+    // Render board members
+    AdminCommon.data.boardMembers.forEach((member, memberIndex) => {
+        const memberDiv = document.createElement('div');
+        memberDiv.className = 'row';
+        memberDiv.setAttribute('data-index', memberIndex);
+        memberDiv.id = `board-member-${memberIndex}`;
+        
+        if (AdminCommon.isReorderMode) {
+            memberDiv.draggable = true;
+            
+            // Minimal view for reordering
+            memberDiv.innerHTML = AdminCommon.templates.minimalRow(
+                member.name || 'Unnamed Member',
+                member.title || 'No title'
+            );
+            
+            // Add drag events
+            AdminCommon.addDragEvents(memberDiv, memberIndex);
+        } else {
+            memberDiv.draggable = false;
+            
+            // Full edit view
+            memberDiv.innerHTML = `
+                <div class="section-header">
+                    <h3>Board Member ${memberIndex + 1}</h3>
+                    ${AdminCommon.templates.deleteButton(`deleteBoardMember(${memberIndex})`, 'Delete Member', true)}
+                </div>
+                ${AdminCommon.templates.formRow(`
+                    <div style="flex: 2;">
+                        ${AdminCommon.templates.textInput('Name', member.name || '', `updateBoardMember(${memberIndex}, 'name', this.value)`, 'Full Name')}
+                    </div>
+                    <div style="flex: 1;">
+                        ${AdminCommon.templates.textInput('Title', member.title || '', `updateBoardMember(${memberIndex}, 'title', this.value)`, 'PRESIDENT')}
+                    </div>
+                `)}
+                ${AdminCommon.templates.textInput('Image URL', member.imageUrl || '', `updateBoardMember(${memberIndex}, 'imageUrl', this.value)`, 'https://example.com/image.jpg')}
+                ${AdminCommon.templates.textareaInput('Description/Bio', member.description || '', `updateBoardMember(${memberIndex}, 'description', this.value)`, 'Bio about the board member...')}
+            `;
+        }
+        
+        boardContainer.appendChild(memberDiv);
+    });
+    
+    // Re-setup input listeners after rendering new inputs
+    if (!AdminCommon.isReorderMode) {
+        AdminCommon.setupInputListeners();
+    }
+}
+
+function updateMainField(field, value) {
+    AdminCommon.data[field] = value;
+    AdminCommon.markUnsaved();
+}
+
+function updateBoardMember(index, field, value) {
+    if (AdminCommon.data.boardMembers && AdminCommon.data.boardMembers[index]) {
+        AdminCommon.data.boardMembers[index][field] = value;
+        AdminCommon.markUnsaved();
+    }
+}
+
+function addBoardMember() {
+    if (!AdminCommon.data.boardMembers) {
+        AdminCommon.data.boardMembers = [];
+    }
+    
+    const newIndex = AdminCommon.data.boardMembers.length;
+    AdminCommon.data.boardMembers.push({
+        imageUrl: '',
+        name: '',
+        title: '',
+        description: ''
+    });
+    
+    AdminCommon.markUnsaved();
+    render();
+    
+    // Scroll to the new member after a short delay to allow rendering
+    setTimeout(() => {
+        const newMemberDiv = document.getElementById(`board-member-${newIndex}`);
+        if (newMemberDiv) {
+            newMemberDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Focus on the first input field in the new member
+            const firstInput = newMemberDiv.querySelector('input');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }
+    }, 100);
+}
+
+function deleteBoardMember(index) {
+    if (confirm('Are you sure you want to delete this board member?')) {
+        AdminCommon.data.boardMembers.splice(index, 1);
+        AdminCommon.markUnsaved();
+        render();
+    }
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

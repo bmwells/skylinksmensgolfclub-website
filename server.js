@@ -67,114 +67,47 @@ if (!fs.existsSync(DATA_DIR)) {
 
 // Initialize data files with appropriate defaults
 function initializeDataFiles() {
-    // Results - array of tournament results
+    // Results - empty array
     if (!fs.existsSync(dataFiles.results)) {
         fs.writeFileSync(dataFiles.results, JSON.stringify([], null, 2));
     }
     
-    // Meeting Minutes - array of meetings with entries
+    // Meeting Minutes - empty array
     if (!fs.existsSync(dataFiles['meeting-minutes'])) {
-        const defaultMeetingMinutes = [
-            {
-                date: "11/13/25",
-                title: "General Meeting",
-                entries: [
-                    {
-                        type: "attendance",
-                        attendees: [
-                            "Ted Lewandowski - President",
-                            "Tom Sochecki – Vice President",
-                            "Troy Ward - Treasurer"
-                        ]
-                    },
-                    {
-                        type: "general",
-                        title: "Overview",
-                        content: "Meeting overview content here..."
-                    }
-                ],
-                nextMeeting: {
-                    date: "December 10th, 2025",
-                    location: "Skylinks Cafe",
-                    time: "18:00 (6:00 PM)"
-                }
-            }
-        ];
-        fs.writeFileSync(dataFiles['meeting-minutes'], JSON.stringify(defaultMeetingMinutes, null, 2));
+        fs.writeFileSync(dataFiles['meeting-minutes'], JSON.stringify([], null, 2));
     }
     
-    // Schedule - array of scheduled events with full details
+    // Schedule - empty array  
     if (!fs.existsSync(dataFiles.schedule)) {
-        const defaultSchedule = [
-            {
-                "id": "christmas-schamble-2025",
-                "title": "Christmas Schamble",
-                "date": "December 14, 2025",
-                "displayDate": {
-                    "month": "Dec",
-                    "day": "14"
-                },
-                "timeRange": "7:00 AM - 8:00 AM (Shotgun Start)",
-                "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg",
-                "status": "upcoming",
-                "details": [
-                    "December Tournament Format – 4-Man Shamble (SHOTGUN START)",
-                    "",
-                    "• SHOTGUN START AT 7:00AM",
-                    "• INCLUDES 2 FREE DRINK TICKETS",
-                    "• PLAYERS WILL PICK THEIR OWN TEAM",
-                    "• IF YOU DO NOT HAVE A TEAM, WE WILL PLACE YOU IN ONE",
-                    "• This is a 4-man team game",
-                    "• The team uses the two best balls on each hole (Gross & Net) to get a total score for each hole",
-                    "• All four players hit a tee shot on each hole",
-                    "• The team selects the best tee shot, and all players play their OWN ball from that tee shot until holing out. This is NOT a scramble. Play your own ball where it lies.",
-                    "• Each player must place their ball within one club length of the selected tee shot, staying in the same playing condition:",
-                    "  • Fairway stays in fairway",
-                    "  • Rough stays in rough",
-                    "  • Bunker stays in bunker",
-                    "  • Penalty area stays in penalty area"
-                ],
-                "googleCalendarLink": "http://www.google.com/calendar/event?action=TEMPLATE&text=Christmas%20Schamble&dates=20251214T150000Z/20251214T160000Z",
-                "signupDeadline": "midnight Wednesday December 3rd, 2025",
-                "isPastDeadline": false,
-                "entryFee": "$84 + $25 side pots",
-                "format": "4-Man Shamble",
-                "heroImage": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG"
-            }
-        ];
-        fs.writeFileSync(dataFiles.schedule, JSON.stringify(defaultSchedule, null, 2));
+        fs.writeFileSync(dataFiles.schedule, JSON.stringify([], null, 2));
     }
     
-    // Monthly Tournament - array of monthly tournaments
+    // Monthly Tournament - empty array
     if (!fs.existsSync(dataFiles['monthly-tournament'])) {
         fs.writeFileSync(dataFiles['monthly-tournament'], JSON.stringify([], null, 2));
     }
     
-    // President's Letter - structured document with president info and letters array
+    // President's Letter - basic empty structure
     if (!fs.existsSync(dataFiles['presidents-letter'])) {
         const presidentsLetter = {
             president: {
-                name: 'Ted Lewandowski',
-                imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
-                role: 'President, Skylinks Men\'s Golf Club'
+                name: '',
+                imageUrl: '',
+                role: ''
             },
-            letters: [
-                {
-                    month: 'December',
-                    year: '2025',
-                    content: 'Dear Skylinks Men\'s Club Members,\n\nAs we step into December, I hope this message finds you in good spirits and ready to embrace the final month of the year. It\'s hard to believe we\'re already gearing up for the last tournament of 2025! This year has been both quiet and exhilarating...\n\n* First Quarter: Leo Corrales\n* Second Quarter: Colin Holmes\n* Third Quarter: Jeff Mort'
-                }
-            ]
+            letters: []
         };
         fs.writeFileSync(dataFiles['presidents-letter'], JSON.stringify(presidentsLetter, null, 2));
     }
     
-    // Who We Are - single document with sections
+    // Who We Are - basic empty structure
     if (!fs.existsSync(dataFiles['who-we-are'])) {
         const whoWeAre = {
-            title: "Who We Are",
-            content: "The Skylinks Men's Golf Club is a community of golf enthusiasts...",
-            sections: []
+            title: '',
+            content: '',
+            imageUrl: '',
+            boardYear: '',
+            boardMembers: []
         };
         fs.writeFileSync(dataFiles['who-we-are'], JSON.stringify(whoWeAre, null, 2));
     }
@@ -302,10 +235,7 @@ app.get('/api/schedule', (req, res) => {
         res.json(data);
     } catch (err) {
         console.error('Error reading schedule:', err);
-        res.status(500).json({ 
-            error: 'Failed to read schedule data',
-            fallback: []
-        });
+        res.status(500).json({ error: 'Failed to read schedule data' });
     }
 });
 
@@ -362,54 +292,16 @@ app.post('/api/monthly-tournament', requireAdmin, (req, res) => {
 app.get('/api/presidents-letter', (req, res) => {
     try {
         const data = readDataFile('presidents-letter');
-        
-        // Ensure data structure matches expected format
-        const formattedData = {
-            president: data.president || {
-                name: 'Ted Lewandowski',
-                imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
-                role: 'President, Skylinks Men\'s Golf Club'
-            },
-            letters: data.letters || data || []  // Support both old and new formats
-        };
-        
-        res.json(formattedData);
+        res.json(data);
     } catch (err) {
         console.error('Error reading president\'s letter:', err);
-        res.status(500).json({ 
-            error: 'Failed to read president\'s letter',
-            fallback: {
-                president: {
-                    name: 'Ted Lewandowski',
-                    imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
-                    role: 'President, Skylinks Men\'s Golf Club'
-                },
-                letters: []
-            }
-        });
+        res.status(500).json({ error: 'Failed to read president\'s letter' });
     }
 });
 
 app.post('/api/presidents-letter', requireAdmin, (req, res) => {
     try {
-        // Validate incoming data structure
-        const data = req.body;
-        
-        if (!data) {
-            return res.status(400).json({ error: 'No data provided' });
-        }
-        
-        // Ensure proper structure
-        const formattedData = {
-            president: data.president || {
-                name: 'Ted Lewandowski',
-                imageUrl: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg',
-                role: 'President, Skylinks Men\'s Golf Club'
-            },
-            letters: data.letters || []
-        };
-        
-        writeDataFile('presidents-letter', formattedData);
+        writeDataFile('presidents-letter', req.body);
         res.json({ success: true });
     } catch (err) {
         console.error('Error saving president\'s letter:', err);
@@ -418,13 +310,14 @@ app.post('/api/presidents-letter', requireAdmin, (req, res) => {
 });
 
 // --------------------
-// WHO WE ARE API (placeholder)
+// WHO WE ARE API
 // --------------------
 app.get('/api/who-we-are', (req, res) => {
     try {
         const data = readDataFile('who-we-are');
         res.json(data);
     } catch (err) {
+        console.error('Error reading who we are data:', err);
         res.status(500).json({ error: 'Failed to read who we are data' });
     }
 });
@@ -434,6 +327,7 @@ app.post('/api/who-we-are', requireAdmin, (req, res) => {
         writeDataFile('who-we-are', req.body);
         res.json({ success: true });
     } catch (err) {
+        console.error('Error saving who we are data:', err);
         res.status(500).json({ error: 'Failed to save who we are data' });
     }
 });

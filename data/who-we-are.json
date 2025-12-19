@@ -1,5 +1,44 @@
 {
-  "title": "Who We Are",
-  "content": "The Skylinks Men's Golf Club is a community of golf enthusiasts...",
-  "sections": []
+  "title": "Who we are",
+  "content": "Skylinks Men's Golf Club is a golf league hosted at Skylinks at Long Beach Golf Course. We host tournaments once a month on the third Saturday of the month, and host a club meeting the Thursday before the tournament at 6:00pm. We plan to add additional tournaments this year 2025, but that will be a work in progress. We will provide updates as they are known.",
+  "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/fc99fe72-0da7-4b9d-8ec4-a535f9c3b907/202501Swing.JPG",
+  "boardYear": "2025",
+  "boardMembers": [
+    {
+      "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg",
+      "name": "Ted Lewandowski",
+      "title": "PRESIDENT",
+      "description": "Joined the club in 2010 and first time on the board."
+    },
+    {
+      "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/ea62df2b-37b7-4f7b-b6c2-32d4889b3842/VicePresidentTom.JPG",
+      "name": "Tom Sochecki",
+      "title": "VICE PRESIDENT",
+      "description": "Joined club and the board in 2022 previously as handicap chairman."
+    },
+    {
+      "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/d506640e-1904-4149-8758-ce20d25c99e9/TreasurerTroy.jpg",
+      "name": "Troy Ward",
+      "title": "TREASURER",
+      "description": "Joined club in 2022 and first time on the board."
+    },
+    {
+      "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/7561ac68-44c3-410a-8014-06a3b2be4e08/HandicapSean.jpg",
+      "name": "Sean Gatz",
+      "title": "HANDICAP CHAIRMAN",
+      "description": "Joined the club in 2012 and has been a part of the board since 2022 as handicap chairman."
+    },
+    {
+      "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/11921312-820c-4aef-9245-6297ee6067c4/MediaRamon.jpg",
+      "name": "Ramon Aldana",
+      "title": "TOURNAMENT / MEDIA DIRECTOR",
+      "description": "Joined the club in 2023 and first time on the board."
+    },
+    {
+      "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/902c0e7f-e33c-4345-b718-1c73dc3032f6/PastPresidentFrank.jpg",
+      "name": "Frank Mireles",
+      "title": "PAST PRESIDENT / ADVISOR",
+      "description": "Joined the club in 2014 and has been part of the board since 2015 including Secretariat, Handicap Chairman, Tournament Director, Vice President, and President."
+    }
+  ]
 }

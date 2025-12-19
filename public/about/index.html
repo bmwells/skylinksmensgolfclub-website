@@ -31,7 +31,7 @@
         .about-section {
             padding: 4.4rem 0 0 0;
             margin-top: 0;
-            min-height: calc(100vh - 80px); /* Full viewport height minus header */
+            min-height: calc(100vh - 80px);
             display: flex;
             align-items: flex-start;
         }
@@ -59,14 +59,15 @@
             width: 100%;
             height: 100%;
             min-height: 500px;
-            overflow: hidden;        }
+            overflow: hidden;
+        }
 
         .about-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
             object-position: center;
-            display: block; /* Remove any default image spacing */
+            display: block;
         }
         
         .board-section {
@@ -95,9 +96,9 @@
         
         .board-member-image {
             width: 100%;
-            height: auto; /* Keep as auto */
-            aspect-ratio: auto; /* Changed from: aspect-ratio: 1/1 */
-            object-fit: contain; /* Changed from: object-fit: cover */
+            height: auto;
+            aspect-ratio: auto;
+            object-fit: contain;
             border-radius: 8px;
             margin-bottom: 1.5rem;
         }
@@ -125,6 +126,16 @@
             margin: 0 auto;
         }
         
+        .loading, .error {
+            text-align: center;
+            padding: 4rem;
+            color: #666;
+        }
+        
+        .error {
+            color: #dc3545;
+        }
+        
         @media (max-width: 768px) {
             .about-section {
                 min-height: auto;
@@ -140,14 +151,13 @@
             .about-image-container {
                 height: 300px;
                 min-height: 300px;
-                order: 2; /* Image comes after text */
+                order: 2;
                 border-radius: 8px;
-
             }
             
             .about-text-container {
                 padding: 3rem 0 2rem 0;
-                order: 1; /* Text comes before image */
+                order: 1;
             }
             
             .about-title {
@@ -187,101 +197,8 @@
     <!-- HEADER INJECTION -->
     <div id="header-placeholder"></div>
 
-    <main class="about-page">
-        <!-- Who We Are Section -->
-        <section class="full-bleed-section about-section">
-            <div class="content-width--wide">
-                <div class="about-grid">
-                    <div class="about-text-container">
-                        <h1 class="about-title">Who we are</h1>
-                        <div class="about-text">
-                            <p>Skylinks Men's Golf Club is a golf league hosted at Skylinks at Long Beach Golf Course. We host tournaments once a month on the third Saturday of the month, and host a club meeting the Thursday before the tournament at 6:00pm. We plan to add additional tournaments this year 2025, but that will be a work in progress. We will provide updates as they are known.</p>
-                        </div>
-                    </div>
-                    <div class="about-image-container">
-                        <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/fc99fe72-0da7-4b9d-8ec4-a535f9c3b907/202501Swing.JPG" 
-                             alt="Golf swing at Skylinks" 
-                             class="about-image"
-                             loading="lazy">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Board of Directors Section -->
-        <section class="full-bleed-section board-section">
-            <div class="content-width--wide">
-                <h2 class="section-title">2025 Board of Directors</h2>
-                
-                <div class="board-grid">
-                    <!-- President -->
-                    <div class="board-member">
-                        <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/c0a0f4c2-8cde-45f4-8d75-fbd3bc318ce8/PresidentTed2.jpg" 
-                             alt="Ted Lewandowski - President" 
-                             class="board-member-image"
-                             loading="lazy">
-                        <h3 class="board-member-name">Ted Lewandowski</h3>
-                        <div class="board-member-role">PRESIDENT</div>
-                        <p class="board-member-bio">Joined the club in 2010 and first time on the board.</p>
-                    </div>
-
-                    <!-- Vice President -->
-                    <div class="board-member">
-                        <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/ea62df2b-37b7-4f7b-b6c2-32d4889b3842/VicePresidentTom.JPG" 
-                             alt="Tom Sochecki - Vice President" 
-                             class="board-member-image"
-                             loading="lazy">
-                        <h3 class="board-member-name">Tom Sochecki</h3>
-                        <div class="board-member-role">VICE PRESIDENT</div>
-                        <p class="board-member-bio">Joined club and the board in 2022 previously as handicap chairman.</p>
-                    </div>
-
-                    <!-- Treasurer -->
-                    <div class="board-member">
-                        <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/d506640e-1904-4149-8758-ce20d25c99e9/TreasurerTroy.jpg" 
-                             alt="Troy Ward - Treasurer" 
-                             class="board-member-image"
-                             loading="lazy">
-                        <h3 class="board-member-name">Troy Ward</h3>
-                        <div class="board-member-role">TREASURER</div>
-                        <p class="board-member-bio">Joined club in 2022 and first time on the board.</p>
-                    </div>
-
-                    <!-- Handicap Chairman -->
-                    <div class="board-member">
-                        <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/7561ac68-44c3-410a-8014-06a3b2be4e08/HandicapSean.jpg" 
-                             alt="Sean Gatz - Handicap Chairman" 
-                             class="board-member-image"
-                             loading="lazy">
-                        <h3 class="board-member-name">Sean Gatz</h3>
-                        <div class="board-member-role">HANDICAP CHAIRMAN</div>
-                        <p class="board-member-bio">Joined the club in 2012 and has been a part of the board since 2022 as handicap chairman.</p>
-                    </div>
-
-                    <!-- Tournament/Media Director -->
-                    <div class="board-member">
-                        <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/11921312-820c-4aef-9245-6297ee6067c4/MediaRamon.jpg" 
-                             alt="Ramon Aldana - Tournament/Media Director" 
-                             class="board-member-image"
-                             loading="lazy">
-                        <h3 class="board-member-name">Ramon Aldana</h3>
-                        <div class="board-member-role">TOURNAMENT / MEDIA DIRECTOR</div>
-                        <p class="board-member-bio">Joined the club in 2023 and first time on the board.</p>
-                    </div>
-
-                    <!-- Past President -->
-                    <div class="board-member">
-                        <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/902c0e7f-e33c-4345-b718-1c73dc3032f6/PastPresidentFrank.jpg" 
-                             alt="Frank Mireles - Past President" 
-                             class="board-member-image"
-                             loading="lazy">
-                        <h3 class="board-member-name">Frank Mireles</h3>
-                        <div class="board-member-role">PAST PRESIDENT / ADVISOR</div>
-                        <p class="board-member-bio">Joined the club in 2014 and has been part of the board since 2015 including Secretariat, Handicap Chairman, Tournament Director, Vice President, and President.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <main class="about-page" id="about-content">
+        <div class="loading">Loading content...</div>
     </main>
 
     <!-- FOOTER INJECTION -->
@@ -305,6 +222,79 @@
         fetch("/footer.html")
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+        // Load Who We Are content from API
+        async function loadWhoWeAre() {
+            try {
+                const response = await fetch('/api/who-we-are');
+                const data = await response.json();
+                
+                const container = document.getElementById('about-content');
+                
+                if (!data || Object.keys(data).length === 0) {
+                    container.innerHTML = '<div class="error">No content available.</div>';
+                    return;
+                }
+                
+                container.innerHTML = createWhoWeAreHTML(data);
+            } catch (error) {
+                console.error('Error loading who we are content:', error);
+                document.getElementById('about-content').innerHTML = 
+                    '<div class="error">Error loading content. Please try again later.</div>';
+            }
+        }
+
+        function createWhoWeAreHTML(data) {
+            return `
+                <!-- Who We Are Section -->
+                <section class="full-bleed-section about-section">
+                    <div class="content-width--wide">
+                        <div class="about-grid">
+                            <div class="about-text-container">
+                                <h1 class="about-title">${data.title || 'Who we are'}</h1>
+                                <div class="about-text">
+                                    <p>${data.content || ''}</p>
+                                </div>
+                            </div>
+                            <div class="about-image-container">
+                                <img src="${data.imageUrl || ''}" 
+                                     alt="Golf swing at Skylinks" 
+                                     class="about-image"
+                                     loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Board of Directors Section -->
+                ${data.boardMembers && data.boardMembers.length > 0 ? `
+                <section class="full-bleed-section board-section">
+                    <div class="content-width--wide">
+                        <h2 class="section-title">${data.boardYear || '2025'} Board of Directors</h2>
+                        
+                        <div class="board-grid">
+                            ${data.boardMembers.map(member => `
+                                <div class="board-member">
+                                    ${member.imageUrl ? `
+                                    <img src="${member.imageUrl}" 
+                                         alt="${member.name || ''} - ${member.title || ''}" 
+                                         class="board-member-image"
+                                         loading="lazy">
+                                    ` : ''}
+                                    <h3 class="board-member-name">${member.name || ''}</h3>
+                                    ${member.title ? `<div class="board-member-role">${member.title}</div>` : ''}
+                                    ${member.description ? `<p class="board-member-bio">${member.description}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </section>
+                ` : ''}
+            `;
+        }
+
+        // Load content when page is ready
+        document.addEventListener('DOMContentLoaded', loadWhoWeAre);
     </script>
 
 </body>
