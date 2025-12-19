@@ -129,6 +129,13 @@
             padding-bottom: 40px;
         }
         
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
             .tournament-banner {
@@ -175,21 +182,10 @@
     <section class="tournament-products">
         <div class="tournament-products-container">
             <div class="tournament-products-grid">
-                <!-- Monthly Tournament Card -->
-                <a href="monthly-tournament/" class="tournament-product-card" aria-label="Monthly Tournament">
-                    <div class="tournament-product-image-wrapper">
-                        <img 
-                            src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg" 
-                            alt="Monthly Tournament"
-                            class="tournament-product-image"
-                            loading="lazy"
-                        />
-                    </div>
-                    <div class="tournament-product-meta">
-                        <h3 class="tournament-product-title">Monthly Tournament</h3>
-                        <p class="tournament-product-price">$90.00</p>
-                    </div>
-                </a>
+                <!-- Monthly Tournament Card - Will be populated by JavaScript -->
+                <div id="monthly-tournament-card" class="loading">
+                    Loading monthly tournament...
+                </div>
                 
                 <!-- Membership Renewal Card -->
                 <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
@@ -239,12 +235,87 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                initMenu(); // initialize after header loads
+                if (typeof initMenu === "function") initMenu();
             });
 
         fetch("/footer.html")
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+        // Load monthly tournament data for the card
+        async function loadMonthlyTournamentCard() {
+            try {
+                const response = await fetch('/api/monthly-tournament');
+                const data = await response.json();
+                
+                const cardContainer = document.getElementById('monthly-tournament-card');
+                
+                if (!data || Object.keys(data).length === 0) {
+                    cardContainer.innerHTML = `
+                        <a href="monthly-tournament/" class="tournament-product-card" aria-label="Monthly Tournament">
+                            <div class="tournament-product-image-wrapper">
+                                <img 
+                                    src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg" 
+                                    alt="Monthly Tournament"
+                                    class="tournament-product-image"
+                                    loading="lazy"
+                                />
+                            </div>
+                            <div class="tournament-product-meta">
+                                <h3 class="tournament-product-title">Monthly Tournament</h3>
+                                <p class="tournament-product-price">$90.00</p>
+                            </div>
+                        </a>
+                    `;
+                    return;
+                }
+                
+                // Format price with $ and .00
+                const formattedPrice = data.price ? '$' + parseFloat(data.price).toFixed(2) : '$90.00';
+                const title = data.title || 'Monthly Tournament';
+                const imageUrl = data.imageUrl || 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg';
+                
+                cardContainer.outerHTML = `
+                    <a href="monthly-tournament/" class="tournament-product-card" aria-label="${title}">
+                        <div class="tournament-product-image-wrapper">
+                            <img 
+                                src="${imageUrl}" 
+                                alt="${title}"
+                                class="tournament-product-image"
+                                loading="lazy"
+                            />
+                        </div>
+                        <div class="tournament-product-meta">
+                            <h3 class="tournament-product-title">${title}</h3>
+                            <p class="tournament-product-price">${formattedPrice}</p>
+                        </div>
+                    </a>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading monthly tournament for card:', error);
+                const cardContainer = document.getElementById('monthly-tournament-card');
+                cardContainer.innerHTML = `
+                    <a href="monthly-tournament/" class="tournament-product-card" aria-label="Monthly Tournament">
+                        <div class="tournament-product-image-wrapper">
+                            <img 
+                                src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg" 
+                                alt="Monthly Tournament"
+                                class="tournament-product-image"
+                                loading="lazy"
+                            />
+                        </div>
+                        <div class="tournament-product-meta">
+                            <h3 class="tournament-product-title">Monthly Tournament</h3>
+                            <p class="tournament-product-price">$90.00</p>
+                        </div>
+                    </a>
+                `;
+            }
+        }
+
+        // Load tournament card when page is ready
+        document.addEventListener('DOMContentLoaded', loadMonthlyTournamentCard);
     </script>
 
 </body>

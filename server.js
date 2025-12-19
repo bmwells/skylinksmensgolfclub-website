@@ -4,7 +4,6 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const Stripe = require('stripe');
-const { MongoClient } = require('mongodb');
 const cors = require('cors');
 const crypto = require('crypto');
 
@@ -14,24 +13,21 @@ const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
 
 const DATA_DIR = path.join(__dirname, 'data');
 
-// Data file paths
+// --------------------
+// DATA FILE PATHS
+// --------------------
 const dataFiles = {
     results: path.join(DATA_DIR, 'results.json'),
     'meeting-minutes': path.join(DATA_DIR, 'meeting-minutes.json'),
     schedule: path.join(DATA_DIR, 'schedule.json'),
     'monthly-tournament': path.join(DATA_DIR, 'monthly-tournament.json'),
     'presidents-letter': path.join(DATA_DIR, 'presidents-letter.json'),
-    'who-we-are': path.join(DATA_DIR, 'who-we-are.json')
+    'who-we-are': path.join(DATA_DIR, 'who-we-are.json'),
+    members: path.join(DATA_DIR, 'members.json')
 };
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const DB_NAME = process.env.DB_NAME || 'skylinks';
-
-let db;
-let membersCollection;
-
 // --------------------
-// Simple in-memory token store (can move to sessions/JWT later)
+// ADMIN AUTH
 // --------------------
 const adminTokens = new Set();
 
@@ -39,92 +35,35 @@ const adminTokens = new Set();
 const stripeSecret = process.env.STRIPE_SECRET_KEY || '';
 const stripe = Stripe(stripeSecret);
 
-// MongoDB
-async function connectToMongoDB() {
-    try {
-        if (!MONGODB_URI) return;
-
-        const client = await MongoClient.connect(MONGODB_URI);
-        db = client.db(DB_NAME);
-        membersCollection = db.collection('members');
-
-        await membersCollection.createIndex(
-            { firstName: 'text', lastName: 'text' },
-            { name: 'member_name_text_index' }
-        );
-
-        console.log(`MongoDB connected → ${DB_NAME}`);
-    } catch (err) {
-        console.error(err.message);
-    }
-}
-connectToMongoDB();
-
-// Initialize data directory and files
+// --------------------
+// INIT DATA DIRECTORY
+// --------------------
 if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Initialize data files with appropriate defaults
+// --------------------
+// INIT DATA FILES
+// --------------------
 function initializeDataFiles() {
-    // Results - empty array
-    if (!fs.existsSync(dataFiles.results)) {
-        fs.writeFileSync(dataFiles.results, JSON.stringify([], null, 2));
-    }
-    
-    // Meeting Minutes - empty array
-    if (!fs.existsSync(dataFiles['meeting-minutes'])) {
-        fs.writeFileSync(dataFiles['meeting-minutes'], JSON.stringify([], null, 2));
-    }
-    
-    // Schedule - empty array  
-    if (!fs.existsSync(dataFiles.schedule)) {
-        fs.writeFileSync(dataFiles.schedule, JSON.stringify([], null, 2));
-    }
-    
-    // Monthly Tournament - empty array
-    if (!fs.existsSync(dataFiles['monthly-tournament'])) {
-        fs.writeFileSync(dataFiles['monthly-tournament'], JSON.stringify([], null, 2));
-    }
-    
-    // President's Letter - basic empty structure
-    if (!fs.existsSync(dataFiles['presidents-letter'])) {
-        const presidentsLetter = {
-            president: {
-                name: '',
-                imageUrl: '',
-                role: ''
-            },
-            letters: []
-        };
-        fs.writeFileSync(dataFiles['presidents-letter'], JSON.stringify(presidentsLetter, null, 2));
-    }
-    
-    // Who We Are - basic empty structure
-    if (!fs.existsSync(dataFiles['who-we-are'])) {
-        const whoWeAre = {
-            title: '',
-            content: '',
-            imageUrl: '',
-            boardYear: '',
-            boardMembers: []
-        };
-        fs.writeFileSync(dataFiles['who-we-are'], JSON.stringify(whoWeAre, null, 2));
+    for (const key of Object.keys(dataFiles)) {
+        if (!fs.existsSync(dataFiles[key])) {
+            fs.writeFileSync(dataFiles[key], JSON.stringify([], null, 2));
+        }
     }
 }
-
 initializeDataFiles();
 
-// Middleware
+// --------------------
+// MIDDLEWARE
+// --------------------
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Static
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --------------------
-// ADMIN AUTH
+// ADMIN LOGIN
 // --------------------
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
@@ -140,228 +79,83 @@ app.post('/api/admin/login', (req, res) => {
 
 function requireAdmin(req, res, next) {
     const authHeader = req.headers.authorization;
-    
-    // Handle both "Bearer <token>" and plain token
-    let token;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7); // Remove "Bearer " prefix
-    } else {
-        token = authHeader; // Plain token
-    }
-    
-    if (token && adminTokens.has(token)) {
-        return next();
-    }
+    const token = authHeader?.startsWith('Bearer ')
+        ? authHeader.substring(7)
+        : authHeader;
+
+    if (token && adminTokens.has(token)) return next();
     res.status(403).json({ error: 'Unauthorized' });
 }
 
 // --------------------
-// GENERIC DATA API HELPER FUNCTIONS
+// DATA HELPERS
 // --------------------
-function readDataFile(fileKey) {
-    try {
-        const filePath = dataFiles[fileKey];
-        if (!filePath || !fs.existsSync(filePath)) {
-            throw new Error(`Data file for ${fileKey} not found`);
-        }
-        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    } catch (err) {
-        console.error(`Error reading ${fileKey} file:`, err);
-        throw err;
-    }
+function readDataFile(key) {
+    return JSON.parse(fs.readFileSync(dataFiles[key], 'utf8'));
 }
 
-function writeDataFile(fileKey, data) {
-    try {
-        const filePath = dataFiles[fileKey];
-        if (!filePath) {
-            throw new Error(`Data file path for ${fileKey} not defined`);
-        }
-        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    } catch (err) {
-        console.error(`Error writing ${fileKey} file:`, err);
-        throw err;
-    }
+function writeDataFile(key, data) {
+    fs.writeFileSync(dataFiles[key], JSON.stringify(data, null, 2));
 }
 
 // --------------------
-// RESULTS API
+// MEMBER AUTOCOMPLETE API (JSON)
 // --------------------
-app.get('/api/results', (req, res) => {
-    try {
-        const data = readDataFile('results');
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to read results data' });
-    }
-});
+app.get('/api/members/search', (req, res) => {
+    const q = (req.query.q || '').toLowerCase();
+    if (q.length < 2) return res.json([]);
 
-app.post('/api/results', requireAdmin, (req, res) => {
-    try {
-        writeDataFile('results', req.body);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to save results' });
-    }
+    const members = readDataFile('members');
+
+    const results = members
+        .filter(m =>
+            `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+        )
+        .slice(0, 10);
+
+    res.json(results);
 });
 
 // --------------------
-// MEETING MINUTES API
-// --------------------
-app.get('/api/meeting-minutes', (req, res) => {
-    try {
-        const data = readDataFile('meeting-minutes');
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to read meeting minutes' });
-    }
-});
-
-app.post('/api/meeting-minutes', requireAdmin, (req, res) => {
-    try {
-        writeDataFile('meeting-minutes', req.body);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to save meeting minutes' });
-    }
-});
-
-// --------------------
-// SCHEDULE API
-// --------------------
-app.get('/api/schedule', (req, res) => {
-    try {
-        const data = readDataFile('schedule');
-        res.json(data);
-    } catch (err) {
-        console.error('Error reading schedule:', err);
-        res.status(500).json({ error: 'Failed to read schedule data' });
-    }
-});
-
-app.post('/api/schedule', requireAdmin, (req, res) => {
-    try {
-        // Validate incoming data structure
-        const data = req.body;
-        
-        if (!data || !Array.isArray(data)) {
-            return res.status(400).json({ error: 'Invalid data format. Expected array.' });
-        }
-        
-        // Validate each event has required fields
-        for (const event of data) {
-            if (!event.title || !event.date) {
-                return res.status(400).json({ 
-                    error: 'Event missing required fields: title and date are required' 
-                });
-            }
-        }
-        
-        writeDataFile('schedule', data);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error saving schedule:', err);
-        res.status(500).json({ error: 'Failed to save schedule data' });
-    }
-});
-
-// --------------------
-// MONTHLY TOURNAMENT API (placeholder)
+// MONTHLY TOURNAMENT
 // --------------------
 app.get('/api/monthly-tournament', (req, res) => {
-    try {
-        const data = readDataFile('monthly-tournament');
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to read monthly tournament data' });
-    }
+    res.json(readDataFile('monthly-tournament'));
 });
 
 app.post('/api/monthly-tournament', requireAdmin, (req, res) => {
-    try {
-        writeDataFile('monthly-tournament', req.body);
+    writeDataFile('monthly-tournament', req.body);
+    res.json({ success: true });
+});
+
+// --------------------
+// GENERIC DATA ROUTES
+// --------------------
+['results', 'meeting-minutes', 'schedule', 'presidents-letter', 'who-we-are'].forEach(key => {
+    app.get(`/api/${key}`, (req, res) => res.json(readDataFile(key)));
+    app.post(`/api/${key}`, requireAdmin, (req, res) => {
+        writeDataFile(key, req.body);
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to save monthly tournament data' });
-    }
+    });
 });
 
 // --------------------
-// PRESIDENT'S LETTER API
+// ADMIN ROUTES
 // --------------------
-app.get('/api/presidents-letter', (req, res) => {
-    try {
-        const data = readDataFile('presidents-letter');
-        res.json(data);
-    } catch (err) {
-        console.error('Error reading president\'s letter:', err);
-        res.status(500).json({ error: 'Failed to read president\'s letter' });
-    }
-});
-
-app.post('/api/presidents-letter', requireAdmin, (req, res) => {
-    try {
-        writeDataFile('presidents-letter', req.body);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error saving president\'s letter:', err);
-        res.status(500).json({ error: 'Failed to save president\'s letter' });
-    }
-});
-
-// --------------------
-// WHO WE ARE API
-// --------------------
-app.get('/api/who-we-are', (req, res) => {
-    try {
-        const data = readDataFile('who-we-are');
-        res.json(data);
-    } catch (err) {
-        console.error('Error reading who we are data:', err);
-        res.status(500).json({ error: 'Failed to read who we are data' });
-    }
-});
-
-app.post('/api/who-we-are', requireAdmin, (req, res) => {
-    try {
-        writeDataFile('who-we-are', req.body);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error saving who we are data:', err);
-        res.status(500).json({ error: 'Failed to save who we are data' });
-    }
-});
-
-// Health
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
-});
-
-// Admin routes
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
-// Admin editor routes  
-app.get('/admin/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
-});
-
-// Wildcard route for all admin editor pages
 app.get('/admin/:page', (req, res) => {
-    const page = req.params.page || 'index';
-    const filePath = path.join(__dirname, 'public', 'admin', `${page}.html`);
-    
-    // Check if file exists
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        // Fall back to admin index
-        res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
-    }
+    const filePath = path.join(__dirname, 'public', 'admin', `${req.params.page}.html`);
+    res.sendFile(fs.existsSync(filePath)
+        ? filePath
+        : path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
-// Catch-all for main site pages
+// --------------------
+// FALLBACK
+// --------------------
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

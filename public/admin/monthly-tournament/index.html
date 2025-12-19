@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Monthly Tournament Editor - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>Monthly Tournament Editor</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
+</div>
+
+<div id="main-content"></div>
+
+<script>
+// Make render globally accessible
+window.render = render;
+
+function init() {
+    if (AdminCommon.init('monthly-tournament', {})) {
+        loadMonthlyTournament();
+    }
+}
+
+function loadMonthlyTournament() {
+    AdminCommon.load().then((data) => {
+        render();
+        // Setup input listeners after render
+        AdminCommon.setupInputListeners();
+    }).catch(err => {
+        alert('Error loading monthly tournament data: ' + err.message);
+    });
+}
+
+function render() {
+    const mainContentContainer = document.getElementById('main-content');
+    
+    // Clear container
+    mainContentContainer.innerHTML = '';
+    
+    // Create main content section
+    const mainContentDiv = document.createElement('div');
+    mainContentDiv.className = 'row';
+    mainContentDiv.innerHTML = `
+        <h3>Monthly Tournament Content</h3>
+        ${AdminCommon.templates.textInput('Image URL', AdminCommon.data.imageUrl || '', `updateField('imageUrl', this.value)`, 'https://example.com/image.jpg')}
+        ${AdminCommon.templates.textInput('Title', AdminCommon.data.title || '', `updateField('title', this.value)`, 'Christmas Schamble')}
+        <div class="form-row">
+            <div style="flex: 1;">
+                ${AdminCommon.templates.textInput('Price (numbers only)', AdminCommon.data.price || '', `updateField('price', this.value)`, '84')}
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" ${AdminCommon.data.active !== false ? 'checked' : ''} onchange="updateField('active', this.checked)">
+                    <span>Active Tournament Entry</span>
+                </label>
+            </div>
+        </div>
+        ${AdminCommon.templates.textareaInput('Description', AdminCommon.data.description || '', `updateField('description', this.value)`, 'December 14, 2025\\n7:00 AM - 8:00 AM\\n4-Man Shamble (SHOTGUN START)', 'description-textarea')}
+    `;
+    mainContentContainer.appendChild(mainContentDiv);
+    
+    // Re-setup input listeners after rendering new inputs
+    AdminCommon.setupInputListeners();
+}
+
+function updateField(field, value) {
+    AdminCommon.data[field] = value;
+    AdminCommon.markUnsaved();
+}
+
+window.onload = init;
+</script>
+
+<style>
+.description-textarea textarea {
+    min-height: 200px;
+    font-family: monospace;
+    line-height: 1.4;
+}
+
+.form-row label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+</style>
+
+</body>
+</html>

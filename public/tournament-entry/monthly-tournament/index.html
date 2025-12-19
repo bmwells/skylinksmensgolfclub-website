@@ -8,7 +8,36 @@
     <title>Monthly Tournament - Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/product.css" />
-   
+    <style>
+        .disabled-button {
+            background-color: #cccccc !important;
+            color: #666666 !important;
+            cursor: not-allowed !important;
+            position: relative;
+            opacity: 0.7;
+        }
+        
+        .disabled-button::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background-color: #999999;
+            transform: translateY(-50%);
+        }
+        
+        .disabled-button:hover {
+            background-color: #cccccc !important;
+            transform: none !important;
+        }
+        
+        .add-to-cart-text {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
 </head>
 <body data-product-id="monthly-tournament">
     <!-- Added chevron back button -->
@@ -28,30 +57,26 @@
         <div class="product-container">
             <div class="product-content-wrapper">
                 <div class="product-image-container">
-                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg" 
+                    <img id="tournament-image" 
+                         src="" 
                          alt="Monthly Tournament" 
                          class="product-image">
                 </div>
 
                 <div class="product-meta">
-                    <h1 class="product-title">Monthly Tournament</h1>
+                    <h1 id="tournament-title" class="product-title">Loading...</h1>
                     
                     <div id="main-product-price" class="product-price" data-animation-role="content">
-                        <div class="product-price-value">$90.00</div>
+                        <div id="tournament-price" class="product-price-value">Loading...</div>
                         <div class="product-payment-method-messaging"></div>
                     </div>
                     
-                    <div class="product-description">
-                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true">One year membership for the Skylinks Men's Golf Club</p>
-                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"></p>
-                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"><strong>*** SCGA Multi-Member Rebate Program***</strong></p>
-                        <p style="white-space:pre-wrap;" data-rte-preserve-empty="true"><span>For each membership year, anyone who is a member of the SCGA through more than one club is eligible to apply for and receive a rebate directly from the SCGA for any dues they pay the SCGA that exceed $55.</span></p>
+                    <div id="tournament-description" class="product-description">
+                        <p>Loading tournament details...</p>
                     </div>
                     
                     <div class="product-add-to-cart">
-                        <div class="product-add-to-cart-layout-wrapper">
-                            <!-- Quantity input has been removed -->
-                            
+                        <div class="product-add-to-cart-layout-wrapper">                            
                             <div class="sqs-add-to-cart-button-wrapper" data-animation-role="button" style="visibility: visible;">
                                 <button id="open-member-modal" class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
                                     <div class="sqs-add-to-cart-button-inner">
@@ -95,6 +120,73 @@
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
+        // Load monthly tournament content from API
+        async function loadMonthlyTournament() {
+            try {
+                const response = await fetch('/api/monthly-tournament');
+                const data = await response.json();
+                
+                // Update page content
+                if (data.imageUrl) {
+                    document.getElementById('tournament-image').src = data.imageUrl;
+                }
+                if (data.title) {
+                    document.getElementById('tournament-title').textContent = data.title;
+                    // Update page title
+                    document.title = data.title + ' - Skylinks Men\'s Golf Club';
+                }
+                if (data.price) {
+                    // Format price with $ and .00
+                    const formattedPrice = '$' + parseFloat(data.price).toFixed(2);
+                    document.getElementById('tournament-price').textContent = formattedPrice;
+                }
+                if (data.description) {
+                    // Parse description with line breaks and add schedule link at the end
+                    const scheduleLink = '<br><strong>For more details check the <a href="/schedule/" style="color: #2a5c3d; text-decoration: underline;">Schedule</a></strong>';
+                    
+                    const descriptionHTML = data.description
+                        .split('\n')
+                        .map(line => line.trim() === '' ? '<br>' : `<p style="white-space:pre-wrap;" data-rte-preserve-empty="true">${line}</p>`)
+                        .join('') + scheduleLink;
+                    
+                    document.getElementById('tournament-description').innerHTML = descriptionHTML;
+                }
+                
+                // Handle active status
+                const addToCartBtn = document.getElementById('open-member-modal');
+                if (addToCartBtn) {
+                    if (data.active === false) {
+                        // Tournament is inactive - disable the button
+                        addToCartBtn.classList.add('disabled-button');
+                        addToCartBtn.disabled = true;
+                        addToCartBtn.title = "Tournament entry deadline has passed";
+                        
+                        // Update the button text
+                        const addToCartText = addToCartBtn.querySelector('.add-to-cart-text');
+                        if (addToCartText) {
+                            addToCartText.textContent = 'Entry Deadline Passed';
+                        }
+                    } else {
+                        // Tournament is active - ensure button is enabled
+                        addToCartBtn.classList.remove('disabled-button');
+                        addToCartBtn.disabled = false;
+                        addToCartBtn.title = "";
+                        
+                        // Update the button text
+                        const addToCartText = addToCartBtn.querySelector('.add-to-cart-text');
+                        if (addToCartText) {
+                            addToCartText.textContent = 'Add To Cart';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading monthly tournament:', error);
+                document.getElementById('tournament-title').textContent = 'Error Loading Tournament';
+                document.getElementById('tournament-description').innerHTML = 
+                    '<p>Unable to load tournament details. Please try again later.</p>';
+            }
+        }
+
         // Load product modal
         fetch("/tournament-entry/tournament-modal.html")
             .then(res => {
@@ -116,50 +208,17 @@
                 console.error('Product modal could not be loaded:', error);
             });
 
-        // Add to cart functionality - always adds quantity of 1
+        // Initialize product detection after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            // Wait for the modal to be loaded and initialized
+            console.log('DOM loaded, initializing product for tournament page...');
+            
+            // Load tournament data when page is ready
+            loadMonthlyTournament();
+            
+            // Ensure the modal loads properly
             setTimeout(() => {
-                const addToCartBtn = document.getElementById('open-member-modal');
-                
-                if (addToCartBtn) {
-                    // Override any existing click handlers to ensure quantity is always 1
-                    addToCartBtn.addEventListener('click', function(e) {
-                        // Find any hidden quantity input in the modal
-                        const modalQuantityInput = document.querySelector('#member-modal-backdrop input[type="number"][name="quantity"]');
-                        const formQuantityInput = document.querySelector('#member-modal-backdrop input[type="hidden"][name="quantity"]');
-                        
-                        // Set quantity to 1 in modal if it exists
-                        if (modalQuantityInput) {
-                            modalQuantityInput.value = 1;
-                        }
-                        if (formQuantityInput) {
-                            formQuantityInput.value = 1;
-                        }
-                        
-                        // Also update any other quantity fields that might exist
-                        document.querySelectorAll('#member-modal-backdrop input[type="number"]').forEach(input => {
-                            if (input.getAttribute('name') && input.getAttribute('name').toLowerCase().includes('quantity')) {
-                                input.value = 1;
-                            }
-                        });
-                        
-                        // Optional: Show visual feedback
-                        const addToCartText = this.querySelector('.add-to-cart-text');
-                        const cartAddedText = this.querySelector('.cart-added-text');
-                        
-                        if (addToCartText && cartAddedText) {
-                            addToCartText.style.display = 'none';
-                            cartAddedText.style.display = 'block';
-                            
-                            setTimeout(() => {
-                                addToCartText.style.display = 'block';
-                                cartAddedText.style.display = 'none';
-                            }, 2000);
-                        }
-                    });
-                }
-            }, 1000); // Give time for modal to load
+                console.log('Product initialization complete for tournament');
+            }, 500);
         });
     </script>
 </body>

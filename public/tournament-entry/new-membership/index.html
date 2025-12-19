@@ -50,9 +50,7 @@
                     </div>
                     
                     <div class="product-add-to-cart">
-                        <div class="product-add-to-cart-layout-wrapper">
-                            <!-- Quantity input has been removed -->
-                            
+                        <div class="product-add-to-cart-layout-wrapper">                            
                             <div class="sqs-add-to-cart-button-wrapper" data-animation-role="button" style="visibility: visible;">
                                 <button id="open-member-modal" class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
                                     <div class="sqs-add-to-cart-button-inner">
@@ -132,50 +130,14 @@
                 document.getElementById("member-modal-placeholder").innerHTML = fallbackModal;
             });
 
-        // Add to cart functionality - always adds quantity of 1
+        // Initialize product detection after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            // Wait for the modal to be loaded and initialized
+            console.log('DOM loaded, initializing product for new membership page...');
+            
+            // Ensure the modal loads properly
             setTimeout(() => {
-                const addToCartBtn = document.getElementById('open-member-modal');
-                
-                if (addToCartBtn) {
-                    // Override any existing click handlers to ensure quantity is always 1
-                    addToCartBtn.addEventListener('click', function(e) {
-                        // Find any hidden quantity input in the modal
-                        const modalQuantityInput = document.querySelector('#member-modal-backdrop input[type="number"][name="quantity"]');
-                        const formQuantityInput = document.querySelector('#member-modal-backdrop input[type="hidden"][name="quantity"]');
-                        
-                        // Set quantity to 1 in modal if it exists
-                        if (modalQuantityInput) {
-                            modalQuantityInput.value = 1;
-                        }
-                        if (formQuantityInput) {
-                            formQuantityInput.value = 1;
-                        }
-                        
-                        // Also update any other quantity fields that might exist
-                        document.querySelectorAll('#member-modal-backdrop input[type="number"]').forEach(input => {
-                            if (input.getAttribute('name') && input.getAttribute('name').toLowerCase().includes('quantity')) {
-                                input.value = 1;
-                            }
-                        });
-                        
-                        // Optional: Show visual feedback
-                        const addToCartText = this.querySelector('.add-to-cart-text');
-                        const cartAddedText = this.querySelector('.cart-added-text');
-                        
-                        if (addToCartText && cartAddedText) {
-                            addToCartText.style.display = 'none';
-                            cartAddedText.style.display = 'block';
-                            
-                            setTimeout(() => {
-                                addToCartText.style.display = 'block';
-                                cartAddedText.style.display = 'none';
-                            }, 2000);
-                        }
-                    });
-                }
-            }, 1000); // Give time for modal to load
+                console.log('Product initialization complete for new membership');
+            }, 500);
         });
     </script>
 </body>

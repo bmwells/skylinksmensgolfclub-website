@@ -7,6 +7,20 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <title>Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Add loading state styles for tournament card */
+        .tournament-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
 
@@ -39,12 +53,9 @@
         <div class="container">
             <h2 class="section-title">Tournament Entry</h2>
             <div class="tournament-grid">
-                <div class="tournament-card">
-                    <a href="/tournament-entry/monthly-tournament/">
-                        <div class="tournament-image"></div>
-                        <h3>Monthly Tournament</h3>
-                        <p class="price">From $90</p>
-                    </a>
+                <!-- Monthly Tournament Card - Will be populated by JavaScript -->
+                <div id="home-monthly-tournament-card" class="tournament-loading">
+                    Loading monthly tournament...
                 </div>
                 <div class="tournament-card">
                     <a href="/tournament-entry/new-membership/">
@@ -126,19 +137,75 @@
     <script src="/js/image.js"></script>
     <script src="/js/cart-count.js"></script>
 
-
     <script>
         // Load header + footer on page
         fetch("/header.html")
             .then(res => res.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                initMenu(); // initialize after header loads
+                if (typeof initMenu === "function") initMenu();
             });
 
         fetch("/footer.html")
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+        // Load monthly tournament data for the homepage card
+        async function loadHomeMonthlyTournamentCard() {
+            try {
+                const response = await fetch('/api/monthly-tournament');
+                const data = await response.json();
+                
+                const cardContainer = document.getElementById('home-monthly-tournament-card');
+                
+                if (!data || Object.keys(data).length === 0) {
+                    // Fallback to default if no data
+                    cardContainer.outerHTML = `
+                        <div class="tournament-card">
+                            <a href="/tournament-entry/monthly-tournament/">
+                                <div class="tournament-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg')"></div>
+                                <h3>Monthly Tournament</h3>
+                                <p class="price">From $90</p>
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Format price with $ and .00, show "From $" if active, otherwise show base price
+                const basePrice = data.price ? parseFloat(data.price) : 90;
+                const formattedPrice = data.active !== false ? `From $${basePrice}` : `$${basePrice}`;
+                const title = data.title || 'Monthly Tournament';
+                const imageUrl = data.imageUrl || 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg';
+                
+                cardContainer.outerHTML = `
+                    <div class="tournament-card">
+                        <a href="/tournament-entry/monthly-tournament/">
+                            <div class="tournament-image" style="background-image: url('${imageUrl}')"></div>
+                            <h3>${title}</h3>
+                            <p class="price">${formattedPrice}</p>
+                        </a>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading monthly tournament for homepage card:', error);
+                const cardContainer = document.getElementById('home-monthly-tournament-card');
+                // Fallback to default on error
+                cardContainer.outerHTML = `
+                    <div class="tournament-card">
+                        <a href="/tournament-entry/monthly-tournament/">
+                            <div class="tournament-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg')"></div>
+                            <h3>Monthly Tournament</h3>
+                            <p class="price">From $90</p>
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        // Load tournament card when page is ready
+        document.addEventListener('DOMContentLoaded', loadHomeMonthlyTournamentCard);
     </script>
 
 </body>
