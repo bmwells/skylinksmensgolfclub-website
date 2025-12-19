@@ -32,6 +32,9 @@
 <div id="meetings"></div>
 
 <script>
+// Make render globally accessible
+window.render = render;
+
 function init() {
     if (AdminCommon.init('meeting-minutes', [])) {
         loadMeetings();
@@ -43,6 +46,8 @@ function loadMeetings() {
         render();
         // Setup drag and drop container
         AdminCommon.setupDragAndDrop('meetings');
+        // Setup input listeners after render
+        AdminCommon.setupInputListeners();
     }).catch(err => {
         alert('Error loading meeting minutes: ' + err.message);
     });
@@ -53,12 +58,13 @@ function render() {
     meetingsContainer.innerHTML = '';
     
     AdminCommon.data.forEach((meeting, meetingIndex) => {
-        const meetingDiv = AdminCommon.createElement('div', 'row', '', {
-            'data-index': meetingIndex,
-            'draggable': AdminCommon.isReorderMode ? 'true' : 'false'
-        });
+        const meetingDiv = document.createElement('div');
+        meetingDiv.className = 'row';
+        meetingDiv.setAttribute('data-index', meetingIndex);
         
         if (AdminCommon.isReorderMode) {
+            meetingDiv.draggable = true;
+            
             // Minimal view for reordering
             meetingDiv.innerHTML = AdminCommon.templates.minimalRow(
                 (meeting.title || 'General Meeting') + ' ' + (meeting.date || ''),
@@ -68,15 +74,14 @@ function render() {
             // Add drag events
             AdminCommon.addDragEvents(meetingDiv, meetingIndex);
         } else {
+            meetingDiv.draggable = false;
+            
             // Full edit view
             let html = `
                 <div class="meeting-date-input">
                     ${AdminCommon.templates.formRow(`
                         <div style="flex: 2;">
                             ${AdminCommon.templates.textInput('Meeting Date (MM/DD/YY)', meeting.date, `updateMeeting(${meetingIndex}, 'date', this.value)`, 'e.g., 11/13/25')}
-                        </div>
-                        <div style="flex: 3;">
-                            ${AdminCommon.templates.textInput('Meeting Title', meeting.title, `updateMeeting(${meetingIndex}, 'title', this.value)`, 'e.g., General Meeting')}
                         </div>
                     `)}
                 </div>
@@ -122,7 +127,7 @@ function render() {
                     `)}
                 </div>
                 <div class="entry-controls">
-                    ${AdminCommon.templates.deleteButton(`deleteMeeting(${meetingIndex})`, '🗑 Delete This Meeting')}
+                    ${AdminCommon.templates.deleteButton(`deleteMeeting(${meetingIndex})`, 'Delete This Meeting')}
                 </div>
             `;
             
@@ -131,6 +136,11 @@ function render() {
         
         meetingsContainer.appendChild(meetingDiv);
     });
+    
+    // Re-setup input listeners after rendering new inputs
+    if (!AdminCommon.isReorderMode) {
+        AdminCommon.setupInputListeners();
+    }
 }
 
 function renderEntry(meetingIndex, entryIndex, entry) {

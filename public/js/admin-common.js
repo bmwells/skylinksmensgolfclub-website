@@ -26,7 +26,6 @@ window.AdminCommon = {
             this.token = savedToken;
             this.originalData = JSON.parse(JSON.stringify(this.data));
             this.setupEventListeners();
-            this.setupInputListeners();
             return true;
         } else {
             alert('Please login first');
@@ -40,7 +39,7 @@ window.AdminCommon = {
     // ============================================
     setupEventListeners: function() {
         // Intercept back to admin button
-        const backButton = document.querySelector('button[onclick*="window.location.href=\'/admin\'"]');
+        const backButton = document.querySelector('button[onclick*="AdminCommon.checkUnsavedChanges"]');
         if (backButton) {
             backButton.onclick = (e) => {
                 e.preventDefault();
@@ -162,6 +161,11 @@ window.AdminCommon = {
                 control.style.display = 'block';
             });
         }
+        
+        // Trigger re-render in the page-specific render function
+        if (window.render && typeof window.render === 'function') {
+            window.render();
+        }
     },
     
     saveOrder: function(containerId) {
@@ -180,32 +184,31 @@ window.AdminCommon = {
         this.data.length = 0; // Clear array
         newOrder.forEach(item => this.data.push(item));
         
-        this.toggleReorder(); // Exit reorder mode
+        this.toggleReorder(); // Exit reorder mode (will trigger render)
         this.saveWithAlert(); // Save the new order
     },
     
     // Setup drag and drop for a container
     setupDragAndDrop: function(containerId) {
         const container = document.getElementById(containerId);
-        
-        // Clear any existing event listeners
-        const newContainer = container.cloneNode(true);
-        container.parentNode.replaceChild(newContainer, container);
+        if (!container) return null;
         
         // Add dragover event to container
-        newContainer.addEventListener('dragover', (e) => {
+        container.addEventListener('dragover', (e) => {
             e.preventDefault();
-            const afterElement = this.getDragAfterElement(newContainer, e.clientY);
             const draggable = document.querySelector('.dragging');
+            if (!draggable) return;
+            
+            const afterElement = this.getDragAfterElement(container, e.clientY);
             
             if (afterElement == null) {
-                newContainer.appendChild(draggable);
+                container.appendChild(draggable);
             } else {
-                newContainer.insertBefore(draggable, afterElement);
+                container.insertBefore(draggable, afterElement);
             }
         });
         
-        return newContainer;
+        return container;
     },
     
     // Helper to find where to insert dragged element

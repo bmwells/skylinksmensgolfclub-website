@@ -42,7 +42,9 @@ function loadResults() {
     AdminCommon.load().then(() => {
         render();
         // Setup drag and drop container
-        AdminCommon.setupDragAndDrop('rows');
+        document.getElementById('rows').addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
     }).catch(err => {
         alert('Error loading results: ' + err.message);
     });
@@ -65,14 +67,14 @@ function render() {
                 (r.dateText || '') + ' ' + (r.timeText || '')
             );
             
-            // Add drag events
+            // Add drag events (using the original drag-and-drop logic)
             AdminCommon.addDragEvents(rowDiv, i);
         } else {
             // Full edit view
             rowDiv.innerHTML = AdminCommon.templates.textInput('Title', r.title, `updateResult(${i}, 'title', this.value)`, 'Result title') +
                 AdminCommon.templates.formRow(`
                     <div style="flex: 1;">
-                        ${AdminCommon.templates.textInput('Date', r.dateText, `updateResult(${i}, 'dateText', this.value)`, 'e.g., September 15, 2024', '')}
+                        ${AdminCommon.templates.textInput('Date', r.dateText, `updateResult(${i}, 'dateText', this.value)`, 'e.g., Saturday, October 18, 2025', '')}
                     </div>
                     <div style="flex: 1;">
                         ${AdminCommon.templates.textInput('Time', r.timeText, `updateResult(${i}, 'timeText', this.value)`, 'e.g., 1:00 PM', '')}
@@ -80,10 +82,10 @@ function render() {
                 `) +
                 AdminCommon.templates.formRow(`
                     <div style="flex: 1;">
-                        ${AdminCommon.templates.textInput('Month', r.month, `updateResult(${i}, 'month', this.value)`, 'e.g., September', '')}
+                        ${AdminCommon.templates.textInput('Month', r.month, `updateResult(${i}, 'month', this.value)`, 'e.g., Oct', '')}
                     </div>
                     <div style="flex: 1;">
-                        ${AdminCommon.templates.textInput('Day', r.day, `updateResult(${i}, 'day', this.value)`, 'e.g., 15', '')}
+                        ${AdminCommon.templates.textInput('Day', r.day, `updateResult(${i}, 'day', this.value)`, 'e.g., 18', '')}
                     </div>
                 `) +
                 AdminCommon.templates.textInput('Image URL', r.image, `updateResult(${i}, 'image', this.value)`, 'https://example.com/image.jpg') +
