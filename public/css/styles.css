@@ -58,6 +58,46 @@ body {
 }
 
 /* =========================================== */
+/* CART COUNT STYLES                          */
+/* =========================================== */
+/* Default: hide mobile cart count */
+#mobile-cart-count {
+    display: none;
+}
+.mobile-menu-only {
+    display: none;
+}
+
+/* Desktop cart count hidden on mobile */
+@media (max-width: 1024px) {
+    #cart-count {
+        display: none;
+    }
+
+    #mobile-cart-count {
+        display: inline;
+        margin-right: 0.25rem;
+        font-weight: 500;
+    }
+
+    .mobile-menu-only {
+        display: inline;
+    }
+
+    /* Hide the desktop cart count in mobile menu */
+    .nav-menu #cart-count {
+        display: none;
+    }
+    
+    /* Show mobile cart count in menu */
+    .nav-menu #mobile-cart-count-menu {
+        display: inline !important;
+        font-weight: 500;
+        margin-left: 0.25rem;
+    }
+}
+
+/* =========================================== */
 /* HERO SECTION                               */
 /* =========================================== */
 .hero {
@@ -438,18 +478,6 @@ body {
         display: flex;
     }
 
-    #mobile-cart-count {
-        display: inline-block !important;
-        font-weight: 500;
-        font-size: 1.2rem;
-        color: black;
-        width: 1rem;
-        height: 1rem;
-        text-align: center;
-        line-height: 1.2rem;
-        vertical-align: middle;
-    }
-
     .mobile-menu-btn {
         display: block;
     }
@@ -601,6 +629,12 @@ body {
 @media (max-width: 768px) {
     .instagram-grid {
         grid-template-columns: 1fr;
+    }
+    
+    /* Mobile-specific cart count adjustments */
+    #mobile-cart-count {
+        margin-right: 0.5rem;
+        font-size: 1rem;
     }
 }
 

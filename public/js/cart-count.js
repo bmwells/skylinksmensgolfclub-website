@@ -1,5 +1,6 @@
 (function () {
   const CART_KEY = "skylinks_cart_v1";
+  const MOBILE_BREAKPOINT = 1024;
 
   function getCartCount() {
     try {
@@ -12,60 +13,44 @@
     }
   }
 
+  function isMobile() {
+    return window.innerWidth <= MOBILE_BREAKPOINT;
+  }
+
   function updateCartCount() {
     const desktop = document.getElementById("cart-count");
-    const mobile = document.getElementById("mobile-cart-count");
-
-    if (!desktop || !mobile) return;
-
+    const mobileTop = document.getElementById("mobile-cart-count"); // Next to hamburger
+    const mobileMenu = document.getElementById("mobile-cart-count-menu"); // Inside menu
+    
     const count = getCartCount();
+    const text = count > 0 ? `(${count})` : "";
 
-    if (count > 0) {
-      desktop.textContent = `(${count})`;
-      mobile.textContent = `(${count})`;
-      mobile.style.display = "inline";
+    if (isMobile()) {
+      // Mobile: update BOTH mobile cart elements
+      if (mobileTop) mobileTop.textContent = text;
+      if (mobileMenu) mobileMenu.textContent = text;
+      if (desktop) desktop.textContent = "";
     } else {
-      desktop.textContent = "";
-      mobile.style.display = "none";
+      // Desktop: update ONLY desktop cart
+      if (desktop) desktop.textContent = text;
+      if (mobileTop) mobileTop.textContent = "";
+      if (mobileMenu) mobileMenu.textContent = "";
     }
   }
 
- /* WAIT FOR HEADER TO EXIST */
-function waitForHeader() {
-  if (
-    document.getElementById("cart-count") &&
-    document.getElementById("mobile-cart-count")
-  ) {
-    updateCartCount();
-    // Add media query listener to handle mobile/desktop visibility
-    handleCartCountVisibility();
-    window.addEventListener('resize', handleCartCountVisibility);
-    document.addEventListener("cartUpdated", updateCartCount);
-    window.addEventListener("storage", updateCartCount);
-    return;
-  }
-
-  requestAnimationFrame(waitForHeader);
-}
-
-/* Handle mobile/desktop cart count visibility */
-function handleCartCountVisibility() {
-  const mobileCart = document.getElementById("mobile-cart-count");
-  if (!mobileCart) return;
-  
-  const isMobile = window.innerWidth <= 1024; // Match your mobile breakpoint
-  
-  if (isMobile) {
-    // Show mobile cart count if there are items
-    const count = getCartCount();
-    if (count > 0) {
-      mobileCart.style.display = "inline";
+  function waitForHeader() {
+    if (
+      document.getElementById("cart-count") &&
+      document.getElementById("mobile-cart-count")
+    ) {
+      updateCartCount();
+      document.addEventListener("cartUpdated", updateCartCount);
+      window.addEventListener("storage", updateCartCount);
+      window.addEventListener("resize", updateCartCount);
+      return;
     }
-  } else {
-    // Hide mobile cart count on desktop
-    mobileCart.style.display = "none";
+    requestAnimationFrame(waitForHeader);
   }
-}
 
-waitForHeader();
+  waitForHeader();
 })();

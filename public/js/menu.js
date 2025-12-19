@@ -12,12 +12,14 @@ function initMenu() {
         navMenu.classList.add("active");
         mobileBtn.setAttribute("aria-expanded", "true");
         mobileBtn.textContent = "✕";
+        mobileBtn.innerHTML = "✕"; // Also set innerHTML to ensure it shows
     }
 
     function closeMenu() {
         navMenu.classList.remove("active");
         mobileBtn.setAttribute("aria-expanded", "false");
         mobileBtn.textContent = "☰";
+        mobileBtn.innerHTML = "☰"; // Also set innerHTML to ensure it shows
     }
 
     function toggleMenu() {
