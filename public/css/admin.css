@@ -1,0 +1,479 @@
+/* admin.css - Styles for all admin editor pages */
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+body {
+    font-family: system-ui;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+input, textarea, select {
+    width: 100%;
+    margin-bottom: 6px;
+    padding: 8px;
+    box-sizing: border-box;
+    font-family: system-ui;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* ============================================
+   LAYOUT COMPONENTS
+   ============================================ */
+.row {
+    border: 1px solid #ccc;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background: #fafafa;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.row:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+}
+
+.header h1 {
+    margin: 0;
+    color: #333;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+button {
+    margin-bottom: 10px;
+    margin-right: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    background: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background: #0052a3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button.delete {
+    background: #dc3545;
+}
+
+button.delete:hover {
+    background: #c82333;
+}
+
+button.save-order, 
+button[style*="background: #28a745"] {
+    background: #28a745;
+}
+
+button.save-order:hover,
+button[style*="background: #28a745"]:hover {
+    background: #218838;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ============================================
+   FORM COMPONENTS
+   ============================================ */
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 10px;
+}
+
+.form-row > div {
+    flex: 1;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #495057;
+    font-size: 1.2rem;
+}
+
+.entry-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+}
+
+/* ============================================
+   MEETING MINUTES SPECIFIC
+   ============================================ */
+.meeting-date-input {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid #e9ecef;
+}
+
+.next-meeting-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
+    border-left: 4px solid #28a745;
+}
+
+.next-meeting-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #28a745;
+}
+
+.entry-type-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.entry-type-selector button {
+    background: #e9ecef;
+    color: #495057;
+    flex: 1;
+}
+
+.entry-type-selector button:hover {
+    background: #dee2e6;
+}
+
+.entry-type-selector button.active {
+    background: #0066cc;
+    color: white;
+}
+
+.attendees-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.attendee-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.attendee-input input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.attendee-input button {
+    padding: 4px 8px;
+    margin: 0;
+    background: #6c757d;
+    min-width: 32px;
+}
+
+/* ============================================
+   REORDER MODE
+   ============================================ */
+.reorder-mode .row {
+    cursor: move;
+    background: #fff;
+}
+
+.reorder-mode .edit-buttons,
+.reorder-mode .meeting-controls,
+.reorder-mode .controls {
+    display: none;
+}
+
+.drag-handle {
+    cursor: move;
+    margin-right: 12px;
+    color: #6c757d;
+    font-size: 1.2rem;
+    user-select: none;
+}
+
+.dragging {
+    opacity: 0.5;
+    background: #e9ecef !important;
+    border: 2px dashed #6c757d;
+}
+
+.reorder-notice {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    padding: 12px 20px;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    color: #856404;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reorder-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal h3 {
+    margin-top: 0;
+    color: #dc3545;
+    font-size: 1.3rem;
+}
+
+.modal p {
+    margin: 1rem 0 1.5rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+/* ============================================
+   ADMIN PANEL & CONTROLS
+   ============================================ */
+.admin-links {
+    margin: 2.5rem 0;
+}
+
+.admin-links a {
+    display: block;
+    margin: 0.75rem 0;
+    font-size: 1.1rem;
+    color: #0066cc;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.admin-links a:hover {
+    text-decoration: none;
+    background: #f8f9fa;
+    color: #0056b3;
+    transform: translateX(5px);
+}
+
+.button-group {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.edit-buttons,
+.meeting-controls,
+.controls {
+    margin-top: 2rem;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   ADMIN LOGIN PANEL
+   ============================================ */
+#loginPanel input {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 12px;
+    font-size: 1rem;
+}
+
+#loginPanel .button-group {
+    margin-top: 20px;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header > div {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .attendees-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .edit-buttons,
+    .meeting-controls,
+    .controls {
+        flex-direction: column;
+    }
+    
+    .edit-buttons button,
+    .meeting-controls button,
+    .controls button {
+        width: 100%;
+        margin-right: 0;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .modal-buttons button {
+        width: 100%;
+    }
+    
+    .reorder-notice {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .reorder-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .section-header > div {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .section-header input[style*="width: 300px"] {
+        width: 100% !important;
+    }
+}

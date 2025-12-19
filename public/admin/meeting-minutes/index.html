@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Meeting Minutes Editor - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>Meeting Minutes Editor</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="meeting-controls">
+  <button onclick="addMeeting()">📅 Add Meeting</button>
+  <button onclick="AdminCommon.toggleReorder()">↕️ Rearrange Meetings</button>
+  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
+</div>
+
+<div id="reorderNotice" class="reorder-notice" style="display:none;">
+  <span>Drag meetings to reorder. Click "Save Order" when done.</span>
+  <div class="reorder-actions">
+    <button class="save-order" onclick="AdminCommon.saveOrder('meetings')">💾 Save Order</button>
+    <button onclick="AdminCommon.toggleReorder()">❌ Cancel</button>
+  </div>
+</div>
+
+<div id="meetings"></div>
+
+<script>
+function init() {
+    if (AdminCommon.init('meeting-minutes', [])) {
+        loadMeetings();
+    }
+}
+
+function loadMeetings() {
+    AdminCommon.load().then(() => {
+        render();
+        // Setup drag and drop container
+        AdminCommon.setupDragAndDrop('meetings');
+    }).catch(err => {
+        alert('Error loading meeting minutes: ' + err.message);
+    });
+}
+
+function render() {
+    const meetingsContainer = document.getElementById('meetings');
+    meetingsContainer.innerHTML = '';
+    
+    AdminCommon.data.forEach((meeting, meetingIndex) => {
+        const meetingDiv = AdminCommon.createElement('div', 'row', '', {
+            'data-index': meetingIndex,
+            'draggable': AdminCommon.isReorderMode ? 'true' : 'false'
+        });
+        
+        if (AdminCommon.isReorderMode) {
+            // Minimal view for reordering
+            meetingDiv.innerHTML = AdminCommon.templates.minimalRow(
+                (meeting.title || 'General Meeting') + ' ' + (meeting.date || ''),
+                `${meeting.entries?.length || 0} entries`
+            );
+            
+            // Add drag events
+            AdminCommon.addDragEvents(meetingDiv, meetingIndex);
+        } else {
+            // Full edit view
+            let html = `
+                <div class="meeting-date-input">
+                    ${AdminCommon.templates.formRow(`
+                        <div style="flex: 2;">
+                            ${AdminCommon.templates.textInput('Meeting Date (MM/DD/YY)', meeting.date, `updateMeeting(${meetingIndex}, 'date', this.value)`, 'e.g., 11/13/25')}
+                        </div>
+                        <div style="flex: 3;">
+                            ${AdminCommon.templates.textInput('Meeting Title', meeting.title, `updateMeeting(${meetingIndex}, 'title', this.value)`, 'e.g., General Meeting')}
+                        </div>
+                    `)}
+                </div>
+                <div id="entries-${meetingIndex}">
+            `;
+            
+            // Render entries
+            if (meeting.entries && meeting.entries.length > 0) {
+                meeting.entries.forEach((entry, entryIndex) => {
+                    html += renderEntry(meetingIndex, entryIndex, entry);
+                });
+            } else {
+                // Add default entry
+                if (!meeting.entries || meeting.entries.length === 0) {
+                    if (!meeting.entries) AdminCommon.data[meetingIndex].entries = [];
+                    AdminCommon.data[meetingIndex].entries.push({
+                        type: 'general',
+                        title: 'Overview',
+                        content: ''
+                    });
+                }
+                html += renderEntry(meetingIndex, 0, AdminCommon.data[meetingIndex].entries[0]);
+            }
+            
+            html += `
+                </div>
+                <div class="entry-type-selector">
+                    <button onclick="addEntry(${meetingIndex}, 'attendance')" ${meeting.entries && meeting.entries.filter(e => e.type === 'attendance').length >= 1 ? 'disabled' : ''}>➕ In Attendance</button>
+                    <button onclick="addEntry(${meetingIndex}, 'general')">➕ General Entry</button>
+                </div>
+                <div class="next-meeting-section">
+                    <h4>Next Meeting Information</h4>
+                    ${AdminCommon.templates.formRow(`
+                        <div style="flex: 1;">
+                            ${AdminCommon.templates.textInput('Date', meeting.nextMeeting?.date, `updateNextMeeting(${meetingIndex}, 'date', this.value)`, 'e.g., December 10th, 2025')}
+                        </div>
+                        <div style="flex: 1;">
+                            ${AdminCommon.templates.textInput('Location', meeting.nextMeeting?.location, `updateNextMeeting(${meetingIndex}, 'location', this.value)`, 'e.g., Skylinks Cafe')}
+                        </div>
+                        <div style="flex: 1;">
+                            ${AdminCommon.templates.textInput('Time', meeting.nextMeeting?.time, `updateNextMeeting(${meetingIndex}, 'time', this.value)`, 'e.g., 18:00 (6:00 PM)')}
+                        </div>
+                    `)}
+                </div>
+                <div class="entry-controls">
+                    ${AdminCommon.templates.deleteButton(`deleteMeeting(${meetingIndex})`, '🗑 Delete This Meeting')}
+                </div>
+            `;
+            
+            meetingDiv.innerHTML = html;
+        }
+        
+        meetingsContainer.appendChild(meetingDiv);
+    });
+}
+
+function renderEntry(meetingIndex, entryIndex, entry) {
+    if (entry.type === 'attendance') {
+        let attendeesHtml = '';
+        if (entry.attendees && entry.attendees.length > 0) {
+            entry.attendees.forEach((attendee, attendeeIndex) => {
+                attendeesHtml += `
+                    <div class="attendee-input">
+                        <input value="${AdminCommon.escapeHtml(attendee)}" oninput="updateAttendee(${meetingIndex}, ${entryIndex}, ${attendeeIndex}, this.value)" placeholder="Name and role">
+                        <button onclick="removeAttendee(${meetingIndex}, ${entryIndex}, ${attendeeIndex})" style="padding: 4px 8px;">✕</button>
+                    </div>
+                `;
+            });
+        }
+        
+        return `
+            <div class="input-group">
+                ${AdminCommon.templates.sectionHeader('In Attendance', AdminCommon.templates.deleteButton(`deleteEntry(${meetingIndex}, ${entryIndex})`, 'Delete', true))}
+                <div id="attendees-${meetingIndex}-${entryIndex}" class="attendees-grid">
+                    ${attendeesHtml}
+                </div>
+                <button onclick="addAttendee(${meetingIndex}, ${entryIndex})" style="background: #6c757d;">➕ Add Attendee</button>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="input-group">
+                <div class="section-header">
+                    <h3>${entry.title || 'General Entry'}</h3>
+                    <div>
+                        <input value="${AdminCommon.escapeHtml(entry.title || '')}" oninput="updateEntry(${meetingIndex}, ${entryIndex}, 'title', this.value)" placeholder="Entry title" style="width: 300px; margin-right: 10px;">
+                        ${AdminCommon.templates.deleteButton(`deleteEntry(${meetingIndex}, ${entryIndex})`, 'Delete', true)}
+                    </div>
+                </div>
+                ${AdminCommon.templates.textareaInput('Content', entry.content, `updateEntry(${meetingIndex}, ${entryIndex}, 'content', this.value)`, 'Enter content here (use bullet points or paragraphs)')}
+            </div>
+        `;
+    }
+}
+
+function updateMeeting(meetingIndex, field, value) {
+    AdminCommon.updateItem(meetingIndex, field, value);
+}
+
+function updateEntry(meetingIndex, entryIndex, field, value) {
+    if (AdminCommon.data[meetingIndex] && AdminCommon.data[meetingIndex].entries) {
+        AdminCommon.data[meetingIndex].entries[entryIndex][field] = value;
+        AdminCommon.markUnsaved();
+    }
+}
+
+function updateAttendee(meetingIndex, entryIndex, attendeeIndex, value) {
+    if (AdminCommon.data[meetingIndex] && 
+        AdminCommon.data[meetingIndex].entries && 
+        AdminCommon.data[meetingIndex].entries[entryIndex] &&
+        AdminCommon.data[meetingIndex].entries[entryIndex].attendees) {
+        AdminCommon.data[meetingIndex].entries[entryIndex].attendees[attendeeIndex] = value;
+        AdminCommon.markUnsaved();
+    }
+}
+
+function updateNextMeeting(meetingIndex, field, value) {
+    if (AdminCommon.data[meetingIndex]) {
+        if (!AdminCommon.data[meetingIndex].nextMeeting) {
+            AdminCommon.data[meetingIndex].nextMeeting = {};
+        }
+        AdminCommon.data[meetingIndex].nextMeeting[field] = value;
+        AdminCommon.markUnsaved();
+    }
+}
+
+function addMeeting() {
+    if (AdminCommon.isReorderMode) {
+        alert('Please exit reorder mode before adding new meetings.');
+        return;
+    }
+    
+    AdminCommon.addItem({
+        date: '',
+        title: 'General Meeting',
+        entries: [{
+            type: 'general',
+            title: 'Overview',
+            content: ''
+        }],
+        nextMeeting: {
+            date: '',
+            location: '',
+            time: ''
+        }
+    });
+    render();
+}
+
+function addEntry(meetingIndex, type) {
+    if (!AdminCommon.data[meetingIndex].entries) {
+        AdminCommon.data[meetingIndex].entries = [];
+    }
+    
+    if (type === 'attendance') {
+        const hasAttendance = AdminCommon.data[meetingIndex].entries.some(e => e.type === 'attendance');
+        if (hasAttendance) {
+            alert('Only one "In Attendance" entry is allowed per meeting.');
+            return;
+        }
+        
+        AdminCommon.data[meetingIndex].entries.unshift({
+            type: 'attendance',
+            attendees: ['']
+        });
+    } else {
+        AdminCommon.data[meetingIndex].entries.push({
+            type: 'general',
+            title: '',
+            content: ''
+        });
+    }
+    
+    AdminCommon.markUnsaved();
+    render();
+}
+
+function addAttendee(meetingIndex, entryIndex) {
+    if (AdminCommon.data[meetingIndex] && 
+        AdminCommon.data[meetingIndex].entries && 
+        AdminCommon.data[meetingIndex].entries[entryIndex]) {
+        if (!AdminCommon.data[meetingIndex].entries[entryIndex].attendees) {
+            AdminCommon.data[meetingIndex].entries[entryIndex].attendees = [];
+        }
+        AdminCommon.data[meetingIndex].entries[entryIndex].attendees.push('');
+        AdminCommon.markUnsaved();
+        render();
+    }
+}
+
+function removeAttendee(meetingIndex, entryIndex, attendeeIndex) {
+    if (AdminCommon.data[meetingIndex] && 
+        AdminCommon.data[meetingIndex].entries && 
+        AdminCommon.data[meetingIndex].entries[entryIndex] &&
+        AdminCommon.data[meetingIndex].entries[entryIndex].attendees) {
+        AdminCommon.data[meetingIndex].entries[entryIndex].attendees.splice(attendeeIndex, 1);
+        AdminCommon.markUnsaved();
+        render();
+    }
+}
+
+function deleteEntry(meetingIndex, entryIndex) {
+    if (confirm('Are you sure you want to delete this entry?')) {
+        const generalEntries = AdminCommon.data[meetingIndex].entries.filter(e => e.type === 'general');
+        if (generalEntries.length <= 1 && AdminCommon.data[meetingIndex].entries[entryIndex].type === 'general') {
+            alert('Each meeting must have at least one general entry.');
+            return;
+        }
+        
+        AdminCommon.data[meetingIndex].entries.splice(entryIndex, 1);
+        AdminCommon.markUnsaved();
+        render();
+    }
+}
+
+function deleteMeeting(meetingIndex) {
+    if (AdminCommon.deleteItem(meetingIndex, 'Are you sure you want to delete this entire meeting?')) {
+        render();
+    }
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
