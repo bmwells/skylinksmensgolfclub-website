@@ -1,30 +1,16 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 const Stripe = require('stripe');
 const cors = require('cors');
 const crypto = require('crypto');
+const fs = require('fs');
+
+const { connectDB, readData, writeData } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
-
-const DATA_DIR = path.join(__dirname, 'data');
-
-// --------------------
-// DATA FILE PATHS
-// --------------------
-const dataFiles = {
-    results: path.join(DATA_DIR, 'results.json'),
-    'meeting-minutes': path.join(DATA_DIR, 'meeting-minutes.json'),
-    schedule: path.join(DATA_DIR, 'schedule.json'),
-    'monthly-tournament': path.join(DATA_DIR, 'monthly-tournament.json'),
-    'presidents-letter': path.join(DATA_DIR, 'presidents-letter.json'),
-    'who-we-are': path.join(DATA_DIR, 'who-we-are.json'),
-    members: path.join(DATA_DIR, 'members.json')
-};
 
 // --------------------
 // ADMIN AUTH
@@ -34,25 +20,6 @@ const adminTokens = new Set();
 // Stripe
 const stripeSecret = process.env.STRIPE_SECRET_KEY || '';
 const stripe = Stripe(stripeSecret);
-
-// --------------------
-// INIT DATA DIRECTORY
-// --------------------
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// --------------------
-// INIT DATA FILES
-// --------------------
-function initializeDataFiles() {
-    for (const key of Object.keys(dataFiles)) {
-        if (!fs.existsSync(dataFiles[key])) {
-            fs.writeFileSync(dataFiles[key], JSON.stringify([], null, 2));
-        }
-    }
-}
-initializeDataFiles();
 
 // --------------------
 // MIDDLEWARE
@@ -88,24 +55,13 @@ function requireAdmin(req, res, next) {
 }
 
 // --------------------
-// DATA HELPERS
+// MEMBER AUTOCOMPLETE API
 // --------------------
-function readDataFile(key) {
-    return JSON.parse(fs.readFileSync(dataFiles[key], 'utf8'));
-}
-
-function writeDataFile(key, data) {
-    fs.writeFileSync(dataFiles[key], JSON.stringify(data, null, 2));
-}
-
-// --------------------
-// MEMBER AUTOCOMPLETE API (JSON)
-// --------------------
-app.get('/api/members/search', (req, res) => {
+app.get('/api/members/search', async (req, res) => {
     const q = (req.query.q || '').toLowerCase();
     if (q.length < 2) return res.json([]);
 
-    const members = readDataFile('members');
+    const members = await readData('members');
 
     const results = members
         .filter(m =>
@@ -119,22 +75,32 @@ app.get('/api/members/search', (req, res) => {
 // --------------------
 // MONTHLY TOURNAMENT
 // --------------------
-app.get('/api/monthly-tournament', (req, res) => {
-    res.json(readDataFile('monthly-tournament'));
+app.get('/api/monthly-tournament', async (req, res) => {
+    res.json(await readData('monthly-tournament'));
 });
 
-app.post('/api/monthly-tournament', requireAdmin, (req, res) => {
-    writeDataFile('monthly-tournament', req.body);
+app.post('/api/monthly-tournament', requireAdmin, async (req, res) => {
+    await writeData('monthly-tournament', req.body);
     res.json({ success: true });
 });
 
 // --------------------
 // GENERIC DATA ROUTES
 // --------------------
-['results', 'meeting-minutes', 'schedule', 'presidents-letter', 'who-we-are', 'members'].forEach(key => {
-    app.get(`/api/${key}`, (req, res) => res.json(readDataFile(key)));
-    app.post(`/api/${key}`, requireAdmin, (req, res) => {
-        writeDataFile(key, req.body);
+[
+    'results',
+    'meeting-minutes',
+    'schedule',
+    'presidents-letter',
+    'who-we-are',
+    'members'
+].forEach(key => {
+    app.get(`/api/${key}`, async (req, res) => {
+        res.json(await readData(key));
+    });
+
+    app.post(`/api/${key}`, requireAdmin, async (req, res) => {
+        await writeData(key, req.body);
         res.json({ success: true });
     });
 });
@@ -148,9 +114,11 @@ app.get('/admin', (req, res) => {
 
 app.get('/admin/:page', (req, res) => {
     const filePath = path.join(__dirname, 'public', 'admin', `${req.params.page}.html`);
-    res.sendFile(fs.existsSync(filePath)
-        ? filePath
-        : path.join(__dirname, 'public', 'admin', 'index.html'));
+    res.sendFile(
+        fs.existsSync(filePath)
+            ? filePath
+            : path.join(__dirname, 'public', 'admin', 'index.html')
+    );
 });
 
 // --------------------
@@ -160,6 +128,16 @@ app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running → ${DOMAIN}`);
-});
+// --------------------
+// START SERVER AFTER DB CONNECT
+// --------------------
+connectDB()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server running → ${DOMAIN}`);
+        });
+    })
+    .catch(err => {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    });
