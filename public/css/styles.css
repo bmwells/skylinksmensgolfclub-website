@@ -6,13 +6,6 @@
 /* CSS VARIABLES                              */
 /* =========================================== */
 :root {
-    /* Images */
-    --hero-image: url('/images/p1.webp');
-    --welcome-image: url('/images/p2.webp');
-    --tournament-image1: url('/images/p3.webp');
-    --tournament-image2: url('/images/p4.webp');
-    --tournament-image3: url('/images/p5.webp');
-    --instagram-image: url('/images/p2.webp');
 
     /* Colors */
     --lightAccent-hsl: 0, 0%, 100%;
@@ -102,7 +95,6 @@ body {
 /* =========================================== */
 .hero {
     height: 95vh;
-    background-image: var(--hero-image);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -127,7 +119,6 @@ body {
 .welcome-image {
     width: 100%;
     height: 400px;
-    background-image: var(--welcome-image);
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -189,18 +180,6 @@ body {
     margin-bottom: 1rem;
 }
 
-.tournament-card:nth-child(1) .tournament-image {
-    background-image: var(--tournament-image1);
-}
-
-.tournament-card:nth-child(2) .tournament-image {
-    background-image: var(--tournament-image2);
-}
-
-.tournament-card:nth-child(3) .tournament-image {
-    background-image: var(--tournament-image3);
-}
-
 .tournament-card h3 {
     color: var(--primary);
     margin-bottom: 1rem;
@@ -230,7 +209,6 @@ body {
 }
 
 .instagram-post {
-    background-image: var(--instagram-image);
     background-size: cover;
     background-position: center;
     height: 250px;
