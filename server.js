@@ -12,6 +12,21 @@ const { connectDB, readData, writeData } = require('./db');
 const app = express();
 
 // --------------------
+// ENVIRONMENT DETECTION
+// --------------------
+const isVercel = process.env.VERCEL === '1';
+const isProduction = process.env.NODE_ENV === 'production';
+const isLocal = !isVercel && !isProduction;
+
+console.log('Environment:', {
+    isVercel,
+    isProduction,
+    isLocal,
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL: process.env.VERCEL
+});
+
+// --------------------
 // JWT CONFIGURATION
 // --------------------
 const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
@@ -256,6 +271,19 @@ app.use((req, res) => {
 // --------------------
 // Database connections will be established lazily when API endpoints are called
 // This is the optimal pattern for serverless environments like Vercel
+
+// --------------------
+// START SERVER FOR LOCAL DEVELOPMENT
+// --------------------
+// Only start listening if NOT on Vercel
+if (isLocal) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server running locally on http://localhost:${PORT}`);
+        console.log(`API: http://localhost:${PORT}/api/health`);
+        console.log(`Admin: http://localhost:${PORT}/admin`);
+    });
+}
 
 // --------------------
 // EXPORT FOR VERCEL SERVERLESS
