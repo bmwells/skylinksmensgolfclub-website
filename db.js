@@ -84,7 +84,7 @@ async function readData(key) {
  */
 async function writeData(key, data) {
     try {
-        // 🔥 CRITICAL FIX: Ensure DB is connected before using it
+        // Ensure DB is connected before using it
         if (!db) {
             await connectDB();
         }
