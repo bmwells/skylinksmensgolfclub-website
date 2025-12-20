@@ -176,22 +176,8 @@ app.use((req, res) => {
 // --------------------
 // CONNECT TO DATABASE AND EXPORT APP
 // --------------------
-let isConnected = false;
-
-// Function to initialize database connection
-async function initializeApp() {
-    try {
-        await connectDB();
-        isConnected = true;
-        console.log('✅ MongoDB connected successfully');
-    } catch (error) {
-        console.error('❌ MongoDB connection failed:', error);
-        // Don't exit - let the app run in read-only mode or with errors
-    }
-}
-
-// Start initialization but don't block
-initializeApp();
+// Database connections will be established lazily when API endpoints are called
+// This is the optimal pattern for serverless environments like Vercel
 
 // --------------------
 // EXPORT FOR VERCEL SERVERLESS
