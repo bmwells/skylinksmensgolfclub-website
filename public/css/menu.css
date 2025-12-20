@@ -110,6 +110,18 @@
     margin-left: auto;
 }
 
+/* Mobile cart count link styling */
+#mobile-cart-count a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+#mobile-cart-count a:hover {
+    color: var(--primary);
+}
+
 .mobile-menu-btn {
     display: none;
     background: none;

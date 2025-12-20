@@ -343,7 +343,7 @@ body {
     }
 
     .section-title {
-        font-size: 2.2rem;  
+        font-size: 1.6rem;  
     }
 
     .contact-info h1 {
@@ -403,6 +403,10 @@ body {
 @media (max-width: 768px) {
     .hero {
         height: 96vh;
+    }
+
+    .site-title {
+        font-size: 1.1rem;
     }
 
     .instagram-grid {

@@ -27,11 +27,18 @@
 
     if (isMobile()) {
       // Mobile: update BOTH mobile cart elements
-      if (mobileTop) mobileTop.textContent = text;
+      if (mobileTop) {
+        // Wrap mobileTop in a link to cart
+        if (count > 0) {
+          mobileTop.innerHTML = `<a href="/cart" style="text-decoration: none; color: inherit;">${text}</a>`;
+        } else {
+          mobileTop.textContent = text;
+        }
+      }
       if (mobileMenu) mobileMenu.textContent = text;
       if (desktop) desktop.textContent = "";
     } else {
-      // Desktop: update ONLY desktop cart
+      // Desktop: update ONLY desktop cart (already linked in nav)
       if (desktop) desktop.textContent = text;
       if (mobileTop) mobileTop.textContent = "";
       if (mobileMenu) mobileMenu.textContent = "";
