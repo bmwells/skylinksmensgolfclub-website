@@ -24,7 +24,21 @@ if (process.env.STRIPE_SECRET_KEY) {
 // --------------------
 // MIDDLEWARE
 // --------------------
-app.use(cors());
+
+app.use(cors({
+    origin: [
+        'https://skylinksmensgolfclub-website.vercel.app',  // Vercel domain
+        'http://localhost:3000',         // Local development
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Handle preflight OPTIONS requests
+app.options('*', cors());
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
