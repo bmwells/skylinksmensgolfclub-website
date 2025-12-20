@@ -139,6 +139,13 @@ body {
     line-height: 1.8;
 }
 
+.welcome-text .welcome-signoff {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
 /* =========================================== */
 /* TOURNAMENT SECTION                         */
 /* =========================================== */
@@ -359,7 +366,7 @@ body {
     position: relative;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 1025px) {}
     .dropdown-menu {
         position: absolute;
         top: 100%;
@@ -485,6 +492,10 @@ body {
         overflow: hidden;
     }
 
+    .tournament-card h3 {
+        font-size: 2rem !important;
+    }
+
     .nav-menu.active {
         display: flex;
         animation: menuFade var(--menu-transition) ease forwards;
@@ -505,12 +516,32 @@ body {
     }
 
     .section-title {
-        font-size: 1.7rem;  
+        font-size: 2.2rem;  
     }
 
     .contact-info h1 {
         font-size: 3rem;
-    }  
+    }
+    
+    .hero {
+        height: 97vh;
+    }
+
+
+    .welcome-text h2 {
+        font-size: 2.5rem;
+        text-align: center;
+    }
+
+    .welcome-text p {
+        font-size: 2.2rem;
+        text-align: left;
+    }
+
+    .welcome-text .welcome-signoff {
+        font-size: 2.3rem;
+        text-align: center;
+    }
 
     /* Mobile Dropdown */
     .dropdown details {
@@ -613,6 +644,18 @@ body {
 }
 
 @media (max-width: 768px) {
+    .hero {
+        height: 96vh;
+    }
+
+    .tournament-card h3 {
+        font-size: 1.2rem !important;
+    }
+
+    .section-title {
+        font-size: 1.6rem;  
+    }
+
     .instagram-grid {
         grid-template-columns: 1fr;
     }
@@ -621,6 +664,18 @@ body {
     #mobile-cart-count {
         margin-right: 0.5rem;
         font-size: 1rem;
+    }
+
+     .welcome-text h2 {
+        font-size: 1.5rem;
+    }
+
+    .welcome-text p {
+        font-size: 1.1rem;
+    }
+
+    .welcome-text .welcome-signoff {
+        font-size: 1.3rem;
     }
 }
 
