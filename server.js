@@ -9,17 +9,17 @@ const fs = require('fs');
 const { connectDB, readData, writeData } = require('./db');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
 
 // --------------------
 // ADMIN AUTH
 // --------------------
 const adminTokens = new Set();
 
-// Stripe
-const stripeSecret = process.env.STRIPE_SECRET_KEY || '';
-const stripe = Stripe(stripeSecret);
+// Initialize Stripe only if key exists
+let stripe;
+if (process.env.STRIPE_SECRET_KEY) {
+    stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+}
 
 // --------------------
 // MIDDLEWARE
@@ -58,30 +58,46 @@ function requireAdmin(req, res, next) {
 // MEMBER AUTOCOMPLETE API
 // --------------------
 app.get('/api/members/search', async (req, res) => {
-    const q = (req.query.q || '').toLowerCase();
-    if (q.length < 2) return res.json([]);
+    try {
+        const q = (req.query.q || '').toLowerCase();
+        if (q.length < 2) return res.json([]);
 
-    const members = await readData('members');
+        const members = await readData('members');
 
-    const results = members
-        .filter(m =>
-            `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
-        )
-        .slice(0, 10);
+        const results = members
+            .filter(m =>
+                `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+            )
+            .slice(0, 10);
 
-    res.json(results);
+        res.json(results);
+    } catch (error) {
+        console.error('Error searching members:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // --------------------
 // MONTHLY TOURNAMENT
 // --------------------
 app.get('/api/monthly-tournament', async (req, res) => {
-    res.json(await readData('monthly-tournament'));
+    try {
+        const data = await readData('monthly-tournament');
+        res.json(data);
+    } catch (error) {
+        console.error('Error reading monthly tournament:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 app.post('/api/monthly-tournament', requireAdmin, async (req, res) => {
-    await writeData('monthly-tournament', req.body);
-    res.json({ success: true });
+    try {
+        await writeData('monthly-tournament', req.body);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error writing monthly tournament:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // --------------------
@@ -96,13 +112,42 @@ app.post('/api/monthly-tournament', requireAdmin, async (req, res) => {
     'members'
 ].forEach(key => {
     app.get(`/api/${key}`, async (req, res) => {
-        res.json(await readData(key));
+        try {
+            const data = await readData(key);
+            res.json(data);
+        } catch (error) {
+            console.error(`Error reading ${key}:`, error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
     });
 
     app.post(`/api/${key}`, requireAdmin, async (req, res) => {
-        await writeData(key, req.body);
-        res.json({ success: true });
+        try {
+            await writeData(key, req.body);
+            res.json({ success: true });
+        } catch (error) {
+            console.error(`Error writing ${key}:`, error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
     });
+});
+
+// --------------------
+// HEALTH CHECK ENDPOINT
+// --------------------
+app.get('/api/health', async (req, res) => {
+    try {
+        res.json({
+            status: 'ok',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // --------------------
@@ -129,15 +174,26 @@ app.use((req, res) => {
 });
 
 // --------------------
-// START SERVER AFTER DB CONNECT
+// CONNECT TO DATABASE AND EXPORT APP
 // --------------------
-connectDB()
-    .then(() => {
-        app.listen(PORT, () => {
-            console.log(`Server running → ${DOMAIN}`);
-        });
-    })
-    .catch(err => {
-        console.error('Failed to start server:', err);
-        process.exit(1);
-    });
+let isConnected = false;
+
+// Function to initialize database connection
+async function initializeApp() {
+    try {
+        await connectDB();
+        isConnected = true;
+        console.log('✅ MongoDB connected successfully');
+    } catch (error) {
+        console.error('❌ MongoDB connection failed:', error);
+        // Don't exit - let the app run in read-only mode or with errors
+    }
+}
+
+// Start initialization but don't block
+initializeApp();
+
+// --------------------
+// EXPORT FOR VERCEL SERVERLESS
+// --------------------
+module.exports = app;
