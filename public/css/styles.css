@@ -504,6 +504,11 @@ body {
         width: 100%;
     }
 
+    .section-title {
+    font-size: 1.7rem;
+    
+}
+
     /* Mobile Dropdown */
     .dropdown details {
         width: 100%;

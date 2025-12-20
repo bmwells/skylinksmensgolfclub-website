@@ -153,6 +153,48 @@
             object-fit: cover;
             object-position: 44.299643727732985% 71.20890111263908%;
         }
+
+        /* Mobile centering for contact page */
+        @media (max-width: 991px) {
+            .contact-page-content {
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .contact-page-content h1 {
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .contact-page-content p {
+                width: 100%;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+                text-align: center;
+            }
+        }
+
+        /* Make contact form wider on mobile */
+        @media (max-width: 991px) {
+            .contact-page-form {
+                width: 100%;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .contact-page-content h1,
+            .contact-page-content p {
+                width: 100%;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
         
         /* Responsive adjustments - matching home page breakpoints */
         @media (max-width: 768px) {
@@ -201,7 +243,6 @@
                 <div class="contact-page-content">
                     <h1>Contact Us</h1>
                     <p>Have questions regarding membership or a specific tournament? Fill out some info and we will be in touch shortly.</p>
-                    
                     <div class="contact-page-form">
                         <form>
                             <div class="form-group name-fields">

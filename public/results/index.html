@@ -170,7 +170,7 @@
         }
 
         .results-link-container a {
-            font-weight: 600;
+            font-weight: 400;
             color: #2c3e50;
             text-decoration: none;
             border-bottom: 2px solid #2c3e50;
@@ -179,13 +179,15 @@
         /* ---------------- ADMIN ACCESS ---------------- */
         #admin-access {
             position: absolute;
-            bottom: 295px;
+            top: calc(60px + 50vh); 
+            left: 40px;
             width: 30px;
-            height: 30px;
+            height: 80px;
             background: transparent;
             cursor: pointer;
             z-index: 9999;
         }
+
 
         #admin-access:hover {
             opacity: 0.5;
@@ -196,6 +198,10 @@
             .hero-section {
                 height: 20vh;
                 min-height: 200px;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
             }
 
             .event-main {
@@ -212,6 +218,22 @@
                 width: 100%;
                 margin-bottom: 1rem;
             }
+
+            .results-link-container a {
+                font-size: 0.8rem;
+                max-width: 250px; 
+                line-height: 2.5;
+                padding: 8px 12px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: inline-block;
+                text-decoration: none;
+                border-radius: 4px;
+                transition: background-color 0.2s;
+            }
+
+
         }
     </style>
 </head>
