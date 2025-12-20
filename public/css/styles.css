@@ -505,9 +505,12 @@ body {
     }
 
     .section-title {
-    font-size: 1.7rem;
-    
-}
+        font-size: 1.7rem;  
+    }
+
+    .contact-info h1 {
+        font-size: 3rem;
+    }  
 
     /* Mobile Dropdown */
     .dropdown details {
