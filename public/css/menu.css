@@ -1,0 +1,370 @@
+/* =========================================== */
+/* NAVIGATION MENU                            */
+/* =========================================== */
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    font-weight: 400;
+    transition: color 0.3s;
+}
+
+.nav-menu a:hover {
+    color: var(--primary);
+}
+
+.site-title,
+.nav-menu a {
+    font-family: 'Manrope', sans-serif;
+}
+
+/* =========================================== */
+/* DROPDOWN STYLES - DESKTOP                  */
+/* =========================================== */
+.nav-menu li {
+    position: relative;
+}
+
+@media (min-width: 1025px) {
+    .tournament-card h3 {
+        font-size: 3.5rem;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: var(--lightAccent);
+        min-width: 200px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-radius: 4px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+        z-index: 1001;
+        list-style: none;
+        padding: 0.5rem 0;
+    }
+
+    .dropdown-menu li {
+        width: 100%;
+    }
+
+    .dropdown-menu a {
+        display: block;
+        padding: 0.75rem 1.5rem;
+        color: #333;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        white-space: nowrap;
+    }
+
+    .dropdown-menu a:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+
+    .nav-menu li:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    /* Desktop summary styling */
+    .dropdown summary {
+        display: block;
+        cursor: default;
+        padding: 0;
+        margin: 0;
+        font-size: 16px;
+        font-weight: 400;
+        list-style: none;
+        user-select: none;
+    }
+
+    /* Remove default marker */
+    .dropdown summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .dropdown summary::marker {
+        content: none;
+    }
+}
+
+/* =========================================== */
+/* MOBILE STYLES                              */
+/* =========================================== */
+.mobile-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2.2rem;
+    cursor: pointer;
+    color: var(--primary);
+    padding: 0.5rem;
+    z-index: 1002;
+}
+
+/* =========================================== */
+/* MOBILE MENU RESPONSIVE DESIGN              */
+/* =========================================== */
+@media (max-width: 1024px) {
+    .mobile-header-controls {
+        display: flex;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .dropdown-desktop {
+        display: none;
+    }
+
+    .dropdown-mobile {
+        display: block;
+        width: 100%;
+    }
+
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--lightAccent);
+        padding: 0.25rem 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1000;
+        margin: 0;
+        gap: 0;
+        overflow: hidden;
+    }
+
+    .nav-menu.active {
+        display: flex;
+        animation: menuFade var(--menu-transition) ease forwards;
+    }
+
+    .nav-menu li {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-menu a {
+        display: block;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-size: 16px;
+        width: 100%;
+    }
+
+    /* Mobile Dropdown */
+    .dropdown details {
+        width: 100%;
+    }
+
+    .dropdown summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-size: 16px;
+        display: block;
+        outline: none;
+        user-select: none;
+        position: relative;
+    }
+
+    .dropdown summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .dropdown summary::marker {
+        content: none;
+    }
+
+    .dropdown summary::after {
+        content: '▼';
+        position: absolute;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.85rem;
+        transition: transform var(--menu-transition) ease;
+    }
+
+    .dropdown details[open] summary::after {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .dropdown .dropdown-menu {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height var(--menu-transition) ease, opacity var(--menu-transition) ease;
+        opacity: 0;
+        padding-left: 1.25rem;
+        background-color: transparent;
+        box-shadow: none;
+        border: none;
+        margin: 0;
+        list-style: none;
+    }
+
+    .dropdown details[open] .dropdown-menu {
+        max-height: 500px;
+        opacity: 1;
+        padding-bottom: 0.5rem;
+    }
+
+    .dropdown .dropdown-menu a {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        display: block;
+        width: 100%;
+    }
+
+    .dropdown .dropdown-menu li:last-child a {
+        border-bottom: none;
+    }
+
+    .dropdown .dropdown-menu li {
+        width: 100%;
+    }
+}
+
+/* =========================================== */
+/* MOBILE MENU DROPDOWN FIX                   */
+/* =========================================== */
+
+/* Mobile styles */
+@media (max-width: 1024px) {
+    #nav-menu.active {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        z-index: 1000;
+        padding: 1rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Make details dropdowns flow naturally */
+    #nav-menu details {
+        position: relative;
+        width: 100%;
+    }
+
+    /* Summary styling */
+    #nav-menu details summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Remove default arrow */
+    #nav-menu details summary::marker,
+    #nav-menu details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    /* Custom arrow */
+    #nav-menu details summary::after {
+        content: "▼";
+        font-size: 0.8em;
+        transition: transform 0.3s ease;
+    }
+
+    #nav-menu details[open] summary::after {
+        transform: rotate(180deg);
+    }
+
+    /* Dropdown content - positioned static to push content */
+    #nav-menu details div {
+        position: static;
+        width: 100%;
+        background: #f9f9f9;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+        padding: 0.5rem 0;
+        box-shadow: none;
+    }
+
+    /* Links inside dropdown */
+    #nav-menu details div a {
+        display: block;
+        padding: 0.75rem 1.5rem;
+        color: #333;
+        text-decoration: none;
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    #nav-menu details div a:hover {
+        background: #eee;
+        border-left-color: #007bff;
+    }
+
+    /* Regular menu links */
+    #nav-menu > ul > li:not(:has(details)) a {
+        display: block;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+        text-decoration: none;
+        color: #333;
+    }
+
+    /* Ensure the menu items stack vertically */
+    #nav-menu ul {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    #nav-menu li {
+        width: 100%;
+    }
+}
+
+/* =========================================== */
+/* ANIMATIONS                                 */
+/* =========================================== */
+@keyframes menuFade {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

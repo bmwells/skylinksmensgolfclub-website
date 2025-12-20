@@ -2,11 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&display=swap');
 
+/* Import menu styles */
+@import url('menu.css');
+
 /* =========================================== */
 /* CSS VARIABLES                              */
 /* =========================================== */
 :root {
-
     /* Colors */
     --lightAccent-hsl: 0, 0%, 100%;
     --white-hsl: 0, 0%, 100%;
@@ -332,187 +334,12 @@ body {
 }
 
 /* =========================================== */
-/* NAVIGATION MENU                            */
-/* =========================================== */
-.nav-menu {
-    display: flex;
-    list-style: none;
-    gap: 2rem;
-    margin: 0;
-    padding: 0;
-}
-
-.nav-menu a {
-    text-decoration: none;
-    color: #333;
-    font-size: 16px;
-    font-weight: 400;
-    transition: color 0.3s;
-}
-
-.nav-menu a:hover {
-    color: var(--primary);
-}
-
-.site-title,
-.nav-menu a {
-    font-family: 'Manrope', sans-serif;
-}
-
-/* =========================================== */
-/* DROPDOWN STYLES - DESKTOP                  */
-/* =========================================== */
-.nav-menu li {
-    position: relative;
-}
-
-@media (min-width: 1025px) {}
-    .dropdown-menu {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background-color: var(--lightAccent);
-        min-width: 200px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        border-radius: 4px;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: all 0.2s ease;
-        z-index: 1001;
-        list-style: none;
-        padding: 0.5rem 0;
-    }
-
-    .dropdown-menu li {
-        width: 100%;
-    }
-
-    .dropdown-menu a {
-        display: block;
-        padding: 0.75rem 1.5rem;
-        color: #333;
-        text-decoration: none;
-        transition: background-color 0.3s;
-        white-space: nowrap;
-    }
-
-    .dropdown-menu a:hover {
-        background-color: rgba(0,0,0,0.05);
-    }
-
-    .nav-menu li:hover .dropdown-menu {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-
-    /* Desktop summary styling */
-    .dropdown summary {
-        display: block;
-        cursor: default;
-        padding: 0;
-        margin: 0;
-        font-size: 16px;
-        font-weight: 400;
-        list-style: none;
-        user-select: none;
-    }
-
-    /* Remove default marker */
-    .dropdown summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .dropdown summary::marker {
-        content: none;
-    }
-}
-
-/* =========================================== */
-/* MOBILE STYLES                              */
-/* =========================================== */
-.mobile-header-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-left: auto;
-}
-
-.mobile-menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 2.2rem;
-    cursor: pointer;
-    color: var(--primary);
-    padding: 0.5rem;
-    z-index: 1002;
-}
-
-/* =========================================== */
 /* RESPONSIVE DESIGN                          */
 /* =========================================== */
 @media (max-width: 1024px) {
     /* Header & Navigation */
     .header-inner {
         padding: 0 1.5rem;
-    }
-
-    .mobile-header-controls {
-        display: flex;
-    }
-
-    .mobile-menu-btn {
-        display: block;
-    }
-
-    .dropdown-desktop {
-        display: none;
-    }
-
-    .dropdown-mobile {
-        display: block;
-        width: 100%;
-    }
-
-    .nav-menu {
-        display: none;
-        flex-direction: column;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background-color: var(--lightAccent);
-        padding: 0.25rem 0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
-        margin: 0;
-        gap: 0;
-        overflow: hidden;
-    }
-
-    .tournament-card h3 {
-        font-size: 2rem !important;
-    }
-
-    .nav-menu.active {
-        display: flex;
-        animation: menuFade var(--menu-transition) ease forwards;
-    }
-
-    .nav-menu li {
-        width: 100%;
-        padding: 0;
-        margin: 0;
-    }
-
-    .nav-menu a {
-        display: block;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        font-size: 16px;
-        width: 100%;
     }
 
     .section-title {
@@ -526,7 +353,6 @@ body {
     .hero {
         height: 97vh;
     }
-
 
     .welcome-text h2 {
         font-size: 2.5rem;
@@ -543,78 +369,9 @@ body {
         text-align: center;
     }
 
-    /* Mobile Dropdown */
-    .dropdown details {
-        width: 100%;
-    }
-
-    .dropdown summary {
-        list-style: none;
-        cursor: pointer;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        font-size: 16px;
-        display: block;
-        outline: none;
-        user-select: none;
-        position: relative;
-    }
-
-    .dropdown summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .dropdown summary::marker {
-        content: none;
-    }
-
-    .dropdown summary::after {
-        content: '▼';
-        position: absolute;
-        right: 1.5rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.85rem;
-        transition: transform var(--menu-transition) ease;
-    }
-
-    .dropdown details[open] summary::after {
-        transform: translateY(-50%) rotate(180deg);
-    }
-
-    .dropdown .dropdown-menu {
-        overflow: hidden;
-        max-height: 0;
-        transition: max-height var(--menu-transition) ease, opacity var(--menu-transition) ease;
-        opacity: 0;
-        padding-left: 1.25rem;
-        background-color: transparent;
-        box-shadow: none;
-        border: none;
-        margin: 0;
-        list-style: none;
-    }
-
-    .dropdown details[open] .dropdown-menu {
-        max-height: 500px;
-        opacity: 1;
-        padding-bottom: 0.5rem;
-    }
-
-    .dropdown .dropdown-menu a {
-        padding: 0.75rem 1.5rem;
-        font-size: 0.95rem;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        display: block;
-        width: 100%;
-    }
-
-    .dropdown .dropdown-menu li:last-child a {
-        border-bottom: none;
-    }
-
-    .dropdown .dropdown-menu li {
-        width: 100%;
+    /* Tournament card h3 size for mobile */
+    .tournament-card h3 {
+        font-size: 2rem !important;
     }
 
     /* Layout Adjustments */
@@ -648,14 +405,6 @@ body {
         height: 96vh;
     }
 
-    .tournament-card h3 {
-        font-size: 1.2rem !important;
-    }
-
-    .section-title {
-        font-size: 1.6rem;  
-    }
-
     .instagram-grid {
         grid-template-columns: 1fr;
     }
@@ -666,7 +415,7 @@ body {
         font-size: 1rem;
     }
 
-     .welcome-text h2 {
+    .welcome-text h2 {
         font-size: 1.5rem;
     }
 
@@ -677,18 +426,9 @@ body {
     .welcome-text .welcome-signoff {
         font-size: 1.3rem;
     }
-}
 
-/* =========================================== */
-/* ANIMATIONS                                 */
-/* =========================================== */
-@keyframes menuFade {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    /* Smaller tournament card h3 for phones */
+    .tournament-card h3 {
+        font-size: 1.5rem !important;
     }
 }
