@@ -30,6 +30,7 @@
             height: 100%;
             background-size: cover;
             background-position: 2% 60%;
+            background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG');
         }
         
         .hero-content {
@@ -46,6 +47,7 @@
             font-weight: 400;
             margin-bottom: 1rem;
             color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
         .events-container {
@@ -454,11 +456,6 @@
                 const sortByDate = (a, b) => new Date(a.date) - new Date(b.date);
                 upcomingEvents.sort(sortByDate);
                 pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date)); // Reverse for past events
-                
-                // Set hero image if available in first upcoming event
-                if (upcomingEvents.length > 0 && upcomingEvents[0].heroImage) {
-                    document.getElementById('hero-background').style.backgroundImage = `url('${upcomingEvents[0].heroImage}')`;
-                }
                 
                 // Create upcoming events section
                 if (upcomingEvents.length > 0) {
