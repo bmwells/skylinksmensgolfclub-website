@@ -519,6 +519,7 @@ function bindEditModalEvents() {
   const closeBtn = document.getElementById("modal-close");
   const closeBtn2 = document.getElementById("modal-close-2");
   const saveBtn = document.getElementById("modal-save");
+  const saveTopBtn = document.getElementById("modal-save-top"); // NEW
   const backdrop = document.querySelector('.edit-modal-backdrop');
 
   [closeBtn, closeBtn2].forEach(btn => {
@@ -526,6 +527,13 @@ function bindEditModalEvents() {
   });
 
   if (saveBtn) saveBtn.addEventListener("click", saveEditModal);
+  
+  if (saveTopBtn) {
+    saveTopBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      saveEditModal();
+    });
+  }
   
   // Add outside click handler
   if (backdrop) {

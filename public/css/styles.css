@@ -436,3 +436,793 @@ body {
         font-size: 1.5rem !important;
     }
 }
+
+/* =========================================== */
+/* CART PAGE STYLES                           */
+/* =========================================== */
+
+    body { font-family: system-ui, sans-serif; margin:0; background:#fff; }
+    .cart-page-section { padding: 120px 1rem 4rem; }
+    .cart-container { max-width:1000px; margin:0 auto; }
+    .cart-title { font-size:2.2rem; font-weight:500; text-align:center; margin-bottom:24px; color:var(--primary); } 
+    .cart-row { display:grid; grid-template-columns: 120px 1fr 160px 100px; gap:18px; align-items:center; padding:18px 0; border-bottom:1px solid #eee; }
+    @media (max-width:768px) { .cart-row { grid-template-columns: 100%; gap:8px; } }
+    .cart-row-img { width:120px; height:90px; background-size:cover; background-position:center; border-radius:6px; }
+    .cart-row-title { font-size:1.05rem; font-weight:600; color:#111; text-decoration:none; }
+    .cart-sm-label { font-size:0.9rem; color:#666; margin-top:6px; }
+    .cart-row-price { text-align:right; font-weight:400; font-size:1.05rem; }
+    .cart-actions { display:flex; flex-direction:column; gap:6px; }
+    .cart-action-btn { background:none; border:none; color:#333; text-decoration:underline; cursor:pointer; font-size:0.9rem; padding:0; }
+    .cart-edit-details-btn { background: none; border: none; color: #333; text-decoration: underline; cursor: pointer; font-size: 0.9rem; padding: 0; margin-top: 6px; text-align: left; display: inline-block; }
+    .cart-summary { margin-top:24px; text-align:right; }
+    .checkout-btn { margin-top:12px; margin-bottom: 74px; padding:12px 36px; background:#000; color:#fff; border-radius:40px; border:none; cursor:pointer; }
+    .empty-message { text-align:center; color:#666; padding:40px 0; }
+    .empty-message p { font-size:1.1rem; margin-bottom:40px; }
+
+    /* Mobile-specific cart row layout*/
+    @media (max-width: 768px) {
+    .cart-row {
+        grid-template-columns: 150px 1fr;
+        grid-template-areas:
+        "image title"
+        "image details"
+        "price actions"; 
+        gap: 12px;
+        padding: 20px 0;
+        position: relative;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        padding: 16px;
+    }
+    
+    .cart-row-img {
+        grid-area: image;
+        width: 150px;
+        height: 100px;
+    }
+    
+    .cart-row-title {
+        grid-area: title;
+        font-size: 1rem;
+        line-height: 1.3;
+        margin-bottom: 8px;
+        padding-right: 80px; 
+    }
+    
+    .cart-row-details {
+        grid-area: details;
+        font-size: 0.85rem;
+        color: #666;
+        line-height: 1.4;
+        margin-bottom: 4px;
+    }
+    
+    
+    .cart-row-price {
+        grid-area: price;
+        text-align: left; 
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 8px;
+        align-self: center;
+    }
+    
+    .cart-actions {
+        grid-area: actions;
+        flex-direction: row;
+        justify-content: flex-end;
+        gap: 20px;
+        margin-top: 8px;
+        padding-top: 0;
+        border-top: none;
+        align-self: center;
+    }
+    
+    .cart-edit-details-btn {
+        margin-top: 12px;
+    }
+    
+    .cart-sm-label {
+        display: none;
+    }
+    
+    /* Hide the original label in mobile */
+    .cart-row > div:nth-child(3) {
+        display: none;
+    }
+        
+    /* Position remove button inline with product name */
+    .cart-actions .cart-action-btn:first-child {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        margin: 0;
+    }
+    }
+
+    /* Add a container for item details in mobile view */
+    .cart-row-details {
+    display: none;
+    }
+
+    @media (max-width: 768px) {
+    .cart-row-details {
+        display: block;
+    }
+    }
+
+
+
+/* =========================================== */
+/* CONTACT PAGE STYLES                        */
+/* =========================================== */
+
+.contact-page-section {
+            padding: 4rem 2rem;
+            background-color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .contact-page-section .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .contact-page-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        @media (min-width: 992px) {
+            .contact-page-grid {
+                grid-template-columns: 1fr 500px;
+                gap: 6rem;
+            }
+        }
+        
+        .contact-page-content {
+            text-align: center;
+        }
+        
+        @media (min-width: 992px) {
+            .contact-page-content {
+                text-align: left;
+            }
+        }
+        
+        .contact-page-content h1 {
+            color: var(--primary);
+            font-size: 4rem;
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            padding-top: 50px;
+        }
+        
+        .contact-page-content p {
+            font-size: 1rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            color: #666;
+            width: 75%;
+        }
+        
+        /* Form Styles - matching home page exactly */
+        .contact-page-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+        
+        .contact-page-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-page-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .contact-page-form input[type="text"],
+        .contact-page-form input[type="email"],
+        .contact-page-form select,
+        .contact-page-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .contact-page-form textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        
+        /* Name fields grid - matching home page */
+        .name-fields .name-inputs {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        @media (min-width: 480px) {
+            .name-fields .name-inputs {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Submit button - matching home page exactly */
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            background-color: #1e3a23;
+        }
+        
+        /* Image section - Fixed width and full height */
+        .contact-page-image {
+            width: 100%;
+            height: 900px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        @media (min-width: 992px) {
+            .contact-page-image {
+                width: 500px;
+                height: calc(100vh - 160px);
+                min-height: 500px;
+                position: sticky;
+                top: 100px;
+            }
+        }
+        
+        .contact-page-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 44.299643727732985% 71.20890111263908%;
+        }
+
+        /* Mobile centering for contact page */
+        @media (max-width: 991px) {
+            .contact-page-content {
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .contact-page-content h1 {
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .contact-page-content p {
+                width: 100%;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+                text-align: center;
+            }
+        }
+
+        /* Make contact form wider on mobile */
+        @media (max-width: 991px) {
+            .contact-page-form {
+                width: 100%;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .contact-page-content h1,
+            .contact-page-content p {
+                width: 100%;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+        
+        /* Responsive adjustments - matching home page breakpoints */
+        @media (max-width: 768px) {
+            .contact-page-section {
+                padding: 3rem 1.5rem;
+            }
+            
+            .contact-page-content h1 {
+                font-size: 3rem;
+            }
+            
+            .contact-page-form {
+                padding: 1.5rem;
+            }
+            
+            .contact-page-grid {
+                gap: 3rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .contact-page-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .contact-page-content p {
+                font-size: 1rem;
+            }
+            
+            .name-fields .name-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+ /* Loading state styles for tournament card */
+        .tournament-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+/* =========================================== */
+/* MEETING MINUTES PAGE STYLES                */
+/* =========================================== */
+
+.meeting-minutes-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            padding-top: 100px;
+        }
+
+       .meeting-minutes-container > div { 
+            margin-bottom: 60px;
+        }
+
+        .meeting-minutes-container > div:last-child {
+            margin-bottom: 40px;
+        }
+        
+        .meeting-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #2a5c3d;
+        }
+
+        .meeting-header h1 {
+            font-size: 2em;
+            color: #2a5c3d;
+        }
+        
+        .minutes-content {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .minutes-section {
+            margin-bottom: 30px;
+        }
+        
+        .minutes-section h4 {
+            color: #2a5c3d;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+        
+        .attendees-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .attendee-item {
+            padding: 5px 0;
+        }
+        
+        .minutes-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .minutes-section li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .minutes-section li:last-child {
+            border-bottom: none;
+        }
+        
+        .next-meeting {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 40px;
+            border-left: 4px solid #2a5c3d;
+        }
+        
+        @media (max-width: 768px) {
+            .meeting-minutes-container {
+                padding: 20px 15px;
+                padding-top: 120px;
+            }
+            
+            .minutes-content {
+                padding: 20px;
+            }
+            
+            .attendees-list {
+                grid-template-columns: 1fr;
+            }
+
+            .minutes-section h4 {
+                font-size: 1.2rem;
+            }
+        }
+
+/* =========================================== */
+/* PRESIDENT'S LETTER PAGE STYLES            */
+/* =========================================== */
+
+        .presidents-letter-page {
+            margin-top: 80px;
+        }
+
+        .full-bleed-section {
+            width: 100%;
+            position: relative;
+        }
+
+        .content-width--wide {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-height--custom {
+            padding: 4rem 0;
+        }
+
+        .letter-section {
+            padding: 4.4rem 0 0 0;
+            margin-top: 0;
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .letter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 4rem;
+            align-items: start;
+            height: 100%;
+        }
+
+        .letter-text-container {
+            padding: 3rem 0;
+            padding-right: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .letter-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .letter-content h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin: 0 0 1rem 0;
+            font-weight: 500;
+            padding-top: 0;
+        }
+
+        .letter-content p {
+            margin-bottom: 1.2rem;
+            white-space: pre-line;
+        }
+
+        .letter-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .letter-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .letter-image-container {
+            width: 100%;
+            height: 550px;
+            min-height: 500px;
+            overflow: hidden;
+            margin-top: 7.4rem;
+            padding-top: 30px;
+        }
+
+        .letter-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .signature {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .signature-name {
+            font-size: 1.4rem;
+            color: var(--primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .signature-role {
+            color: #666;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        @media (max-width: 992px) {
+            .letter-grid {
+                gap: 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .letter-section {
+                min-height: auto;
+                padding: 0 0;
+                margin-top: 0;
+            }
+            
+            .letter-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                position: relative;
+                margin-bottom: 4rem;
+            }
+            
+            .letter-text-container {
+                padding: 3rem 0 2rem 0;
+                order: 1;
+                position: relative;
+                min-height: 200px;
+            }
+            
+            .letter-image-container {
+                height: 200px;
+                min-height: 150px;
+                width: 150px;
+                margin-top: 0;
+                padding-top: 0;
+                position: absolute;
+                bottom: -30px;
+                right: 0;
+                border-radius: 8px;
+                order: 2;
+                z-index: 1;
+            }
+            
+            .letter-image {
+                height: 100%;
+                object-fit: cover;
+                object-position: center top;
+            }
+            
+            .signature {
+                margin-top: 3rem;
+                padding-top: 2rem;
+                padding-right: 170px;
+                border-top: none;
+                position: relative;
+            }
+            
+            .letter-section {
+                padding: 4rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .letter-content {
+                font-size: 1rem;
+            }
+            
+            .letter-image-container {
+                height: 120px;
+                min-height: 120px;
+                width: 120px;
+                bottom: 20px;
+            }
+            
+            .signature {
+                padding-right: 140px;
+            }
+            
+            .letter-grid {
+                margin-bottom: 3rem;
+            }
+        }
+
+        
+/* =========================================== */
+/* ABOUT PAGE STYLES                          */
+/* =========================================== */
+
+        /* Additional styles specific to the About page */
+        .about-page {
+            margin-top: 80px;
+        }
+        
+        .about-section {
+            padding: 4.4rem 0 0 0;
+            margin-top: 0;
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: stretch;
+            height: 100%;
+        }
+
+        .about-text-container {
+            padding: 3rem 0;
+            padding-right: 2rem;
+        }
+
+        .about-title{
+            font-size: 4.5rem;
+            color: var(--primary);
+            font-weight: 400;
+        }
+
+        .about-image-container {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            overflow: hidden;
+        }
+
+        .about-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        
+        .board-section {
+            background-color: #f8f9fa;
+            padding: 6rem 0;
+        }
+        
+        
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        .board-member {
+            text-align: left;
+        }
+        
+        .board-member-image {
+            width: 100%;
+            height: auto;
+            aspect-ratio: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .board-member-name {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0rem;
+            font-weight: 400;
+        }
+        
+        .board-member-role {
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .board-member-bio {
+            color: #555;
+            line-height: 1.2;
+            font-size: 0.9rem;
+            font-weight: 300;
+            max-width: none;
+            margin: 0 auto;
+        }
+    
+        
+        @media (max-width: 768px) {
+            .about-section {
+                min-height: auto;
+                padding: 0 0;
+                margin-top: 0;
+            }
+            
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .about-image-container {
+                height: 300px;
+                min-height: 300px;
+                order: 2;
+                border-radius: 8px;
+            }
+            
+            .about-text-container {
+                padding: 3rem 0 2rem 0;
+                order: 1;
+            }
+            
+            .about-title {
+                font-size: 3rem;
+                margin-top: 0;
+                padding: 0 0 1rem 0;
+            }
+            
+            .board-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            
+            .about-section, .board-section {
+                padding: 4rem 0;
+            }
+        }
+        
