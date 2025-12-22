@@ -123,13 +123,27 @@ function addToCart(item) {
 }
 
 /* ============================================================
-   Update an item
+   Update an item - UPDATED to handle dynamic add-on prices
    ============================================================ */
 function updateCartItem(id, updatedFields) {
   const cart = loadCart();
   const idx = cart.findIndex(i => i.id === id);
   if (idx !== -1) {
-    cart[idx] = { ...cart[idx], ...updatedFields };
+    // Check if this is a tournament item with form data
+    if (cart[idx].type === 'tournament' && updatedFields.form) {
+      // Get the original item to preserve add-on price data
+      const originalItem = cart[idx];
+      // Update with new values while preserving add-on prices
+      cart[idx] = { 
+        ...cart[idx], 
+        ...updatedFields,
+        // Preserve original add-on price data if not being updated
+        roulettePrice: updatedFields.roulettePrice || cart[idx].roulettePrice,
+        sidePotPrice: updatedFields.sidePotPrice || cart[idx].sidePotPrice
+      };
+    } else {
+      cart[idx] = { ...cart[idx], ...updatedFields };
+    }
     saveCart(cart);
   }
 }
@@ -198,10 +212,14 @@ function renderCart() {
       if (item.form.name) details.push(`Player: ${item.form.name}`);
       if (item.form.startingTime) details.push(`Starting Time: ${item.form.startingTime}`);
       
-      // Add-ons
-      if (item.form.addons && item.form.addons.length > 0) {
-        const addonNames = item.form.addons.map(addon => addon.name).join(', ');
-        details.push(`Add-ons: ${addonNames}`);
+      // Add-ons with dynamic prices
+      if (item.form.sidePots) {
+        const sidePotPrice = item.sidePotPrice || 25;
+        details.push(`Side Pots: $${sidePotPrice}`);
+      }
+      if (item.form.roulette) {
+        const roulettePrice = item.roulettePrice || 30;
+        details.push(`Roulette: $${roulettePrice}`);
       }
       
       // Additional players
@@ -340,6 +358,29 @@ function openTournamentEditModal(item) {
           
           document.getElementById(`modal-ghin${playerIndex}`).value = player.ghin || "";
         }
+      }
+      
+      // Update price displays in modal with item's specific prices
+      const roulettePriceEl = document.getElementById('roulette-price');
+      const sidePotPriceEl = document.getElementById('side-pot-price');
+      const rouletteCheckbox = document.getElementById('roulette');
+      const sidePotsCheckbox = document.getElementById('side-pots');
+      
+      if (roulettePriceEl) {
+        const roulettePrice = item.roulettePrice || 30;
+        roulettePriceEl.textContent = '$' + roulettePrice;
+      }
+      if (sidePotPriceEl) {
+        const sidePotPrice = item.sidePotPrice || 25;
+        sidePotPriceEl.textContent = '$' + sidePotPrice;
+      }
+      if (rouletteCheckbox) {
+        const roulettePrice = item.roulettePrice || 30;
+        rouletteCheckbox.value = roulettePrice;
+      }
+      if (sidePotsCheckbox) {
+        const sidePotPrice = item.sidePotPrice || 25;
+        sidePotsCheckbox.value = sidePotPrice;
       }
       
       // Setup phone formatting AFTER values are set
@@ -520,6 +561,10 @@ function saveEditModal() {
 }
 
 function saveTournamentEditModal() {
+  const cart = loadCart();
+  const item = cart.find(i => i.id === editingItemId);
+  if (!item) return;
+  
   // Get form values
   const updatedForm = {
     name: document.getElementById("modal-name").value,
@@ -546,33 +591,36 @@ function saveTournamentEditModal() {
   }
   updatedForm.additionalPlayers = additionalPlayers;
   
-  // Recalculate price with add-ons
-  const cart = loadCart();
-  const item = cart.find(i => i.id === editingItemId);
-  if (item) {
-    let totalPrice = item.basePrice || item.price;
-    let addons = [];
-    let addonsTotal = 0;
-    
-    if (updatedForm.sidePots) {
-      addons.push({ name: 'Side Pots', price: 25.00 });
-      addonsTotal += 25.00;
-    }
-    
-    if (updatedForm.roulette) {
-      addons.push({ name: 'Roulette', price: 30.00 });
-      addonsTotal += 30.00;
-    }
-    
-    updatedForm.addons = addons;
-    updatedForm.addonsTotal = addonsTotal;
-    totalPrice += addonsTotal;
-    
-    updateCartItem(editingItemId, { 
-      form: updatedForm,
-      price: totalPrice
-    });
+  // Calculate base price (tournament price without add-ons)
+  const basePrice = parseFloat(item.basePrice || (item.form.tournamentPrice || 0));
+  
+  // Get add-on prices from item data
+  const roulettePrice = parseFloat(item.roulettePrice || 30);
+  const sidePotPrice = parseFloat(item.sidePotPrice || 25);
+  
+  // Calculate new total price
+  let totalPrice = basePrice;
+  let addons = [];
+  let addonsTotal = 0;
+  
+  if (updatedForm.sidePots) {
+    addons.push({ name: 'Side Pots', price: sidePotPrice });
+    addonsTotal += sidePotPrice;
   }
+  
+  if (updatedForm.roulette) {
+    addons.push({ name: 'Roulette', price: roulettePrice });
+    addonsTotal += roulettePrice;
+  }
+  
+  updatedForm.addons = addons;
+  updatedForm.addonsTotal = addonsTotal;
+  totalPrice += addonsTotal;
+  
+  updateCartItem(editingItemId, { 
+    form: updatedForm,
+    price: totalPrice
+  });
   
   closeEditModal();
   renderCart();

@@ -39,6 +39,7 @@
     
     let isInitialized = false;
     let eventListenersBound = false;
+    let tournamentData = null; // Store dynamic tournament data
 
     function getCurrentProduct() {
         const body = document.body;
@@ -189,6 +190,11 @@
             }
         });
 
+        // Update price displays in modal if tournament data is available
+        if (modalState.isTournament && tournamentData) {
+            updateModalPrices();
+        }
+
         // Initialize autocomplete if needed
         if (currentProduct.useAutocomplete) {
             setTimeout(() => {
@@ -203,6 +209,33 @@
             const firstInput = backdrop.querySelector('input');
             if (firstInput) firstInput.focus();
         }, 150);
+    }
+
+    // In product.js, update the updateModalPrices function:
+    function updateModalPrices() {
+        // Update price displays in modal with dynamic data
+        const roulettePriceEl = document.getElementById('roulette-price');
+        const sidePotPriceEl = document.getElementById('side-pot-price');
+        const rouletteCheckbox = document.getElementById('roulette');
+        const sidePotsCheckbox = document.getElementById('side-pots');
+        
+        if (tournamentData) {
+            const roulettePrice = parseFloat(tournamentData.roulette) || 30;
+            const sidePotPrice = parseFloat(tournamentData.sidePot) || 25;
+            
+            if (roulettePriceEl) {
+                roulettePriceEl.textContent = '$' + roulettePrice;
+            }
+            if (sidePotPriceEl) {
+                sidePotPriceEl.textContent = '$' + sidePotPrice;
+            }
+            if (rouletteCheckbox) {
+                rouletteCheckbox.value = roulettePrice;
+            }
+            if (sidePotsCheckbox) {
+                sidePotsCheckbox.value = sidePotPrice;
+            }
+        }
     }
 
     function closeModal() {
@@ -368,7 +401,10 @@
             .join(' ');
 
         // Calculate total price
-        let totalPrice = currentProduct.price || currentProduct.basePrice;
+        let totalPrice = currentProduct.type === 'tournament' && tournamentData ? 
+            parseFloat(tournamentData.price) : 
+            (currentProduct.price || currentProduct.basePrice);
+            
         let formData = {
             name: formattedName,
             email: emailInput ? emailInput.value.trim() : '',
@@ -386,23 +422,33 @@
             formData.roulette = rouletteCheckbox ? rouletteCheckbox.checked : false;
             formData.startingTime = startingTimeSelect ? startingTimeSelect.value : '';
             
-            // Calculate add-ons
+            // Calculate add-ons with dynamic prices
             let addons = [];
             let addonsTotal = 0;
             
+            // Get add-on prices from tournament data or fallback to defaults
+            const sidePotPrice = tournamentData && tournamentData.sidePot ? 
+                parseFloat(tournamentData.sidePot) : currentProduct.sidePotsPrice;
+            const roulettePrice = tournamentData && tournamentData.roulette ? 
+                parseFloat(tournamentData.roulette) : currentProduct.roulettePrice;
+            
             if (formData.sidePots) {
-                addons.push({ name: 'Side Pots', price: currentProduct.sidePotsPrice });
-                addonsTotal += currentProduct.sidePotsPrice;
+                addons.push({ name: 'Side Pots', price: sidePotPrice });
+                addonsTotal += sidePotPrice;
             }
             
             if (formData.roulette) {
-                addons.push({ name: 'Roulette', price: currentProduct.roulettePrice });
-                addonsTotal += currentProduct.roulettePrice;
+                addons.push({ name: 'Roulette', price: roulettePrice });
+                addonsTotal += roulettePrice;
             }
             
             formData.addons = addons;
             formData.addonsTotal = addonsTotal;
             totalPrice += addonsTotal;
+            
+            // Store tournament info
+            formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
+            formData.tournamentPrice = tournamentData ? tournamentData.price : (currentProduct.basePrice || currentProduct.price);
             
             // Additional players
             const additionalPlayers = [];
@@ -437,13 +483,20 @@
         return {
             id: cartItemId, // Use unique cart item ID, NOT product type ID
             productId: currentProduct.id, // Store product type ID separately
-            name: currentProduct.name,
+            name: currentProduct.type === 'tournament' && tournamentData ? 
+                tournamentData.title : currentProduct.name,
             price: totalPrice,
-            basePrice: currentProduct.basePrice || currentProduct.price,
-            image: currentProduct.image,
+            basePrice: currentProduct.type === 'tournament' && tournamentData ? 
+                parseFloat(tournamentData.price) : (currentProduct.basePrice || currentProduct.price),
+            image: tournamentData && tournamentData.imageUrl ? tournamentData.imageUrl : currentProduct.image,
             type: currentProduct.type,
             quantity: 1,
-            form: formData
+            form: formData,
+            // Store add-on prices for cart editing
+            roulettePrice: currentProduct.type === 'tournament' ? 
+                (tournamentData && tournamentData.roulette ? parseFloat(tournamentData.roulette) : currentProduct.roulettePrice) : null,
+            sidePotPrice: currentProduct.type === 'tournament' ? 
+                (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : currentProduct.sidePotsPrice) : null
         };
     }
 
@@ -717,7 +770,30 @@
             }
         },
         getCurrentProduct: getCurrentProduct,
-        isInitialized: function() { return isInitialized; }
+        isInitialized: function() { return isInitialized; },
+        // Function to set tournament data dynamically
+        setTournamentData: function(data) {
+            console.log('Setting tournament data:', data);
+            tournamentData = data;
+            
+            // If modal is open, update the prices
+            if (document.getElementById('member-modal-backdrop') && 
+                document.getElementById('member-modal-backdrop').classList.contains('active')) {
+                updateModalPrices();
+            }
+            
+            // Update current product with dynamic data if it's a tournament
+            if (currentProduct && currentProduct.type === 'tournament') {
+                // Update product info if we have tournament data
+                if (data.title && document.querySelector('.product-title')) {
+                    document.querySelector('.product-title').textContent = data.title;
+                }
+                if (data.price && document.querySelector('.product-price-value')) {
+                    const formattedPrice = '$' + parseFloat(data.price).toFixed(2);
+                    document.querySelector('.product-price-value').textContent = formattedPrice;
+                }
+            }
+        }
     };
 
 })();

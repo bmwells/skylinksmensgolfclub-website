@@ -108,6 +108,9 @@
     <script src="/js/cart-count.js"></script>
 
     <script>
+        // Store tournament data globally for use by product.js
+        window.tournamentData = null;
+        
         // Load header + footer on page
         fetch("/header.html")
             .then(res => res.text())
@@ -125,6 +128,9 @@
             try {
                 const response = await fetch('/api/monthly-tournament');
                 const data = await response.json();
+                
+                // Store data globally for use by product.js
+                window.tournamentData = data;
                 
                 // Update page content
                 if (data.imageUrl) {
@@ -179,6 +185,11 @@
                         }
                     }
                 }
+                
+                // Pass tournament data to product modal
+                if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.setTournamentData === 'function') {
+                    window.ProductModal.setTournamentData(data);
+                }
             } catch (error) {
                 console.error('Error loading monthly tournament:', error);
                 document.getElementById('tournament-title').textContent = 'Error Loading Tournament';
@@ -197,11 +208,15 @@
                 document.getElementById("member-modal-placeholder").innerHTML = html;
                 console.log('Tournament modal loaded');
                 
-                // Initialize product modal
+                // Initialize product modal after modal is loaded
                 if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.init === 'function') {
-                    setTimeout(() => {
-                        window.ProductModal.init();
-                    }, 500);
+                    // Initialize product modal
+                    window.ProductModal.init();
+                    
+                    // If tournament data is already loaded, pass it to the modal
+                    if (window.tournamentData && typeof window.ProductModal.setTournamentData === 'function') {
+                        window.ProductModal.setTournamentData(window.tournamentData);
+                    }
                 }
             })
             .catch(error => {
@@ -214,11 +229,6 @@
             
             // Load tournament data when page is ready
             loadMonthlyTournament();
-            
-            // Ensure the modal loads properly
-            setTimeout(() => {
-                console.log('Product initialization complete for tournament');
-            }, 500);
         });
     </script>
 </body>

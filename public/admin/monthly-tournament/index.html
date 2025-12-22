@@ -56,13 +56,21 @@ function render() {
         ${AdminCommon.templates.textInput('Title', AdminCommon.data.title || '', `updateField('title', this.value)`, 'Christmas Schamble')}
         <div class="form-row">
             <div style="flex: 1;">
-                ${AdminCommon.templates.textInput('Price (numbers only)', AdminCommon.data.price || '', `updateField('price', this.value)`, '84')}
+                ${AdminCommon.templates.textInput('Tournament Price (numbers only)', AdminCommon.data.price || '', `updateField('price', this.value)`, '84')}
             </div>
             <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" ${AdminCommon.data.active !== false ? 'checked' : ''} onchange="updateField('active', this.checked)">
                     <span>Active Tournament Entry</span>
                 </label>
+            </div>
+        </div>
+        <div class="form-row">
+            <div style="flex: 1;">
+                ${AdminCommon.templates.textInput('Roulette Price ($)', AdminCommon.data.roulette || '', `updateField('roulette', this.value)`, '30')}
+            </div>
+            <div style="flex: 1;">
+                ${AdminCommon.templates.textInput('Side Pot Price ($)', AdminCommon.data.sidePot || '', `updateField('sidePot', this.value)`, '25')}
             </div>
         </div>
         ${AdminCommon.templates.textareaInput('Description', AdminCommon.data.description || '', `updateField('description', this.value)`, 'December 14, 2025\\n7:00 AM - 8:00 AM\\n4-Man Shamble (SHOTGUN START)', 'description-textarea')}
