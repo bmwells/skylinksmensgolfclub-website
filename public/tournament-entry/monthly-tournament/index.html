@@ -199,6 +199,7 @@
         }
 
         // Load product modal
+        // In your main page script, after loading the modal, add:
         fetch("/tournament-entry/tournament-modal.html")
             .then(res => {
                 if (!res.ok) throw new Error('Modal not found');
@@ -216,6 +217,13 @@
                     // If tournament data is already loaded, pass it to the modal
                     if (window.tournamentData && typeof window.ProductModal.setTournamentData === 'function') {
                         window.ProductModal.setTournamentData(window.tournamentData);
+                    }
+                    
+                    // Also set up tooltips immediately after modal loads
+                    if (typeof window.ProductModal.setupTooltips === 'function') {
+                        setTimeout(() => {
+                            window.ProductModal.setupTooltips();
+                        }, 100);
                     }
                 }
             })

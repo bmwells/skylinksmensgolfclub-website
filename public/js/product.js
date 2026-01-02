@@ -796,4 +796,187 @@
         }
     };
 
+    // Add tooltip functionality to info icons
+function setupTooltips() {
+    console.log('Setting up tooltips...');
+    
+    // Function to create and show tooltip
+    function showTooltip(event, text) {
+        // Remove any existing tooltips
+        const existingTooltips = document.querySelectorAll('.tooltip-popup');
+        existingTooltips.forEach(tooltip => tooltip.remove());
+        
+        // Create new tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip-popup';
+        tooltip.textContent = text;
+        
+        // Position tooltip near the button
+        const button = event.currentTarget;
+        const rect = button.getBoundingClientRect();
+        
+        tooltip.style.position = 'fixed';
+        tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 10) + 'px';
+        tooltip.style.left = Math.max(10, rect.left + window.scrollX - (tooltip.offsetWidth / 2) + (button.offsetWidth / 2)) + 'px';
+        
+        document.body.appendChild(tooltip);
+        
+        // Close tooltip when clicking outside
+        function closeTooltip(e) {
+            if (!tooltip.contains(e.target) && e.target !== button) {
+                tooltip.remove();
+                document.removeEventListener('click', closeTooltip);
+            }
+        }
+        
+        // Close tooltip after a delay or on outside click
+        setTimeout(() => {
+            document.addEventListener('click', closeTooltip);
+        }, 100);
+    }
+    
+    // Add click handlers to info icons
+    const infoIcons = document.querySelectorAll('.info-icon');
+    infoIcons.forEach(icon => {
+        // Remove existing listeners by cloning
+        const newIcon = icon.cloneNode(true);
+        icon.parentNode.replaceChild(newIcon, icon);
+        
+        // Add new listener
+        newIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const tooltipText = this.getAttribute('data-tooltip');
+            if (tooltipText) {
+                showTooltip(e, tooltipText);
+            }
+        });
+    });
+}
+
+// Call setupTooltips when modal is opened
+function openModal() {
+    const backdrop = document.getElementById('member-modal-backdrop');
+    if (!backdrop) {
+        console.error('Modal backdrop not found');
+        return;
+    }
+    
+    backdrop.classList.add('active');
+    backdrop.setAttribute('aria-hidden', 'false');
+    
+    // Reset modal state
+    modalState.step = 1;
+    modalState.isTournament = (currentProduct.type === 'tournament');
+    
+    // Set up appropriate step visibility
+    if (modalState.isTournament) {
+        const step1 = document.getElementById('step1-content');
+        const step2 = document.getElementById('step2-content');
+        if (step1 && step2) {
+            step1.style.display = 'block';
+            step2.style.display = 'none';
+        }
+    }
+    
+    // Clear all inputs
+    const inputs = backdrop.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        if (input.type === 'checkbox') {
+            input.checked = false;
+        } else if (input.type === 'select-one') {
+            input.selectedIndex = 0;
+        } else {
+            input.value = '';
+        }
+    });
+
+    // Update price displays in modal if tournament data is available
+    if (modalState.isTournament && tournamentData) {
+        updateModalPrices();
+    }
+
+    // Initialize autocomplete if needed
+    if (currentProduct.useAutocomplete) {
+        setTimeout(() => {
+            if (typeof initMemberAutocomplete === 'function') {
+                initMemberAutocomplete();
+            }
+        }, 100);
+    }
+
+    // Set up tooltips for info icons
+    setTimeout(() => {
+        setupTooltips();
+    }, 150);
+
+    // Focus first input
+    setTimeout(() => {
+        const firstInput = backdrop.querySelector('input');
+        if (firstInput) firstInput.focus();
+    }, 150);
+}
+
+// Also set up tooltips when initializing the product modal
+function initProductModal() {
+    if (isInitialized) {
+        console.log('Product modal already initialized, skipping...');
+        return;
+    }
+
+    currentProduct = getCurrentProduct();
+    console.log('Initializing product modal for:', currentProduct.id);
+
+    // Wait for DOM to be ready and modal to be loaded
+    setTimeout(() => {
+        try {
+            bindModalEvents();
+            
+            // Set up tooltips when modal is first loaded
+            setupTooltips();
+            
+            isInitialized = true;
+            console.log('Product modal initialized successfully');
+        } catch (error) {
+            console.error('Error initializing product modal:', error);
+        }
+    }, 500);
+}
+
+// Add setupTooltips to the global ProductModal object
+window.ProductModal = {
+    init: function() {
+        console.log('ProductModal.init called externally');
+        if (!isInitialized) {
+            initProductModal();
+        }
+    },
+    getCurrentProduct: getCurrentProduct,
+    isInitialized: function() { return isInitialized; },
+    // Function to set tournament data dynamically
+    setTournamentData: function(data) {
+        console.log('Setting tournament data:', data);
+        tournamentData = data;
+        
+        // If modal is open, update the prices
+        if (document.getElementById('member-modal-backdrop') && 
+            document.getElementById('member-modal-backdrop').classList.contains('active')) {
+            updateModalPrices();
+        }
+        
+        // Update current product with dynamic data if it's a tournament
+        if (currentProduct && currentProduct.type === 'tournament') {
+            // Update product info if we have tournament data
+            if (data.title && document.querySelector('.product-title')) {
+                document.querySelector('.product-title').textContent = data.title;
+            }
+            if (data.price && document.querySelector('.product-price-value')) {
+                const formattedPrice = '$' + parseFloat(data.price).toFixed(2);
+                document.querySelector('.product-price-value').textContent = formattedPrice;
+            }
+        }
+    },
+    // Add setupTooltips to be callable from outside
+    setupTooltips: setupTooltips
+};
+
 })();
