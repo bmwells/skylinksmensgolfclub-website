@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">  
-    <title>Monthly Tournament - Skylinks Men's Golf Club</title>
+    <title>Monthly Tournament 2 - Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/product.css" />
     <style>
@@ -39,7 +39,7 @@
         }
     </style>
 </head>
-<body data-product-id="monthly-tournament">
+<body data-product-id="monthly-tournament2">
     <!-- Added chevron back button -->
     <div class="back-to-tournaments">
         <a href="/tournament-entry/" class="back-button">
@@ -59,7 +59,7 @@
                 <div class="product-image-container">
                     <img id="tournament-image" 
                          src="" 
-                         alt="Monthly Tournament" 
+                         alt="Monthly Tournament 2" 
                          class="product-image">
                 </div>
 
@@ -124,9 +124,9 @@
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
         // Load monthly tournament content from API
-        async function loadMonthlyTournament() {
+        async function loadMonthlyTournament2() {
             try {
-                const response = await fetch('/api/monthly-tournament');
+                const response = await fetch('/api/monthly-tournament2');
                 const data = await response.json();
                 
                 // Store data globally for use by product.js
@@ -191,7 +191,7 @@
                     window.ProductModal.setTournamentData(data);
                 }
             } catch (error) {
-                console.error('Error loading monthly tournament:', error);
+                console.error('Error loading monthly tournament 2:', error);
                 document.getElementById('tournament-title').textContent = 'Error Loading Tournament';
                 document.getElementById('tournament-description').innerHTML = 
                     '<p>Unable to load tournament details. Please try again later.</p>';
@@ -212,7 +212,7 @@
                 if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.init === 'function') {
                     window.ProductModal.init();
                     
-                    // SIMPLIFIED TOOLTIP SETUP - Same as monthly-tournament2
+                    // SETUP TOOLTIPS AFTER MODAL IS LOADED
                     setTimeout(() => {
                         if (typeof window.ProductModal.setupTooltips === 'function') {
                             window.ProductModal.setupTooltips();
@@ -231,10 +231,10 @@
 
         // Initialize product detection after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing product for tournament page...');
+            console.log('DOM loaded, initializing product for tournament page 2...');
             
             // Load tournament data when page is ready
-            loadMonthlyTournament();
+            loadMonthlyTournament2();
         });
     </script>
 </body>

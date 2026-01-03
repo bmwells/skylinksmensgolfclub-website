@@ -14,6 +14,7 @@ const ARRAY_COLLECTIONS = new Set([
 // Collections that store ONE document (object semantics)
 const SINGLE_DOC_COLLECTIONS = new Set([
     'monthly-tournament',
+    'monthly-tournament2',
     'who-we-are',
     'presidents-letter'
 ]);

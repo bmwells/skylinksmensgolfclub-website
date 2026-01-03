@@ -192,6 +192,26 @@ app.post('/api/monthly-tournament', requireAdmin, async (req, res) => {
     }
 });
 
+app.get('/api/monthly-tournament2', async (req, res) => {
+    try {
+        const data = await readData('monthly-tournament2');
+        res.json(data);
+    } catch (error) {
+        console.error('Error reading monthly tournament 2:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/api/monthly-tournament2', requireAdmin, async (req, res) => {
+    try {
+        await writeData('monthly-tournament2', req.body);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error writing monthly tournament 2:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // --------------------
 // GENERIC DATA ROUTES
 // --------------------

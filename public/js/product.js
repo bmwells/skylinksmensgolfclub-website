@@ -1,4 +1,4 @@
-// public/js/product.js
+// public/js/product.js - Updated version with cart option support
 (function () {
     'use strict';
 
@@ -22,6 +22,16 @@
         'monthly-tournament': {
             id: 'monthly-tournament',
             name: 'Monthly Tournament',
+            basePrice: 90.00,
+            image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg?format=1500w',
+            type: 'tournament',
+            sidePotsPrice: 25.00,
+            roulettePrice: 30.00,
+            useAutocomplete: true 
+        },
+        'monthly-tournament2': {
+            id: 'monthly-tournament2',
+            name: 'Monthly Tournament 2',
             basePrice: 90.00,
             image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg?format=1500w',
             type: 'tournament',
@@ -193,6 +203,8 @@
         // Update price displays in modal if tournament data is available
         if (modalState.isTournament && tournamentData) {
             updateModalPrices();
+            // Show/hide cart option dropdown based on tournament data
+            toggleCartOptionDropdown();
         }
 
         // Initialize autocomplete if needed
@@ -204,6 +216,14 @@
             }, 100);
         }
 
+        // ALWAYS setup tooltips when modal opens
+        setTimeout(() => {
+            if (typeof setupTooltips === 'function') {
+                setupTooltips();
+                console.log('Tooltips setup in openModal');
+            }
+        }, 100);
+
         // Focus first input
         setTimeout(() => {
             const firstInput = backdrop.querySelector('input');
@@ -211,7 +231,21 @@
         }, 150);
     }
 
-    // In product.js, update the updateModalPrices function:
+    function toggleCartOptionDropdown() {
+        const cartOptionContainer = document.getElementById('cart-option-container');
+        const cartOptionSelect = document.getElementById('cart-option');
+        
+        if (cartOptionContainer && cartOptionSelect && tournamentData) {
+            if (tournamentData.cartOption === true) {
+                cartOptionContainer.style.display = 'block';
+                cartOptionSelect.required = true;
+            } else {
+                cartOptionContainer.style.display = 'none';
+                cartOptionSelect.required = false;
+            }
+        }
+    }
+
     function updateModalPrices() {
         // Update price displays in modal with dynamic data
         const roulettePriceEl = document.getElementById('roulette-price');
@@ -285,6 +319,7 @@
         const nameInput = document.getElementById('modal-name');
         const emailInput = document.getElementById('modal-email');
         const ghinInput = document.getElementById('modal-ghin');
+        const cartOptionSelect = document.getElementById('cart-option');
 
         // Name validation
         if (!nameInput || !nameInput.value.trim()) {
@@ -332,6 +367,15 @@
 
         // Update GHIN field with clean value
         ghinInput.value = ghinValidation.cleanValue;
+
+        // Cart option validation if enabled
+        if (tournamentData && tournamentData.cartOption === true) {
+            if (!cartOptionSelect || !cartOptionSelect.value) {
+                alert('Please select a cart option.');
+                cartOptionSelect?.focus();
+                return false;
+            }
+        }
 
         return true;
     }
@@ -417,10 +461,22 @@
             const sidePotsCheckbox = document.getElementById('side-pots');
             const rouletteCheckbox = document.getElementById('roulette');
             const startingTimeSelect = document.getElementById('starting-time');
+            const cartOptionSelect = document.getElementById('cart-option');
             
             formData.sidePots = sidePotsCheckbox ? sidePotsCheckbox.checked : false;
             formData.roulette = rouletteCheckbox ? rouletteCheckbox.checked : false;
             formData.startingTime = startingTimeSelect ? startingTimeSelect.value : '';
+            
+            // Add cart option if enabled
+            let cartOptionAddedPrice = 0;
+            if (tournamentData && tournamentData.cartOption === true && cartOptionSelect) {
+                formData.cartOption = cartOptionSelect.value;
+                // Add $9 if cart option is "Cart"
+                if (cartOptionSelect.value === 'Cart') {
+                    cartOptionAddedPrice = 9.00;
+                    formData.cartOptionAddedPrice = cartOptionAddedPrice;
+                }
+            }
             
             // Calculate add-ons with dynamic prices
             let addons = [];
@@ -444,11 +500,12 @@
             
             formData.addons = addons;
             formData.addonsTotal = addonsTotal;
-            totalPrice += addonsTotal;
+            totalPrice += addonsTotal + cartOptionAddedPrice;
             
             // Store tournament info
             formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
             formData.tournamentPrice = tournamentData ? tournamentData.price : (currentProduct.basePrice || currentProduct.price);
+            formData.cartOptionEnabled = tournamentData ? tournamentData.cartOption : false;
             
             // Additional players
             const additionalPlayers = [];
@@ -481,8 +538,8 @@
         const cartItemId = "cart_item_" + Math.random().toString(36).substr(2, 9);
 
         return {
-            id: cartItemId, // Use unique cart item ID, NOT product type ID
-            productId: currentProduct.id, // Store product type ID separately
+            id: cartItemId,
+            productId: currentProduct.id,
             name: currentProduct.type === 'tournament' && tournamentData ? 
                 tournamentData.title : currentProduct.name,
             price: totalPrice,
@@ -492,11 +549,12 @@
             type: currentProduct.type,
             quantity: 1,
             form: formData,
-            // Store add-on prices for cart editing
             roulettePrice: currentProduct.type === 'tournament' ? 
                 (tournamentData && tournamentData.roulette ? parseFloat(tournamentData.roulette) : currentProduct.roulettePrice) : null,
             sidePotPrice: currentProduct.type === 'tournament' ? 
-                (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : currentProduct.sidePotsPrice) : null
+                (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : currentProduct.sidePotsPrice) : null,
+            cartOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
+                tournamentData.cartOption : false
         };
     }
 
@@ -726,6 +784,12 @@
                 });
             }
         }
+        // IMPORTANT: Setup tooltips AFTER all inputs have been set up
+        // This ensures info icons have their event listeners attached
+        if (typeof setupTooltips === 'function') {
+            setupTooltips();
+            console.log('Tooltips setup in setupFormInputs');
+        }
     }
 
     function initProductModal() {
@@ -741,6 +805,10 @@
         setTimeout(() => {
             try {
                 bindModalEvents();
+                
+                // Set up tooltips when modal is first loaded
+                setupTooltips();
+                
                 isInitialized = true;
                 console.log('Product modal initialized successfully');
             } catch (error) {
@@ -761,6 +829,134 @@
         initProductModal();
     }
 
+    // Store tooltip state globally
+    let activeTooltip = null;
+    let activeTooltipButton = null;
+
+    // Add tooltip functionality to info icons
+    function setupTooltips() {
+        console.log('Setting up tooltips...');
+        
+        // Function to create and show tooltip
+        function showTooltip(event, text) {
+            const button = event.currentTarget;
+            
+            // If clicking the same button again, close the tooltip
+            if (activeTooltipButton === button && activeTooltip) {
+                activeTooltip.remove();
+                activeTooltip = null;
+                activeTooltipButton = null;
+                return;
+            }
+            
+            // Remove any existing tooltips
+            const existingTooltips = document.querySelectorAll('.tooltip-popup');
+            existingTooltips.forEach(tooltip => tooltip.remove());
+            
+            // Create new tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip-popup';
+            tooltip.textContent = text;
+            
+            // Get the button that was clicked
+            const rect = button.getBoundingClientRect(); // Viewport-relative position
+            
+            // Position tooltip relative to viewport (ignores scroll)
+            // Place tooltip below the button
+            const topPosition = rect.bottom + 10; // 10px below button (viewport coordinates)
+            
+            // Adjust horizontal positioning to center tooltip under button
+            const tooltipWidth = 300; // max-width
+            const buttonCenter = rect.left + (rect.width / 2);
+            const adjustedLeft = Math.max(
+                10, 
+                Math.min(
+                    buttonCenter - (tooltipWidth / 2), 
+                    window.innerWidth - tooltipWidth - 10
+                )
+            );
+            
+            tooltip.style.top = `${topPosition}px`;
+            tooltip.style.left = `${adjustedLeft}px`;
+            
+            document.body.appendChild(tooltip);
+            
+            // Store references to active tooltip
+            activeTooltip = tooltip;
+            activeTooltipButton = button;
+            
+            // Function to close tooltip
+            function closeTooltip() {
+                if (tooltip.parentNode) {
+                    tooltip.remove();
+                    activeTooltip = null;
+                    activeTooltipButton = null;
+                }
+                // Remove event listeners
+                document.removeEventListener('pointerdown', handleOutsideClick, true);
+                document.removeEventListener('keydown', handleEscapeKey);
+            }
+            
+            // Handle click outside
+            function handleOutsideClick(e) {
+                if (!tooltip.contains(e.target) && e.target !== button) {
+                    closeTooltip();
+                }
+            }
+            
+            // Handle escape key
+            function handleEscapeKey(e) {
+                if (e.key === 'Escape') {
+                    closeTooltip();
+                }
+            }
+            
+            // Add event listeners
+            document.addEventListener('pointerdown', handleOutsideClick, true);
+            document.addEventListener('keydown', handleEscapeKey);
+            
+            // Auto-close after 5 seconds
+            setTimeout(closeTooltip, 5000);
+            
+            // Prevent the button click from closing the tooltip immediately
+            event.stopPropagation();
+        }
+        
+        // Add click handlers to all info icons in the document
+        function attachTooltipListeners() {
+            const infoIcons = document.querySelectorAll('.info-icon');
+            console.log(`Found ${infoIcons.length} info icons to attach tooltips to`);
+            
+            infoIcons.forEach(icon => {
+                // Remove any existing listeners first
+                const newIcon = icon.cloneNode(true);
+                icon.parentNode.replaceChild(newIcon, icon);
+                
+                // Add click listener
+                newIcon.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const tooltipText = this.getAttribute('data-tooltip');
+                    console.log('Info icon clicked, tooltip text:', tooltipText);
+                    if (tooltipText) {
+                        showTooltip(e, tooltipText);
+                    }
+                });
+            });
+        }
+        
+        // Initial attachment
+        attachTooltipListeners();
+        
+        // DON'T overwrite the function - keep it as is
+        // window.setupTooltips = attachTooltipListeners;
+        
+        console.log('Tooltips setup complete');
+    }
+
+    // Make the function available globally
+    window.setupTooltips = setupTooltips;
+
     // Also re-initialize when modal is loaded dynamically - but only if not already initialized
     window.ProductModal = {
         init: function() {
@@ -776,10 +972,11 @@
             console.log('Setting tournament data:', data);
             tournamentData = data;
             
-            // If modal is open, update the prices
+            // If modal is open, update the prices and cart option
             if (document.getElementById('member-modal-backdrop') && 
                 document.getElementById('member-modal-backdrop').classList.contains('active')) {
                 updateModalPrices();
+                toggleCartOptionDropdown();
             }
             
             // Update current product with dynamic data if it's a tournament
@@ -793,190 +990,8 @@
                     document.querySelector('.product-price-value').textContent = formattedPrice;
                 }
             }
-        }
+        },
+        // Expose the setupTooltips function
+        setupTooltips: setupTooltips
     };
-
-    // Add tooltip functionality to info icons
-function setupTooltips() {
-    console.log('Setting up tooltips...');
-    
-    // Function to create and show tooltip
-    function showTooltip(event, text) {
-        // Remove any existing tooltips
-        const existingTooltips = document.querySelectorAll('.tooltip-popup');
-        existingTooltips.forEach(tooltip => tooltip.remove());
-        
-        // Create new tooltip
-        const tooltip = document.createElement('div');
-        tooltip.className = 'tooltip-popup';
-        tooltip.textContent = text;
-        
-        // Position tooltip near the button
-        const button = event.currentTarget;
-        const rect = button.getBoundingClientRect();
-        
-        tooltip.style.position = 'fixed';
-        tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 10) + 'px';
-        tooltip.style.left = Math.max(10, rect.left + window.scrollX - (tooltip.offsetWidth / 2) + (button.offsetWidth / 2)) + 'px';
-        
-        document.body.appendChild(tooltip);
-        
-        // Close tooltip when clicking outside
-        function closeTooltip(e) {
-            if (!tooltip.contains(e.target) && e.target !== button) {
-                tooltip.remove();
-                document.removeEventListener('click', closeTooltip);
-            }
-        }
-        
-        // Close tooltip after a delay or on outside click
-        setTimeout(() => {
-            document.addEventListener('click', closeTooltip);
-        }, 100);
-    }
-    
-    // Add click handlers to info icons
-    const infoIcons = document.querySelectorAll('.info-icon');
-    infoIcons.forEach(icon => {
-        // Remove existing listeners by cloning
-        const newIcon = icon.cloneNode(true);
-        icon.parentNode.replaceChild(newIcon, icon);
-        
-        // Add new listener
-        newIcon.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const tooltipText = this.getAttribute('data-tooltip');
-            if (tooltipText) {
-                showTooltip(e, tooltipText);
-            }
-        });
-    });
-}
-
-// Call setupTooltips when modal is opened
-function openModal() {
-    const backdrop = document.getElementById('member-modal-backdrop');
-    if (!backdrop) {
-        console.error('Modal backdrop not found');
-        return;
-    }
-    
-    backdrop.classList.add('active');
-    backdrop.setAttribute('aria-hidden', 'false');
-    
-    // Reset modal state
-    modalState.step = 1;
-    modalState.isTournament = (currentProduct.type === 'tournament');
-    
-    // Set up appropriate step visibility
-    if (modalState.isTournament) {
-        const step1 = document.getElementById('step1-content');
-        const step2 = document.getElementById('step2-content');
-        if (step1 && step2) {
-            step1.style.display = 'block';
-            step2.style.display = 'none';
-        }
-    }
-    
-    // Clear all inputs
-    const inputs = backdrop.querySelectorAll('input, textarea, select');
-    inputs.forEach(input => {
-        if (input.type === 'checkbox') {
-            input.checked = false;
-        } else if (input.type === 'select-one') {
-            input.selectedIndex = 0;
-        } else {
-            input.value = '';
-        }
-    });
-
-    // Update price displays in modal if tournament data is available
-    if (modalState.isTournament && tournamentData) {
-        updateModalPrices();
-    }
-
-    // Initialize autocomplete if needed
-    if (currentProduct.useAutocomplete) {
-        setTimeout(() => {
-            if (typeof initMemberAutocomplete === 'function') {
-                initMemberAutocomplete();
-            }
-        }, 100);
-    }
-
-    // Set up tooltips for info icons
-    setTimeout(() => {
-        setupTooltips();
-    }, 150);
-
-    // Focus first input
-    setTimeout(() => {
-        const firstInput = backdrop.querySelector('input');
-        if (firstInput) firstInput.focus();
-    }, 150);
-}
-
-// Also set up tooltips when initializing the product modal
-function initProductModal() {
-    if (isInitialized) {
-        console.log('Product modal already initialized, skipping...');
-        return;
-    }
-
-    currentProduct = getCurrentProduct();
-    console.log('Initializing product modal for:', currentProduct.id);
-
-    // Wait for DOM to be ready and modal to be loaded
-    setTimeout(() => {
-        try {
-            bindModalEvents();
-            
-            // Set up tooltips when modal is first loaded
-            setupTooltips();
-            
-            isInitialized = true;
-            console.log('Product modal initialized successfully');
-        } catch (error) {
-            console.error('Error initializing product modal:', error);
-        }
-    }, 500);
-}
-
-// Add setupTooltips to the global ProductModal object
-window.ProductModal = {
-    init: function() {
-        console.log('ProductModal.init called externally');
-        if (!isInitialized) {
-            initProductModal();
-        }
-    },
-    getCurrentProduct: getCurrentProduct,
-    isInitialized: function() { return isInitialized; },
-    // Function to set tournament data dynamically
-    setTournamentData: function(data) {
-        console.log('Setting tournament data:', data);
-        tournamentData = data;
-        
-        // If modal is open, update the prices
-        if (document.getElementById('member-modal-backdrop') && 
-            document.getElementById('member-modal-backdrop').classList.contains('active')) {
-            updateModalPrices();
-        }
-        
-        // Update current product with dynamic data if it's a tournament
-        if (currentProduct && currentProduct.type === 'tournament') {
-            // Update product info if we have tournament data
-            if (data.title && document.querySelector('.product-title')) {
-                document.querySelector('.product-title').textContent = data.title;
-            }
-            if (data.price && document.querySelector('.product-price-value')) {
-                const formattedPrice = '$' + parseFloat(data.price).toFixed(2);
-                document.querySelector('.product-price-value').textContent = formattedPrice;
-            }
-        }
-    },
-    // Add setupTooltips to be callable from outside
-    setupTooltips: setupTooltips
-};
-
 })();

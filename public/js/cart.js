@@ -10,6 +10,10 @@ if (window.location.pathname.includes("success")) {
   localStorage.removeItem(CART_KEY);
 }
 
+// Store tooltip state globally (same as product.js)
+let activeTooltip = null;
+let activeTooltipButton = null;
+
 /* ============================================================
    Helpers
    ============================================================ */
@@ -107,6 +111,111 @@ function setupEditModalPhoneFormatting() {
       // Allow numbers only
       if (!/\d/.test(e.key)) {
         e.preventDefault();
+      }
+    });
+  });
+}
+
+// Function to create and show tooltip (same as product.js)
+function showTooltip(event, text) {
+  const button = event.currentTarget;
+  
+  // If clicking the same button again, close the tooltip
+  if (activeTooltipButton === button && activeTooltip) {
+    activeTooltip.remove();
+    activeTooltip = null;
+    activeTooltipButton = null;
+    return;
+  }
+  
+  // Remove any existing tooltips
+  const existingTooltips = document.querySelectorAll('.tooltip-popup');
+  existingTooltips.forEach(tooltip => tooltip.remove());
+  
+  // Create new tooltip
+  const tooltip = document.createElement('div');
+  tooltip.className = 'tooltip-popup';
+  tooltip.textContent = text;
+  
+  // Get the button that was clicked
+  const rect = button.getBoundingClientRect(); // Viewport-relative position
+  
+  // Position tooltip relative to viewport (ignores scroll)
+  // Place tooltip below the button
+  const topPosition = rect.bottom + 10; // 10px below button (viewport coordinates)
+  
+  // Adjust horizontal positioning to center tooltip under button
+  const tooltipWidth = 300; // max-width
+  const buttonCenter = rect.left + (rect.width / 2);
+  const adjustedLeft = Math.max(
+    10, 
+    Math.min(
+      buttonCenter - (tooltipWidth / 2), 
+      window.innerWidth - tooltipWidth - 10
+    )
+  );
+  
+  tooltip.style.top = `${topPosition}px`;
+  tooltip.style.left = `${adjustedLeft}px`;
+  
+  document.body.appendChild(tooltip);
+  
+  // Store references to active tooltip
+  activeTooltip = tooltip;
+  activeTooltipButton = button;
+  
+  // Function to close tooltip
+  function closeTooltip() {
+    if (tooltip.parentNode) {
+      tooltip.remove();
+      activeTooltip = null;
+      activeTooltipButton = null;
+    }
+    // Remove event listeners
+    document.removeEventListener('pointerdown', handleOutsideClick, true);
+    document.removeEventListener('keydown', handleEscapeKey);
+  }
+  
+  // Handle click outside
+  function handleOutsideClick(e) {
+    if (!tooltip.contains(e.target) && e.target !== button) {
+      closeTooltip();
+    }
+  }
+  
+  // Handle escape key
+  function handleEscapeKey(e) {
+    if (e.key === 'Escape') {
+      closeTooltip();
+    }
+  }
+  
+  // Add event listeners
+  document.addEventListener('pointerdown', handleOutsideClick, true);
+  document.addEventListener('keydown', handleEscapeKey);
+  
+  // Auto-close after 5 seconds
+  setTimeout(closeTooltip, 5000);
+  
+  // Prevent the button click from closing the tooltip immediately
+  event.stopPropagation();
+}
+
+// Setup tooltips for edit modal (same as product.js)
+function setupEditModalTooltips() {
+  // Add click handlers to info icons in the edit modal
+  document.querySelectorAll('.info-icon').forEach(icon => {
+    // Remove existing listeners by cloning
+    const newIcon = icon.cloneNode(true);
+    icon.parentNode.replaceChild(newIcon, icon);
+    
+    // Add click listener (same as product.js)
+    newIcon.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const tooltipText = this.getAttribute('data-tooltip');
+      if (tooltipText) {
+        showTooltip(e, tooltipText);
       }
     });
   });
@@ -212,6 +321,14 @@ function renderCart() {
       if (item.form.name) details.push(`Player: ${item.form.name}`);
       if (item.form.startingTime) details.push(`Starting Time: ${item.form.startingTime}`);
       
+      // Add cart option if enabled
+      if (item.form.cartOption) {
+        details.push(`Cart Option: ${item.form.cartOption}`);
+        if (item.form.cartOption === 'Cart') {
+          details.push(`Cart Fee: $9.00`);
+        }
+      }
+      
       // Add-ons with dynamic prices
       if (item.form.sidePots) {
         const sidePotPrice = item.sidePotPrice || 25;
@@ -313,6 +430,9 @@ function openEditModal(item) {
 }
 
 function openTournamentEditModal(item) {
+  // Check if cart option is enabled for this tournament
+  const cartOptionEnabled = item.cartOptionEnabled || false;
+  
   // Load tournament edit modal
   fetch("/cart/edit-tournament-modal.html")
     .then(res => {
@@ -320,6 +440,18 @@ function openTournamentEditModal(item) {
       return res.text();
     })
     .then(html => {
+      // Modify HTML to conditionally include cart option based on tournament settings
+      let modifiedHtml = html;
+      
+      // If cart option is not enabled, remove the cart option section
+      if (!cartOptionEnabled) {
+        // Remove the cart option container div
+        modifiedHtml = modifiedHtml.replace(
+          /<!-- Cart Option Dropdown \(Conditional\) -->[\s\S]*?<!-- \/Cart Option Dropdown -->/,
+          ''
+        );
+      }
+      
       // Remove existing modal if any
       const existingModal = document.getElementById("edit-modal");
       if (existingModal) existingModal.remove();
@@ -327,7 +459,7 @@ function openTournamentEditModal(item) {
       // Create new modal container
       const modalContainer = document.createElement("div");
       modalContainer.id = "edit-modal";
-      modalContainer.innerHTML = html;
+      modalContainer.innerHTML = modifiedHtml;
       document.body.appendChild(modalContainer);
       
       // Fill form values
@@ -342,6 +474,11 @@ function openTournamentEditModal(item) {
       document.getElementById("side-pots").checked = item.form.sidePots || false;
       document.getElementById("roulette").checked = item.form.roulette || false;
       document.getElementById("starting-time").value = item.form.startingTime || "";
+      
+      // Fill cart option if enabled and exists
+      if (cartOptionEnabled && document.getElementById("cart-option")) {
+        document.getElementById("cart-option").value = item.form.cartOption || "";
+      }
       
       // Fill additional players
       for (let i = 0; i < 3; i++) {
@@ -387,6 +524,7 @@ function openTournamentEditModal(item) {
       setTimeout(() => {
         setupEditModalPhoneFormatting();
         setupEditModalGHINFormatting();
+        setupEditModalTooltips(); // ADDED: Setup tooltips for edit modal
       }, 50);
       
       // Initialize autocomplete
@@ -569,69 +707,83 @@ function saveEditModal() {
 }
 
 function saveTournamentEditModal() {
-  const cart = loadCart();
-  const item = cart.find(i => i.id === editingItemId);
-  if (!item) return;
-  
-  // Get form values
-  const updatedForm = {
-    name: document.getElementById("modal-name").value,
-    email: document.getElementById("modal-email").value,
-    phone: document.getElementById("modal-phone").value,
-    ghin: document.getElementById("modal-ghin").value,
-    sidePots: document.getElementById("side-pots").checked,
-    roulette: document.getElementById("roulette").checked,
-    startingTime: document.getElementById("starting-time").value
-  };
-  
-  // Get additional players
-  const additionalPlayers = [];
-  for (let i = 2; i <= 4; i++) {
-    const name = document.getElementById(`modal-name${i}`).value;
-    if (name) {
-      additionalPlayers.push({
-        name: name,
-        email: document.getElementById(`modal-email${i}`).value,
-        phone: document.getElementById(`modal-phone${i}`).value,
-        ghin: document.getElementById(`modal-ghin${i}`).value
-      });
+    const cart = loadCart();
+    const item = cart.find(i => i.id === editingItemId);
+    if (!item) return;
+    
+    // Check if cart option is enabled for this tournament
+    const cartOptionEnabled = item.cartOptionEnabled || false;
+    
+    // Get form values
+    const updatedForm = {
+        name: document.getElementById("modal-name").value,
+        email: document.getElementById("modal-email").value,
+        phone: document.getElementById("modal-phone").value,
+        ghin: document.getElementById("modal-ghin").value,
+        sidePots: document.getElementById("side-pots").checked,
+        roulette: document.getElementById("roulette").checked,
+        startingTime: document.getElementById("starting-time").value
+    };
+    
+    // Get cart option if enabled
+    let cartOptionAddedPrice = 0;
+    if (cartOptionEnabled && document.getElementById("cart-option")) {
+        updatedForm.cartOption = document.getElementById("cart-option").value;
+        // Add $9 if cart option is "Cart"
+        if (document.getElementById("cart-option").value === 'Cart') {
+            cartOptionAddedPrice = 9.00;
+            updatedForm.cartOptionAddedPrice = cartOptionAddedPrice;
+        }
     }
-  }
-  updatedForm.additionalPlayers = additionalPlayers;
-  
-  // Calculate base price (tournament price without add-ons)
-  const basePrice = parseFloat(item.basePrice || (item.form.tournamentPrice || 0));
-  
-  // Get add-on prices from item data
-  const roulettePrice = parseFloat(item.roulettePrice || 30);
-  const sidePotPrice = parseFloat(item.sidePotPrice || 25);
-  
-  // Calculate new total price
-  let totalPrice = basePrice;
-  let addons = [];
-  let addonsTotal = 0;
-  
-  if (updatedForm.sidePots) {
-    addons.push({ name: 'Side Pots', price: sidePotPrice });
-    addonsTotal += sidePotPrice;
-  }
-  
-  if (updatedForm.roulette) {
-    addons.push({ name: 'Roulette', price: roulettePrice });
-    addonsTotal += roulettePrice;
-  }
-  
-  updatedForm.addons = addons;
-  updatedForm.addonsTotal = addonsTotal;
-  totalPrice += addonsTotal;
-  
-  updateCartItem(editingItemId, { 
-    form: updatedForm,
-    price: totalPrice
-  });
-  
-  closeEditModal();
-  renderCart();
+    
+    // Get additional players
+    const additionalPlayers = [];
+    for (let i = 2; i <= 4; i++) {
+        const name = document.getElementById(`modal-name${i}`).value;
+        if (name) {
+            additionalPlayers.push({
+                name: name,
+                email: document.getElementById(`modal-email${i}`).value,
+                phone: document.getElementById(`modal-phone${i}`).value,
+                ghin: document.getElementById(`modal-ghin${i}`).value
+            });
+        }
+    }
+    updatedForm.additionalPlayers = additionalPlayers;
+    
+    // Calculate base price (tournament price without add-ons)
+    const basePrice = parseFloat(item.basePrice || (item.form.tournamentPrice || 0));
+    
+    // Get add-on prices from item data
+    const roulettePrice = parseFloat(item.roulettePrice || 30);
+    const sidePotPrice = parseFloat(item.sidePotPrice || 25);
+    
+    // Calculate new total price
+    let totalPrice = basePrice;
+    let addons = [];
+    let addonsTotal = 0;
+    
+    if (updatedForm.sidePots) {
+        addons.push({ name: 'Side Pots', price: sidePotPrice });
+        addonsTotal += sidePotPrice;
+    }
+    
+    if (updatedForm.roulette) {
+        addons.push({ name: 'Roulette', price: roulettePrice });
+        addonsTotal += roulettePrice;
+    }
+    
+    updatedForm.addons = addons;
+    updatedForm.addonsTotal = addonsTotal;
+    totalPrice += addonsTotal + cartOptionAddedPrice;
+    
+    updateCartItem(editingItemId, { 
+        form: updatedForm,
+        price: totalPrice
+    });
+    
+    closeEditModal();
+    renderCart();
 }
 
 function saveMembershipEditModal() {
