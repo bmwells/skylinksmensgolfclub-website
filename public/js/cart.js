@@ -657,7 +657,7 @@ function bindEditModalEvents() {
   const closeBtn = document.getElementById("modal-close");
   const closeBtn2 = document.getElementById("modal-close-2");
   const saveBtn = document.getElementById("modal-save");
-  const saveTopBtn = document.getElementById("modal-save-top"); // NEW
+  const saveTopBtn = document.getElementById("modal-save-top");
   const backdrop = document.querySelector('.edit-modal-backdrop');
 
   [closeBtn, closeBtn2].forEach(btn => {
@@ -804,7 +804,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ============================================================
-   Checkout Handler
+   Enhanced Stripe Checkout Handler
    ============================================================ */
 document.addEventListener("DOMContentLoaded", () => {
   const checkoutButton = document.getElementById("checkout-button");
@@ -814,24 +814,60 @@ document.addEventListener("DOMContentLoaded", () => {
     const cart = loadCart();
     if (cart.length === 0) return;
 
+    // Get customer email and name from the first item that has them
+    let customerEmail = '';
+    let customerName = '';
+    
+    // Try to find customer info from cart items
+    for (const item of cart) {
+      if (item.form && item.form.email) {
+        customerEmail = item.form.email;
+        if (item.form.name) {
+          customerName = item.form.name;
+        }
+        break;
+      }
+    }
+    
+    // If no email found, prompt the user
+    if (!customerEmail) {
+      customerEmail = prompt("Please enter your email address for the receipt:");
+      if (!customerEmail) {
+        alert("Email is required for checkout.");
+        return;
+      }
+    }
+
     checkoutButton.disabled = true;
+    checkoutButton.textContent = "Processing...";
 
-    const body = {
-      items: cart.map(item => ({
-        name: item.name,
-        amount: Math.round(item.price * 100),
-        quantity: 1,
-        metadata: item.form || {}
-      }))
-    };
+    try {
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cartItems: cart,
+          customerEmail: customerEmail,
+          customerName: customerName
+        })
+      });
 
-    const res = await fetch("/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
 
-    const { id, url } = await res.json();
-    window.location = url;
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+      
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Error during checkout: " + error.message);
+      checkoutButton.disabled = false;
+      checkoutButton.textContent = "Checkout";
+    }
   });
 });
