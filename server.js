@@ -153,80 +153,110 @@ app.post('/api/create-checkout-session', async (req, res) => {
         }
 
         // Prepare line items for Stripe with numbered player format
-const lineItems = cartItems.map(item => {
-    // Product name (shown on first line in Stripe)
-    const productName = item.name;
-    
-    // Description (shown on second line in Stripe) - player info only
-    let description = '';
-    
-    if (item.type === 'tournament') {
-        const form = item.form || {};
-        
-        // Start building player list
-        let playerList = [];
-        
-        // Main player (Player 1)
-        if (form.name) {
-            const firstName = form.name.split(' ')[0] || '';
-            const lastName = form.name.split(' ').slice(1).join(' ') || '';
-            let mainPlayerText = `1: ${firstName} ${lastName}`;
-            if (form.ghin) mainPlayerText += `, ${form.ghin}`;
-            if (form.index) mainPlayerText += `, ${form.index}`;
-            if (form.startingTime) mainPlayerText += `, ${form.startingTime}`;
-            if (form.cartOption) mainPlayerText += `, ${form.cartOption}`;
+        const lineItems = cartItems.map(item => {
+            // Product name (shown on first line in Stripe)
+            const productName = item.name;
             
-            // Add add-ons for main player
-            let addons = [];
-            if (form.sidePots) addons.push('+SP');
-            if (form.roulette) addons.push('+RL');
-            if (addons.length > 0) {
-                mainPlayerText += `, ${addons.join(', ')}`;
-            }
+            // Description (shown on second line in Stripe) - player info only
+            let description = '';
             
-            playerList.push(mainPlayerText);
-        }
-        
-        // Additional players (Players 2, 3, 4)
-        if (form.additionalPlayers && form.additionalPlayers.length > 0) {
-            form.additionalPlayers.forEach((player, idx) => {
-                const playerName = player.name || '';
-                if (playerName) {
-                    // Format: 2: Player Name, 3: Player Name, etc.
-                    const formattedName = `${idx + 2}: ${playerName}`;
-                    playerList.push(formattedName);
+            if (item.type === 'tournament') {
+                const form = item.form || {};
+                
+                // Start building player list
+                let playerList = [];
+                
+                // Main player (Player 1)
+                if (form.name) {
+                    const firstName = form.name.split(' ')[0] || '';
+                    const lastName = form.name.split(' ').slice(1).join(' ') || '';
+                    let mainPlayerText = `1: ${firstName} ${lastName}`;
+                    if (form.ghin) mainPlayerText += `, ${form.ghin}`;
+                    
+                    // Add entry number with # prefix if exists
+                    if (form.entryNum && form.entryNum.trim() !== '') {
+                        mainPlayerText += `, #${form.entryNum}`;
+                    }
+                    
+                    // Add index if exists
+                    if (form.index && form.index.trim() !== '') {
+                        mainPlayerText += `, ${form.index}`;
+                    }
+                    
+                    if (form.startingTime) mainPlayerText += `, ${form.startingTime}`;
+                    if (form.cartOption) mainPlayerText += `, ${form.cartOption}`;
+                    
+                    // Add add-ons for main player
+                    let addons = [];
+                    if (form.sidePots) addons.push('+SP');
+                    if (form.roulette) addons.push('+RL');
+                    if (addons.length > 0) {
+                        mainPlayerText += `, ${addons.join(', ')}`;
+                    }
+                    
+                    playerList.push(mainPlayerText);
                 }
-            });
-        }
-        
-        // Join player list
-        if (playerList.length > 0) {
-            description = playerList.join('. ') + '.';
-        }
-        
-    } else if (item.type === 'membership') {
-        const form = item.form || {};
-        if (form.name) {
-            const firstName = form.name.split(' ')[0] || '';
-            const lastName = form.name.split(' ').slice(1).join(' ') || '';
-            
-            description = `${firstName} ${lastName}`;
-            if (form.ghin) description += `, GHIN: ${form.ghin}`;
-        }
-    }
+                
+                // Additional players (Players 2, 3, 4)
+                if (form.additionalPlayers && form.additionalPlayers.length > 0) {
+                    form.additionalPlayers.forEach((player, idx) => {
+                        const playerName = player.name || '';
+                        if (playerName) {
+                            // Format: 2: Player Name, 3: Player Name, etc.
+                            let formattedName = `${idx + 2}: ${playerName}`;
+                            if (player.ghin) formattedName += `, ${player.ghin}`;
+                            
+                            // Add entry number with # prefix for additional players if exists
+                            if (player.entryNum && player.entryNum.trim() !== '') {
+                                formattedName += `, #${player.entryNum}`;
+                            }
+                            
+                            // Add index for additional players if exists
+                            if (player.index && player.index.trim() !== '') {
+                                formattedName += `, ${player.index}`;
+                            }
+                            
+                            playerList.push(formattedName);
+                        }
+                    });
+                }
+                
+                // Join player list
+                if (playerList.length > 0) {
+                    description = playerList.join('. ') + '.';
+                }
+                
+            } else if (item.type === 'membership') {
+                const form = item.form || {};
+                if (form.name) {
+                    const firstName = form.name.split(' ')[0] || '';
+                    const lastName = form.name.split(' ').slice(1).join(' ') || '';
+                    
+                    description = `${firstName} ${lastName}`;
+                    
+                    // Add email if available
+                    if (form.email) description += `, ${form.email}`;
+                    
+                    // Add phone if available
+                    if (form.phone) description += `, ${form.phone}`;
+                    
+                    // Add GHIN if available
+                    if (form.ghin) description += `, GHIN: ${form.ghin}`;
+                }
+            }
 
-    return {
-        price_data: {
-            currency: 'usd',
-            product_data: {
-                name: productName, // This shows on first line
-                description: description || 'Player details', // This shows on second line
+        return {
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: productName, // This shows on first line
+                    description: description || 'Player details', // This shows on second line
+                },
+                unit_amount: Math.round(item.price * 100),
             },
-            unit_amount: Math.round(item.price * 100),
-        },
-        quantity: 1,
-    };
-});
+            quantity: 1,
+        };
+    });
 
         // Prepare optimized metadata for Stripe (under 50 keys limit)
         const metadata = {
