@@ -444,18 +444,19 @@ body {
     body { font-family: system-ui, sans-serif; margin:0; background:#fff; }
     .cart-page-section { padding: 120px 1rem 4rem; }
     .cart-container { max-width:1000px; margin:0 auto; }
-    .cart-title { font-size:2.2rem; font-weight:500; text-align:center; margin-bottom:24px; color:var(--primary); } 
+    .cart-title { font-size:2.5rem; font-weight:300; text-align:center; margin-bottom:24px; color:var(--primary); } 
     .cart-row { display:grid; grid-template-columns: 120px 1fr 160px 100px; gap:18px; align-items:center; padding:18px 0; border-bottom:1px solid #eee; }
     @media (max-width:768px) { .cart-row { grid-template-columns: 100%; gap:8px; } }
     .cart-row-img { width:120px; height:90px; background-size:cover; background-position:center; border-radius:6px; }
-    .cart-row-title { font-size:1.05rem; font-weight:600; color:#111; text-decoration:none; }
+    .cart-row-title { font-size:1.05rem; font-weight:400; color:#111; text-decoration:none; }
     .cart-sm-label { font-size:0.9rem; color:#666; margin-top:6px; }
     .cart-row-price { text-align:right; font-weight:400; font-size:1.05rem; }
     .cart-actions { display:flex; flex-direction:column; gap:6px; }
     .cart-action-btn { background:none; border:none; color:#333; text-decoration:underline; cursor:pointer; font-size:0.9rem; padding:0; }
     .cart-edit-details-btn { background: none; border: none; color: #333; text-decoration: underline; cursor: pointer; font-size: 0.9rem; padding: 0; margin-top: 6px; text-align: left; display: inline-block; }
-    .cart-summary { margin-top:24px; text-align:right; }
-    .checkout-btn { margin-top:12px; margin-bottom: 74px; padding:12px 36px; background:#000; color:#fff; border-radius:40px; border:none; cursor:pointer; }
+    .cart-summary { margin-top:24px; text-align:right; font-size: 1.4rem; }
+    .cart-summary strong { font-weight: 600; }
+    .checkout-btn { font-size: 1rem; margin-top:12px; margin-bottom: 74px; margin-right: 17px; padding:12px 36px; background:#000; color:#fff; border-radius:40px; border:none; cursor:pointer; }
     .empty-message { text-align:center; color:#666; padding:40px 0; }
     .empty-message p { font-size:1.1rem; margin-bottom:40px; }
 
@@ -475,6 +476,9 @@ body {
         margin-bottom: 12px;
         padding: 16px;
     }
+
+    .cart-summary{ font-size: 1.25rem; text-align: center;}
+    .checkout-btn { font-size: 1rem; width: 100%; max-width: 300px;}
     
     .cart-row-img {
         grid-area: image;
@@ -818,6 +822,7 @@ body {
 
         .meeting-header h1 {
             font-size: 2em;
+            font-weight: 400;
             color: #2a5c3d;
         }
         
@@ -838,6 +843,7 @@ body {
             padding-bottom: 10px;
             margin-bottom: 20px;
             font-size: 1.4rem;
+            font-weight: 500;
         }
         
         .attendees-list {
@@ -948,7 +954,7 @@ body {
             color: var(--primary);
             font-size: 1.8rem;
             margin: 0 0 1rem 0;
-            font-weight: 500;
+            font-weight: 400;
             padding-top: 0;
         }
 

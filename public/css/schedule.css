@@ -54,6 +54,7 @@
             font-size: 2.5rem;
             color: #2c3e50;
             margin-bottom: 1rem;
+            font-weight: 400;
         }
         
         .event-list {
@@ -120,7 +121,7 @@
         
         .event-day {
             font-size: 2rem;
-            font-weight: bold;
+            font-weight: 400;
             line-height: 1;
         }
         
@@ -131,7 +132,7 @@
         
         .event-title {
             font-size: 1.25rem;
-            font-weight: 600;
+            font-weight: 400;
             color: #2c3e50;
             margin-bottom: 0.5rem;
         }
@@ -140,7 +141,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
-            color: #6c757d;
+            color: black;
             font-size: 0.9rem;
         }
         
