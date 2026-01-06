@@ -28,7 +28,7 @@
         <div class="product-container">
             <div class="product-content-wrapper">
                 <div class="product-image-container">
-                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG?format=1500w" 
+                    <img id="membership-renewal-product-image" 
                          alt="Membership Renewal" 
                          class="product-image">
                 </div>
@@ -94,6 +94,32 @@
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
+        // Load product image from images API
+        async function loadProductImage() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                const renewalImage = images.find(img => img.id === 'membership-renewal');
+                
+                const productImg = document.getElementById('membership-renewal-product-image');
+                if (productImg && renewalImage && renewalImage.imageUrl) {
+                    productImg.src = renewalImage.imageUrl;
+                    productImg.alt = renewalImage.pageName || 'Membership Renewal';
+                } else if (productImg) {
+                    // Fallback to hardcoded image
+                    productImg.src = 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG?format=1500w';
+                    productImg.alt = 'Membership Renewal';
+                }
+            } catch (error) {
+                console.error('Error loading product image:', error);
+                const productImg = document.getElementById('membership-renewal-product-image');
+                if (productImg) {
+                    productImg.src = 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG?format=1500w';
+                    productImg.alt = 'Membership Renewal';
+                }
+            }
+        }
+
         // Load product modal
         fetch("/tournament-entry/member-modal.html")
             .then(res => {
@@ -136,6 +162,7 @@
         // Initialize product detection after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing product for renewal page...');
+            loadProductImage();
             
             // Ensure the modal loads properly
             setTimeout(() => {

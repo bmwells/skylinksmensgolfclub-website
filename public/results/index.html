@@ -18,7 +18,7 @@
 
     <!-- HERO -->
     <section class="hero-section">
-        <div class="hero-background"></div>
+        <div class="hero-background" id="hero-background"></div>
         <div class="hero-content">
             <h1>Tournament Results</h1>
         </div>
@@ -55,6 +55,29 @@
             .then(html => {
                 document.getElementById("footer-placeholder").innerHTML = html;
             });
+
+        // Load results banner image
+        async function loadResultsBanner() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                const resultsImage = images.find(img => img.id === 'results');
+                
+                const heroBackground = document.getElementById('hero-background');
+                if (heroBackground && resultsImage && resultsImage.imageUrl) {
+                    heroBackground.style.backgroundImage = `url('${resultsImage.imageUrl}')`;
+                } else if (heroBackground) {
+                    // Fallback to hardcoded image
+                    heroBackground.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/9cdae476-9d68-45a9-87e9-80615a519e47/202501+Results.jpg')";
+                }
+            } catch (error) {
+                console.error('Error loading results banner:', error);
+                const heroBackground = document.getElementById('hero-background');
+                if (heroBackground) {
+                    heroBackground.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/9cdae476-9d68-45a9-87e9-80615a519e47/202501+Results.jpg')";
+                }
+            }
+        }
 
         function toggleEvent(index) {
             document.querySelectorAll('.event-item')[index].classList.toggle('expanded');
@@ -99,6 +122,9 @@
                     `;
                 });
             });
+
+        // Load banner when page is ready
+        document.addEventListener('DOMContentLoaded', loadResultsBanner);
     </script>
 
 </body>

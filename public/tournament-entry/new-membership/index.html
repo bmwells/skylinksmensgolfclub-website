@@ -28,7 +28,7 @@
         <div class="product-container">
             <div class="product-content-wrapper">
                 <div class="product-image-container">
-                    <img src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg?format=1500w" 
+                    <img id="new-membership-product-image" 
                          alt="New Membership" 
                          class="product-image">
                 </div>
@@ -93,6 +93,22 @@
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
+        // Load product image from images API
+        async function loadProductImage() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                const newMembershipImage = images.find(img => img.id === 'new-membership');
+                const productImg = document.getElementById('new-membership-product-image');
+                    productImg.src = newMembershipImage.imageUrl;
+                    productImg.alt = newMembershipImage.pageName || 'New Membership';
+            } catch (error) {
+                console.error('Error loading product image:', error);
+                const productImg = document.getElementById('new-membership-product-image');
+
+            }
+        }
+
         // Load product modal
         fetch("/tournament-entry/member-modal.html")
             .then(res => {
@@ -133,6 +149,7 @@
         // Initialize product detection after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing product for new membership page...');
+            loadProductImage();
             
             // Ensure the modal loads properly
             setTimeout(() => {

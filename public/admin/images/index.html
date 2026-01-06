@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Image Manager - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>Image Manager</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
+</div>
+
+<!-- Images Section -->
+<div id="images"></div>
+
+<script>
+// Make render globally accessible
+window.render = render;
+
+function init() {
+  if (AdminCommon.init('images', [])) {
+    loadImages();
+  }
+}
+
+function loadImages() {
+  AdminCommon.load().then((data) => {
+    AdminCommon.data = data;
+    AdminCommon.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
+    render();
+    AdminCommon.setupInputListeners();
+  }).catch(err => {
+    alert('Error loading images: ' + err.message);
+  });
+}
+
+function render() {
+  const imagesContainer = document.getElementById('images');
+  imagesContainer.innerHTML = '';
+  
+  // Create grid container
+  const gridDiv = document.createElement('div');
+  gridDiv.className = 'image-grid';
+  
+  AdminCommon.data.forEach((imageData, index) => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'image-row';
+    
+    // Escape the image URL for the style attribute
+    const styleAttr = imageData.imageUrl ? 'background-image: url(\'' + imageData.imageUrl.replace(/'/g, "\\'") + '\')' : '';
+    
+    const html = `
+      <h3>${AdminCommon.escapeHtml(imageData.pageName)}</h3>
+      <div class="page-description">${AdminCommon.escapeHtml(imageData.description)}</div>
+      
+      <div class="input-group">
+        <label>Image URL</label>
+        <input 
+          type="text" 
+          value="${AdminCommon.escapeHtml(imageData.imageUrl || '')}" 
+          oninput="updateImage(${index}, 'imageUrl', this.value)"
+          placeholder="https://example.com/image.jpg"
+          style="font-family: monospace; font-size: 0.9rem;"
+        >
+        <div class="current-image-info">
+          Current: ${AdminCommon.escapeHtml(imageData.imageUrl || 'No image set')}
+        </div>
+      </div>
+      
+      <div class="image-preview" id="preview-${index}" 
+           style="${styleAttr}">
+        ${!imageData.imageUrl ? '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">No image preview available</div>' : ''}
+      </div>`
+      ;
+    
+    rowDiv.innerHTML = html;
+    gridDiv.appendChild(rowDiv);
+  });
+  
+  imagesContainer.appendChild(gridDiv);
+  
+  // Setup input listeners
+  AdminCommon.setupInputListeners();
+}
+
+function updateImage(index, field, value) {
+  AdminCommon.updateItem(index, field, value);
+  
+  // Update preview if image URL changed
+  if (field === 'imageUrl') {
+    const preview = document.getElementById('preview-' + index);
+    if (preview) {
+      if (value) {
+        preview.style.backgroundImage = 'url(\'' + value.replace(/'/g, "\\'") + '\')';
+        preview.innerHTML = '';
+      } else {
+        preview.style.backgroundImage = '';
+        preview.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">No image preview available</div>';
+      }
+    }
+  }
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

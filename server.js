@@ -619,7 +619,8 @@ app.post('/api/monthly-tournament2', requireAdmin, async (req, res) => {
     'schedule',
     'presidents-letter',
     'who-we-are',
-    'members'
+    'members',
+    'images'
 ].forEach(key => {
     app.get(`/api/${key}`, async (req, res) => {
         try {
@@ -640,6 +641,29 @@ app.post('/api/monthly-tournament2', requireAdmin, async (req, res) => {
             res.status(500).json({ error: 'Internal server error' });
         }
     });
+});
+
+// --------------------
+// IMAGES API ROUTES
+// --------------------
+app.get('/api/images', async (req, res) => {
+    try {
+        const data = await readData('images');
+        res.json(data);
+    } catch (error) {
+        console.error('Error reading images:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/api/images', requireAdmin, async (req, res) => {
+    try {
+        await writeData('images', req.body);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error writing images:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // --------------------

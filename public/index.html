@@ -7,7 +7,6 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <title>Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
-    
 </head>
 <body>
 
@@ -15,7 +14,7 @@
     <div id="header-placeholder"></div>
 
     <!-- Hero Section -->
-    <section class="hero" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310562515-L41WP00NGB3F00VB5HPU/P1099270.JPG?format=2500w')"></section>
+    <section class="hero" id="hero-section"></section>
 
     <!-- Welcome Section -->
     <section class="welcome-section">
@@ -46,14 +45,14 @@
                 </div>
                 <div class="tournament-card">
                     <a href="/tournament-entry/new-membership/">
-                        <div class="tournament-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310562527-RH42JMCC20FTZKQCQLSQ/P1099387.jpg?format=2500w')"></div>
+                        <div class="tournament-image" id="new-membership-image"></div>
                         <h3>New Membership</h3>
                         <p class="price">$109</p>
                     </a>
                 </div>
                 <div class="tournament-card">
                     <a href="/tournament-entry/membership-renewal/">
-                        <div class="tournament-image" style="background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310562531-RA11FENNAQO9B2PTHWX0/P1099410.jpg?format=2500w')"></div>
+                        <div class="tournament-image" id="membership-renewal-image"></div>
                         <h3>Membership Renewal</h3>
                         <p class="price">$89</p>
                     </a>
@@ -137,6 +136,59 @@
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
+        // Load images from API and apply them
+        async function loadAndApplyImages() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                
+                // Apply home page hero image
+                const homeImage = images.find(img => img.id === 'home');
+                if (homeImage && homeImage.imageUrl) {
+                    const heroSection = document.getElementById('hero-section');
+                    if (heroSection) {
+                        heroSection.style.backgroundImage = `url('${homeImage.imageUrl}')`;
+                    }
+                }
+                
+                // Apply new membership image
+                const newMembershipImage = images.find(img => img.id === 'new-membership');
+                if (newMembershipImage && newMembershipImage.imageUrl) {
+                    const newMembershipDiv = document.getElementById('new-membership-image');
+                    if (newMembershipDiv) {
+                        newMembershipDiv.style.backgroundImage = `url('${newMembershipImage.imageUrl}')`;
+                    }
+                }
+                
+                // Apply membership renewal image
+                const renewalImage = images.find(img => img.id === 'membership-renewal');
+                if (renewalImage && renewalImage.imageUrl) {
+                    const renewalDiv = document.getElementById('membership-renewal-image');
+                    if (renewalDiv) {
+                        renewalDiv.style.backgroundImage = `url('${renewalImage.imageUrl}')`;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading images:', error);
+                // Fallback to hardcoded images
+                const heroSection = document.getElementById('hero-section');
+                if (heroSection) {
+                    heroSection.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310562515-L41WP00NGB3F00VB5HPU/P1099270.JPG?format=2500w')";
+                }
+                
+                const newMembershipDiv = document.getElementById('new-membership-image');
+                if (newMembershipDiv) {
+                    newMembershipDiv.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg?format=2500w')";
+                }
+                
+                const renewalDiv = document.getElementById('membership-renewal-image');
+                if (renewalDiv) {
+                    renewalDiv.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.jpg?format=2500w')";
+                }
+            }
+        }
+
         // Load monthly tournament data for the homepage card
         async function loadHomeMonthlyTournamentCard() {
             try {
@@ -191,8 +243,11 @@
             }
         }
 
-        // Load tournament card when page is ready
-        document.addEventListener('DOMContentLoaded', loadHomeMonthlyTournamentCard);
+        // Load everything when page is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAndApplyImages();
+            loadHomeMonthlyTournamentCard();
+        });
     </script>
 
 </body>

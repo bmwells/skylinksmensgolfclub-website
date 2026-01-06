@@ -55,6 +55,29 @@
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
+        // Load schedule banner image
+        async function loadScheduleBanner() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                const scheduleImage = images.find(img => img.id === 'schedule');
+                
+                const heroBackground = document.getElementById('hero-background');
+                if (heroBackground && scheduleImage && scheduleImage.imageUrl) {
+                    heroBackground.style.backgroundImage = `url('${scheduleImage.imageUrl}')`;
+                } else if (heroBackground) {
+                    // Fallback to hardcoded image
+                    heroBackground.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG')";
+                }
+            } catch (error) {
+                console.error('Error loading schedule banner:', error);
+                const heroBackground = document.getElementById('hero-background');
+                if (heroBackground) {
+                    heroBackground.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG')";
+                }
+            }
+        }
+
         // Load schedule from API
         async function loadSchedule() {
             try {
@@ -242,7 +265,10 @@
         }
 
         // Load schedule when page is ready
-        document.addEventListener('DOMContentLoaded', loadSchedule);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadScheduleBanner();
+            loadSchedule();
+        });
     </script>
 
 </body>

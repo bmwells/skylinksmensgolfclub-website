@@ -1,0 +1,44 @@
+[
+  {
+    "id": "home",
+    "pageName": "Home Page",
+    "description": "Large hero banner image at the top of the home page",
+    "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310562515-L41WP00NGB3F00VB5HPU/P1099270.JPG?format=2500w"
+  },
+  {
+    "id": "new-membership",
+    "pageName": "New Membership Page",
+    "description": "Product image on the New Membership page",
+    "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg?format=1500w"
+  },
+  {
+    "id": "membership-renewal",
+    "pageName": "Membership Renewal Page",
+    "description": "Product image on the Membership Renewal page",
+    "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG?format=1500w"
+  },
+  {
+    "id": "tournament-entry",
+    "pageName": "Tournament Entry Page",
+    "description": "Banner image on the Tournament Entry page",
+    "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564394-YG5P29UYIRVIUJP60SWK/P1099107.JPG"
+  },
+  {
+    "id": "schedule",
+    "pageName": "Schedule Page",
+    "description": "Hero banner image at the top of the Schedule page",
+    "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG"
+  },
+  {
+    "id": "results",
+    "pageName": "Results Page",
+    "description": "Hero banner image at the top of the Results page",
+    "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/9cdae476-9d68-45a9-87e9-80615a519e47/202501+Results.jpg"
+  },
+  {
+    "id": "contact",
+    "pageName": "Contact Page",
+    "description": "Right-side image on the Contact page",
+    "imageUrl": "https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310568234-IEFCFMC1A0MNK2XDY7X1/IMG_0613.JPG?format=2500w"
+  }
+]

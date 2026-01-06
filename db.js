@@ -8,7 +8,8 @@ const ARRAY_COLLECTIONS = new Set([
     'results',
     'meeting-minutes',
     'schedule',
-    'members'
+    'members',
+    'images'
 ]);
 
 // Collections that store ONE document (object semantics)

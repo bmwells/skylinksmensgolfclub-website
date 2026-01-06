@@ -710,3 +710,56 @@ button:disabled {
         width: 100% !important;
     }
 }
+
+/* ============================================
+   IMAGE MANAGEMENT
+   ============================================ */
+.image-preview {
+        width: 100%;
+        max-width: 400px;
+        height: 200px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        margin: 15px 0;
+        background-size: cover;
+        background-position: center;
+        border: 2px dashed #ddd;
+    }
+    
+    .current-image-info {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-family: monospace;
+        font-size: 0.9rem;
+        word-break: break-all;
+    }
+    
+    .page-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .image-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        margin-top: 20px;
+    }
+    
+    .image-row {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    
+    .image-row h3 {
+        margin-top: 0;
+        color: #495057;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+    }

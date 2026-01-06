@@ -126,14 +126,12 @@
 // Make render globally accessible
 window.render = render;
 
-// Store hero image separately
-let heroImage = 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG';
-
 function init() {
   if (AdminCommon.init('schedule', [])) {
     loadEvents();
   }
 }
+
 
 function loadEvents() {
   AdminCommon.load().then((data) => {
@@ -155,14 +153,8 @@ function render() {
   const eventsContainer = document.getElementById('events');
   eventsContainer.innerHTML = '';
   
-  // Render hero image section
-  const heroDiv = document.createElement('div');
-  heroDiv.className = 'row';
-  heroDiv.innerHTML = `
-    <h3>Hero Image (Page Banner)</h3>
-    ${AdminCommon.templates.textInput('Hero Image URL', heroImage, `updateHeroImage(this.value)`, 'URL for the large banner image at top of schedule page')}
-  `;
-  eventsContainer.appendChild(heroDiv);
+  const noteDiv = document.createElement('div');
+  eventsContainer.appendChild(noteDiv);
   
   AdminCommon.data.forEach((event, eventIndex) => {
     const eventDiv = document.createElement('div');
@@ -300,11 +292,6 @@ function render() {
   }
 }
 
-function updateHeroImage(value) {
-  heroImage = value;
-  AdminCommon.markUnsaved();
-}
-
 function updateEvent(eventIndex, field, value) {
   AdminCommon.updateItem(eventIndex, field, value);
 }
@@ -420,15 +407,6 @@ function deleteEvent(eventIndex) {
     render();
   }
 }
-
-// Override save function to include hero image
-const originalSave = AdminCommon.save;
-AdminCommon.save = function() {
-  // We need to store hero image somewhere - for simplicity, add it to first event
-  // or create a separate API endpoint for hero image
-  // For now, we'll just save the events array
-  return originalSave.call(this);
-};
 
 window.onload = init;
 </script>

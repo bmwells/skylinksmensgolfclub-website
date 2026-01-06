@@ -17,7 +17,7 @@
 
     <!-- Hero Banner Section -->
     <section class="tournament-banner">
-        <div class="tournament-banner-image"></div>
+        <div class="tournament-banner-image" id="tournament-banner-image"></div>
         <h1>Tournament Entry</h1>
     </section>
 
@@ -50,6 +50,23 @@
         fetch("/footer.html")
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+        // Load tournament entry banner image
+        async function loadTournamentBanner() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                const tournamentEntryImage = images.find(img => img.id === 'tournament-entry');
+                
+                const bannerImage = document.getElementById('tournament-banner-image');
+                if (bannerImage && tournamentEntryImage && tournamentEntryImage.imageUrl) {
+                    bannerImage.style.backgroundImage = `url('${tournamentEntryImage.imageUrl}')`;
+                }
+                // Note: No fallback for tournament-entry as it may intentionally be empty
+            } catch (error) {
+                console.error('Error loading tournament banner:', error);
+            }
+        }
 
         // Load tournament cards
         async function loadTournamentCards() {
@@ -290,7 +307,10 @@
         }
 
         // Load tournament cards when page is ready
-        document.addEventListener('DOMContentLoaded', loadTournamentCards);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTournamentBanner();
+            loadTournamentCards();
+        });
     </script>
 
 </body>

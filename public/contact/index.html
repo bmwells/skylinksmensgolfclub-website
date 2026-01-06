@@ -7,7 +7,6 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <title>Contact Us - Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
-
 </head>
 <body>
 
@@ -59,6 +58,7 @@
                         src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310568234-IEFCFMC1A0MNK2XDY7X1/IMG_0613.JPG?format=2500w" 
                         alt="Skylinks Men's Golf Club" 
                         loading="lazy"
+                        id="contact-page-image"
                     >
                 </div>
             </div>
@@ -86,6 +86,23 @@
         fetch("/footer.html")
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+
+        // Load contact page image
+        async function loadContactImage() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                const contactImage = images.find(img => img.id === 'contact');
+                
+                const contactImg = document.getElementById('contact-page-image');
+                if (contactImg && contactImage && contactImage.imageUrl) {
+                    contactImg.src = contactImage.imageUrl;
+                }
+            } catch (error) {
+                console.error('Error loading contact image:', error);
+                // Keep the hardcoded fallback image
+            }
+        }
 
         // Form submission handling - matching home page
         document.querySelector('.contact-page-form form')?.addEventListener('submit', function(e) {
@@ -135,6 +152,9 @@
                 this.style.borderColor = '#ddd';
             });
         });
+
+        // Load contact image when page is ready
+        document.addEventListener('DOMContentLoaded', loadContactImage);
     </script>
 
 </body>
