@@ -51,21 +51,30 @@
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
-        // Load tournament entry banner image
-        async function loadTournamentBanner() {
+        // Store loaded images globally
+        let loadedImages = [];
+
+        // Load all images from API
+        async function loadAllImages() {
             try {
                 const response = await fetch('/api/images');
-                const images = await response.json();
-                const tournamentEntryImage = images.find(img => img.id === 'tournament-entry');
+                loadedImages = await response.json();
                 
+                // Set tournament entry banner
+                const tournamentEntryImage = loadedImages.find(img => img.id === 'tournament-entry');
                 const bannerImage = document.getElementById('tournament-banner-image');
                 if (bannerImage && tournamentEntryImage && tournamentEntryImage.imageUrl) {
                     bannerImage.style.backgroundImage = `url('${tournamentEntryImage.imageUrl}')`;
                 }
-                // Note: No fallback for tournament-entry as it may intentionally be empty
             } catch (error) {
-                console.error('Error loading tournament banner:', error);
+                console.error('Error loading images:', error);
             }
+        }
+
+        // Get image URL from loaded images
+        function getImageUrl(imageId, fallbackUrl = '') {
+            const image = loadedImages.find(img => img.id === imageId);
+            return image?.imageUrl || fallbackUrl;
         }
 
         // Load tournament cards
@@ -114,10 +123,11 @@
                             <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
-                                        src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG" 
+                                        src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
                                         alt="Membership Renewal"
                                         class="tournament-product-image"
                                         loading="lazy"
+                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG'"
                                     />
                                 </div>
                                 <div class="tournament-product-meta">
@@ -130,10 +140,11 @@
                             <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
-                                        src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg" 
+                                        src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
                                         alt="New Membership"
                                         class="tournament-product-image"
                                         loading="lazy"
+                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg'"
                                     />
                                 </div>
                                 <div class="tournament-product-meta">
@@ -144,7 +155,7 @@
                         </div>
                     `;
                 } else if (activeTournaments.length === 1) {
-                    // One tournament active, show it with membership renewal
+                    // One tournament active, show it with membership cards
                     gridContainer.innerHTML = `
                         <div class="tournament-products-grid">
                             ${generateTournamentCard(activeTournaments[0])}
@@ -153,10 +164,11 @@
                             <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
-                                        src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG" 
+                                        src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
                                         alt="Membership Renewal"
                                         class="tournament-product-image"
                                         loading="lazy"
+                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG'"
                                     />
                                 </div>
                                 <div class="tournament-product-meta">
@@ -169,10 +181,11 @@
                             <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
-                                        src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg" 
+                                        src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
                                         alt="New Membership"
                                         class="tournament-product-image"
                                         loading="lazy"
+                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg'"
                                     />
                                 </div>
                                 <div class="tournament-product-meta">
@@ -183,7 +196,7 @@
                         </div>
                     `;
                 } else {
-                    // Two tournaments active, show both tournaments in first row, new membership in second row
+                    // Two tournaments active, show both tournaments in first row, membership cards in second row
                     gridContainer.innerHTML = `
                         <div class="tournament-products-grid" style="grid-template-columns: repeat(2, 1fr);">
                             ${generateTournamentCard(activeTournaments[0])}
@@ -194,10 +207,11 @@
                             <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
-                                        src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG" 
+                                        src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
                                         alt="Membership Renewal"
                                         class="tournament-product-image"
                                         loading="lazy"
+                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG'"
                                     />
                                 </div>
                                 <div class="tournament-product-meta">
@@ -210,10 +224,11 @@
                             <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
-                                        src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg" 
+                                        src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
                                         alt="New Membership"
                                         class="tournament-product-image"
                                         loading="lazy"
+                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg'"
                                     />
                                 </div>
                                 <div class="tournament-product-meta">
@@ -286,7 +301,16 @@
             const data = tournamentInfo.data;
             const formattedPrice = data.price ? '$' + parseFloat(data.price).toFixed(2) : '$' + tournamentInfo.fallbackPrice.toFixed(2);
             const title = data.title || tournamentInfo.fallbackTitle;
-            const imageUrl = data.imageUrl || tournamentInfo.fallbackImage;
+            
+            // Get image URL from loaded images or tournament data
+            let imageUrl;
+            if (tournamentInfo.url === 'monthly-tournament/') {
+                imageUrl = getImageUrl('monthly-tournament', data.imageUrl || tournamentInfo.fallbackImage);
+            } else if (tournamentInfo.url === 'monthly-tournament2/') {
+                imageUrl = getImageUrl('monthly-tournament2', data.imageUrl || tournamentInfo.fallbackImage);
+            } else {
+                imageUrl = data.imageUrl || tournamentInfo.fallbackImage;
+            }
             
             return `
                 <a href="${tournamentInfo.url}" class="tournament-product-card" aria-label="${title}">
@@ -296,6 +320,7 @@
                             alt="${title}"
                             class="tournament-product-image"
                             loading="lazy"
+                            onerror="this.src='${tournamentInfo.fallbackImage}'"
                         />
                     </div>
                     <div class="tournament-product-meta">
@@ -306,10 +331,10 @@
             `;
         }
 
-        // Load tournament cards when page is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTournamentBanner();
-            loadTournamentCards();
+        // Load everything when page is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadAllImages();
+            await loadTournamentCards();
         });
     </script>
 
