@@ -37,7 +37,6 @@
 
     <!-- Scripts -->
     <script src="/js/menu.js"></script>
-    <script src="/js/image.js"></script>
     <script src="/js/cart-count.js"></script>
     
     <script>
@@ -65,16 +64,10 @@
                 const heroBackground = document.getElementById('hero-background');
                 if (heroBackground && scheduleImage && scheduleImage.imageUrl) {
                     heroBackground.style.backgroundImage = `url('${scheduleImage.imageUrl}')`;
-                } else if (heroBackground) {
-                    // Fallback to hardcoded image
-                    heroBackground.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG')";
                 }
             } catch (error) {
                 console.error('Error loading schedule banner:', error);
                 const heroBackground = document.getElementById('hero-background');
-                if (heroBackground) {
-                    heroBackground.style.backgroundImage = "url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310566727-IB744DMFCWIYTA82AW56/P1099210.JPG')";
-                }
             }
         }
 

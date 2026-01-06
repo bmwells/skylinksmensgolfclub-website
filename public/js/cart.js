@@ -5,6 +5,9 @@
 
 const CART_KEY = "skylinks_cart_v1";
 
+// Store images from Image Manager
+let imageManagerImages = null;
+
 // Auto-clear cart if on the success page
 if (window.location.pathname.includes("success")) {
   localStorage.removeItem(CART_KEY);
@@ -28,6 +31,59 @@ function saveCart(items) {
 
 function generateId() {
   return "item_" + Math.random().toString(36).substr(2, 9);
+}
+
+// Function to fetch images from Image Manager API
+async function fetchImagesFromImageManager() {
+  try {
+    const response = await fetch('/api/images');
+    
+    // Check if we got HTML instead of JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      console.warn('Images API returned HTML, no images available');
+      return null;
+    }
+    
+    const images = await response.json();
+    if (images && Array.isArray(images)) {
+      return images;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error loading images from Image Manager:', error);
+    return null;
+  }
+}
+
+// Get image URL from Image Manager data based on product ID
+function getImageForProduct(productId) {
+  if (!imageManagerImages || !Array.isArray(imageManagerImages)) {
+    console.warn('No images available from Image Manager');
+    return ''; // Return empty string instead of fallback
+  }
+  
+  // Map product IDs to image keys
+  const imageKeyMap = {
+    'new-membership': 'new-membership',
+    'membership-renewal': 'membership-renewal',
+    'monthly-tournament': 'tournament-entry',
+    'monthly-tournament2': 'tournament-entry'
+  };
+  
+  const imageKey = imageKeyMap[productId];
+  if (!imageKey) {
+    console.warn(`No image key mapping for product: ${productId}`);
+    return '';
+  }
+  
+  const imageData = imageManagerImages.find(img => img.id === imageKey);
+  if (imageData && imageData.imageUrl) {  // CHANGED: from imageData.url to imageData.imageUrl
+    return imageData.imageUrl;  // CHANGED: from imageData.url to imageData.imageUrl
+  }
+  
+  console.warn(`No image found for product key: ${imageKey} (product: ${productId})`);
+  return ''; // Return empty string if no image found
 }
 
 // Phone number formatting function (same as in product.js)
@@ -268,10 +324,15 @@ function removeCartItem(itemId) {
 }
 
 /* ============================================================
-   Render Cart Page - FIXED VERSION
+   Render Cart Page - UPDATED to use Image Manager images
    ============================================================ */
-function renderCart() {
+async function renderCart() {
   if (!document.getElementById("cart-rows")) return; // not on cart page
+
+  // Load images from Image Manager if not already loaded
+  if (!imageManagerImages) {
+    imageManagerImages = await fetchImagesFromImageManager();
+  }
 
   const cart = loadCart();
 
@@ -300,7 +361,25 @@ function renderCart() {
     /* Image */
     const imgWrap = document.createElement("div");
     imgWrap.className = "cart-row-img sqs-cart-img";
-    imgWrap.style.backgroundImage = `url('${item.image || "/img/default.png"}')`;
+    
+    // Get image from Image Manager or use the stored image
+    let imageUrl = item.image;
+    if (!imageUrl) {
+      imageUrl = getImageForProduct(item.productId);
+    }
+    
+    if (imageUrl) {
+      imgWrap.style.backgroundImage = `url('${imageUrl}')`;
+      imgWrap.style.backgroundSize = 'cover';
+      imgWrap.style.backgroundPosition = 'center';
+    } else {
+      // Show placeholder if no image
+      imgWrap.style.backgroundColor = '#f0f0f0';
+      imgWrap.style.display = 'flex';
+      imgWrap.style.alignItems = 'center';
+      imgWrap.style.justifyContent = 'center';
+      imgWrap.innerHTML = '<span style="color: #999;">No Image</span>';
+    }
 
     /* Description column */
     const desc = document.createElement("div");
@@ -799,7 +878,19 @@ function saveMembershipEditModal() {
   renderCart();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize cart when DOM is loaded
+document.addEventListener("DOMContentLoaded", async () => {
+  // Load images from Image Manager
+  if (!imageManagerImages) {
+    imageManagerImages = await fetchImagesFromImageManager();
+  }
+  
+  // Render cart
+  renderCart();
+});
+
+// Also re-render cart when cart is updated
+document.addEventListener("cartUpdated", () => {
   renderCart();
 });
 

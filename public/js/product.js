@@ -2,42 +2,43 @@
 (function () {
     'use strict';
 
+    // Base product definitions WITHOUT hardcoded images
     const PRODUCTS = {
         'new-membership': {
             id: 'new-membership',
             name: 'New Membership',
             price: 109.00,
-            image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg?format=1500w',
             type: 'membership',
-            useAutocomplete: false 
+            useAutocomplete: false,
+            imageKey: 'new-membership'
         },
         'membership-renewal': {
             id: 'membership-renewal',
             name: 'Membership Renewal',
             price: 89.00,
-            image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG?format=1500w',
             type: 'membership',
-            useAutocomplete: true  
+            useAutocomplete: true,
+            imageKey: 'membership-renewal'
         },
         'monthly-tournament': {
             id: 'monthly-tournament',
             name: 'Monthly Tournament',
             basePrice: 90.00,
-            image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg?format=1500w',
             type: 'tournament',
             sidePotsPrice: 25.00,
             roulettePrice: 30.00,
-            useAutocomplete: true 
+            useAutocomplete: true,
+            imageKey: 'monthly-tournament' 
         },
         'monthly-tournament2': {
             id: 'monthly-tournament2',
             name: 'Monthly Tournament 2',
             basePrice: 90.00,
-            image: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg?format=1500w',
             type: 'tournament',
             sidePotsPrice: 25.00,
             roulettePrice: 30.00,
-            useAutocomplete: true 
+            useAutocomplete: true,
+            imageKey: 'monthly-tournament2' 
         }
     };
 
@@ -50,6 +51,71 @@
     let isInitialized = false;
     let eventListenersBound = false;
     let tournamentData = null; // Store dynamic tournament data
+    let imageManagerImages = null; // Store images from Image Manager API
+
+    // Function to fetch images from Image Manager API
+    async function fetchImagesFromImageManager() {
+        try {
+            const response = await fetch('/api/images');
+            
+            // Check if we got HTML instead of JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('text/html')) {
+                console.warn('Images API returned HTML, no images available');
+                return null;
+            }
+            
+            const images = await response.json();
+            if (images && Array.isArray(images)) {
+                return images;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error loading images from Image Manager:', error);
+            return null;
+        }
+    }
+
+    // Get image URL from Image Manager data
+    function getImageForProduct(product) {
+    if (!imageManagerImages || !Array.isArray(imageManagerImages)) {
+        console.warn('No images available from Image Manager');
+        return ''; // Return empty string instead of fallback
+    }
+    
+    const imageData = imageManagerImages.find(img => img.id === product.imageKey);
+    if (imageData && imageData.imageUrl) {  // CHANGED: from imageData.url to imageData.imageUrl
+        return imageData.imageUrl;  // CHANGED: from imageData.url to imageData.imageUrl
+    }
+    
+    console.warn(`No image found for product key: ${product.imageKey}`);
+    return ''; // Return empty string if no image found
+    }
+
+    // Update product images on the page
+    function updateProductImages() {
+        if (!imageManagerImages) return;
+        
+        // Update images on the current product page
+        const productImage = document.querySelector('.product-image');
+        if (productImage && currentProduct) {
+            const imageUrl = getImageForProduct(currentProduct);
+            if (imageUrl) {
+                productImage.src = imageUrl;
+            }
+        }
+        
+        // Update product image references in the PRODUCTS object
+        Object.values(PRODUCTS).forEach(product => {
+            product.image = getImageForProduct(product);
+        });
+    }
+
+    // Load images when module initializes
+    async function loadImages() {
+        imageManagerImages = await fetchImagesFromImageManager();
+        updateProductImages();
+    }
 
     function getCurrentProduct() {
         const body = document.body;
@@ -537,6 +603,9 @@
         // IMPORTANT FIX: Generate a unique cart item ID here
         const cartItemId = "cart_item_" + Math.random().toString(36).substr(2, 9);
 
+        // Get image from Image Manager data
+        const productImage = getImageForProduct(currentProduct);
+
         return {
             id: cartItemId,
             productId: currentProduct.id,
@@ -545,7 +614,8 @@
             price: totalPrice,
             basePrice: currentProduct.type === 'tournament' && tournamentData ? 
                 parseFloat(tournamentData.price) : (currentProduct.basePrice || currentProduct.price),
-            image: tournamentData && tournamentData.imageUrl ? tournamentData.imageUrl : currentProduct.image,
+            image: currentProduct.type === 'tournament' && tournamentData && tournamentData.imageUrl ? 
+                tournamentData.imageUrl : productImage,
             type: currentProduct.type,
             quantity: 1,
             form: formData,
@@ -801,20 +871,25 @@
         currentProduct = getCurrentProduct();
         console.log('Initializing product modal for:', currentProduct.id);
 
-        // Wait for DOM to be ready and modal to be loaded
-        setTimeout(() => {
-            try {
-                bindModalEvents();
-                
-                // Set up tooltips when modal is first loaded
-                setupTooltips();
-                
-                isInitialized = true;
-                console.log('Product modal initialized successfully');
-            } catch (error) {
-                console.error('Error initializing product modal:', error);
-            }
-        }, 500);
+        // Load images from Image Manager
+        loadImages().then(() => {
+            console.log('Images loaded from Image Manager');
+            
+            // Wait for DOM to be ready and modal to be loaded
+            setTimeout(() => {
+                try {
+                    bindModalEvents();
+                    
+                    // Set up tooltips when modal is first loaded
+                    setupTooltips();
+                    
+                    isInitialized = true;
+                    console.log('Product modal initialized successfully');
+                } catch (error) {
+                    console.error('Error initializing product modal:', error);
+                }
+            }, 500);
+        });
     }
 
     // Initialize when DOM is ready - only once
@@ -947,9 +1022,6 @@
         
         // Initial attachment
         attachTooltipListeners();
-        
-        // DON'T overwrite the function - keep it as is
-        // window.setupTooltips = attachTooltipListeners;
         
         console.log('Tooltips setup complete');
     }

@@ -119,6 +119,8 @@
 
 .add-to-cart-text {
     display: block;
+    position: relative;
+    z-index: 9999;
 }
 
 .cart-loader {
@@ -958,4 +960,29 @@
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.disabled-button {
+            background-color: #cccccc !important;
+            color: #666666 !important;
+            cursor: not-allowed !important;
+            position: relative;
+            opacity: 0.7;
+        }
+        
+        .disabled-button::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background-color: #999999;
+            transform: translateY(-50%);
+        }
+        
+        .disabled-button:hover {
+            background-color: #cccccc !important;
+            transform: none !important;
+        }
+        
 

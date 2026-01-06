@@ -14,7 +14,6 @@
         .hero-background {
             position: absolute;
             inset: 0;
-            background-image: url('https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/9cdae476-9d68-45a9-87e9-80615a519e47/202501+Results.jpg');
             background-size: cover;
             background-position: 28% 50%;
             background-color: rgba(0,0,0,0.25);
