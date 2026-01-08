@@ -328,10 +328,18 @@ body {
 .site-title {
     font-size: 1.5rem;
     font-weight: 300;
-    color: var(--primary);
+    color: black;
     text-decoration: none;
     flex: 1;
 }
+
+.nav-menu a {
+    text-decoration: none;
+    color: black;
+    font-weight: 500; 
+}
+
+
 
 /* =========================================== */
 /* RESPONSIVE DESIGN                          */

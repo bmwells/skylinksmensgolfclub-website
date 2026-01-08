@@ -22,7 +22,7 @@
                     <h1>Contact Us</h1>
                     <p>Have questions regarding membership or a specific tournament? Fill out some info and we will be in touch shortly.</p>
                     <div class="contact-page-form">
-                        <form>
+                        <form id="contact-form">
                             <div class="form-group name-fields">
                                 <label>Name *</label>
                                 <div class="name-inputs">
@@ -68,6 +68,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Scripts -->
+    <script src="/js/contact.js"></script>  <!-- ADD THIS FIRST -->
     <script src="/js/menu.js"></script>
     <script src="/js/cart-count.js"></script>
     <script>
@@ -76,10 +77,7 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                // Initialize menu if the function exists
-                if (typeof initMenu === 'function') {
-                    initMenu();
-                }
+                if (typeof initMenu === 'function') initMenu();
             });
 
         fetch("/footer.html")
@@ -99,59 +97,12 @@
                 }
             } catch (error) {
                 console.error('Error loading contact image:', error);
-                // Keep the hardcoded fallback image
             }
         }
 
-        // Form submission handling - matching home page
-        document.querySelector('.contact-page-form form')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Basic form validation
-            const firstName = document.getElementById('first-name').value.trim();
-            const lastName = document.getElementById('last-name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const message = document.getElementById('message').value.trim();
-            
-            if (!firstName || !lastName || !email || !message) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-            
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert('Please enter a valid email address.');
-                return;
-            }
-            
-            // Simulate form submission
-            const submitBtn = this.querySelector('.submit-btn');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Sending...';
-            submitBtn.disabled = true;
-            
-            // In a real implementation, you would send this data to a server
-            setTimeout(() => {
-                alert('Thank you! Your message has been sent.');
-                this.reset();
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }, 1500);
-        });
-
-        // Add focus effects to form fields
-        document.querySelectorAll('.contact-page-form input, .contact-page-form select, .contact-page-form textarea').forEach(field => {
-            field.addEventListener('focus', function() {
-                this.style.borderColor = '#333';
-                this.style.outline = 'none';
-            });
-            
-            field.addEventListener('blur', function() {
-                this.style.borderColor = '#ddd';
-            });
-        });
-
+        // REMOVE THE ENTIRE CONFLICTING FORM HANDLER (lines 93-134)
+        // Let contact.js handle form submission
+        
         // Load contact image when page is ready
         document.addEventListener('DOMContentLoaded', loadContactImage);
     </script>
