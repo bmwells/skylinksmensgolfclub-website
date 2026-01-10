@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tournament Manager - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="header">
+    <h1>Tournament Manager</h1>
+    <div>
+        <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+        <button onclick="saveAndRefresh()">🔄 Refresh</button>
+    </div>
+</div>
+
+<div id="main-content">
+    <div class="tournament-header">
+        <div class="tournament-tabs">
+            <button class="tab-button active" onclick="switchTournament('tournament1')">Tournament 1</button>
+            <button class="tab-button" onclick="switchTournament('tournament2')">Tournament 2</button>
+        </div>
+        <button class="add-foursome-btn" onclick="addEmptyFoursome()">+ Add Foursome</button>
+    </div>
+    
+    <div id="tournament1-content" class="tournament-content active">
+        <div id="tournament1-loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading Tournament 1 entries...</p>
+        </div>
+        <div id="tournament1-container"></div>
+    </div>
+    
+    <div id="tournament2-content" class="tournament-content">
+        <div id="tournament2-loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading Tournament 2 entries...</p>
+        </div>
+        <div id="tournament2-container"></div>
+    </div>
+</div>
+
+<!-- Edit Foursome Modal -->
+<div id="editFoursomeModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <h3>Edit Foursome Details</h3>
+        
+        <div class="form-section">
+            <h4>Player 1 Information</h4>
+            <div class="search-input-container">
+                <input type="text" id="editMemberSearch" placeholder="Search for replacement by name..." autocomplete="off">
+                <div id="editSearchResults" class="search-results" style="display: none;"></div>
+            </div>
+            
+            <div id="editSelectedMemberInfo" style="display: none; margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-top: 0;">Selected Player 1:</h4>
+                <div id="editMemberDetails"></div>
+            </div>
+            
+            <div id="editManualEntry" style="display: none; margin-top: 15px;">
+                <h4>Manual Entry for Player 1:</h4>
+                <input type="text" id="editManualFirstName" placeholder="First Name" style="margin-bottom: 8px;">
+                <input type="text" id="editManualLastName" placeholder="Last Name" style="margin-bottom: 8px;">
+                <input type="email" id="editManualEmail" placeholder="Email" style="margin-bottom: 8px;">
+                <input type="tel" id="editManualPhone" placeholder="Phone" style="margin-bottom: 8px;">
+                <input type="number" id="editManualGhin" placeholder="GHIN Number" style="margin-bottom: 8px;">
+                <input type="number" id="editManualEntryNum" placeholder="Entry Number" style="margin-bottom: 8px;">
+                <input type="text" id="editManualIndex" placeholder="Index" style="margin-bottom: 8px;">
+            </div>
+            
+            <button onclick="showEditManualEntry()" style="margin-top: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Manual Entry for Player 1
+            </button>
+        </div>
+        
+        <div class="form-section" style="margin-top: 20px;">
+            <h4>Foursome Details</h4>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Start Time:</label>
+                <select id="editStartTime" style="width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 4px;">
+                    <option value="" disabled selected>Select a time...</option>
+                    <option value="6am">6am</option>
+                    <option value="7am">7am</option>
+                    <option value="8am">8am</option>
+                    <option value="9am">9am</option>
+                    <option value="10am">10am</option>
+                    <option value="11am">11am</option>
+                    <option value="Doesn't Matter">Doesn't Matter</option>
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cart Option:</label>
+                <select id="editCartOption" style="width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 4px;">
+                    <option value="" disabled selected>Select an option...</option>
+                    <option value="Walking">Walking</option>
+                    <option value="Cart">Cart</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="editSidePot">
+                        <span>Side Pot</span>
+                    </label>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="editRoulette">
+                        <span>Roulette</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-actions">
+            <button onclick="closeEditFoursomeModal()">Cancel</button>
+            <button onclick="saveFoursomeChanges()" style="background: #28a745; color: white;">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Player Modal (for players 2-4) -->
+<div id="playerModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <h3 id="modalTitle">Add/Edit Player</h3>
+        
+        <div class="search-input-container">
+            <input type="text" id="memberSearch" placeholder="Search for member by name..." autocomplete="off">
+            <div id="searchResults" class="search-results" style="display: none;"></div>
+        </div>
+        
+        <div id="selectedMemberInfo" style="display: none; margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+            <h4 style="margin-top: 0;">Selected Member:</h4>
+            <div id="memberDetails"></div>
+        </div>
+        
+        <div id="manualEntry" style="display: none; margin-top: 15px;">
+            <h4>Manual Entry:</h4>
+            <input type="text" id="manualFirstName" placeholder="First Name" style="margin-bottom: 8px;">
+            <input type="text" id="manualLastName" placeholder="Last Name" style="margin-bottom: 8px;">
+            <input type="email" id="manualEmail" placeholder="Email" style="margin-bottom: 8px;">
+            <input type="tel" id="manualPhone" placeholder="Phone" style="margin-bottom: 8px;">
+            <input type="number" id="manualGhin" placeholder="GHIN Number" style="margin-bottom: 8px;">
+            <input type="number" id="manualEntryNum" placeholder="Entry Number" style="margin-bottom: 8px;">
+            <input type="text" id="manualIndex" placeholder="Index" style="margin-bottom: 8px;">
+        </div>
+        
+        <div class="modal-actions">
+            <button onclick="showManualEntry()">Manual Entry</button>
+            <button onclick="closePlayerModal()">Cancel</button>
+            <button onclick="confirmPlayerAction()" style="background: #28a745;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Remove/Replace Modal -->
+<div id="actionModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <h3 id="actionModalTitle">Player Actions</h3>
+        <p>What would you like to do with this player?</p>
+        
+        <div style="display: flex; gap: 10px; flex-direction: column; margin: 20px 0;">
+            <button onclick="showReplacePlayer()" style="background: #ffc107; color: #212529;">Replace Player</button>
+            <button onclick="removePlayer()" style="background: #dc3545; color: white;">Remove Player</button>
+        </div>
+        
+        <div class="modal-actions">
+            <button onclick="closeActionModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/admin-common.js"></script>
+<script src="/js/tournament-manager.js"></script>
+
+</body>
+</html>

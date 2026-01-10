@@ -9,7 +9,9 @@ const ARRAY_COLLECTIONS = new Set([
     'meeting-minutes',
     'schedule',
     'members',
-    'images'
+    'images',
+    'monthly-tournament-foursomes',
+    'monthly-tournament2-foursomes'
 ]);
 
 // Collections that store ONE document (object semantics)
