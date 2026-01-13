@@ -341,7 +341,7 @@ button:disabled {
     padding: 16px 24px;
     border-radius: 10px;
     transition: all 0.3s ease;
-    background: white;
+    background: rgb(255, 255, 251);
     border: 2px solid #e8f0fe;
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.08);
     font-weight: 500;
