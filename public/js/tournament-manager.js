@@ -7,6 +7,8 @@ let currentPlayerNumber = null;
 let selectedMember = null;
 let tournament1Data = [];
 let tournament2Data = [];
+let tournament1Title = 'Tournament 1';
+let tournament2Title = 'Tournament 2';
 
 // Function to save active tab to localStorage
 function saveActiveTab(tournamentId) {
@@ -19,24 +21,78 @@ function restoreActiveTab() {
     currentTournament = savedTab;
     
     // Update tab buttons visually
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Update content visibility
-    document.querySelectorAll('.tournament-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    // Find and activate the correct tab button
-    const tabButtons = document.querySelectorAll('.tab-button');
-    if (savedTab === 'tournament1') {
-        tabButtons[0].classList.add('active');
-        document.getElementById('tournament1-content').classList.add('active');
-    } else {
-        tabButtons[1].classList.add('active');
-        document.getElementById('tournament2-content').classList.add('active');
+    updateTabTitles();
+}
+
+// Update tab titles with tournament names
+async function updateTabTitles() {
+    try {
+        // Load tournament data from API
+        const [tournament1Response, tournament2Response] = await Promise.all([
+            fetch('/api/monthly-tournament'),
+            fetch('/api/monthly-tournament2')
+        ]);
+        
+        if (tournament1Response.ok) {
+            const tournament1Data = await tournament1Response.json();
+            // Use 'title' field instead of 'name'
+            tournament1Title = tournament1Data.title || 'Tournament 1';
+        }
+        
+        if (tournament2Response.ok) {
+            const tournament2Data = await tournament2Response.json();
+            // Use 'title' field instead of 'name'
+            tournament2Title = tournament2Data.title || 'Tournament 2';
+        }
+        
+        // Update tab buttons with truncated titles
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tournament1Tab = tabButtons[0];
+        const tournament2Tab = tabButtons[1];
+        
+        // Set truncated titles with ellipsis
+        tournament1Tab.textContent = truncateText(tournament1Title, 150);
+        tournament1Tab.title = tournament1Title; // Full title as tooltip
+        
+        tournament2Tab.textContent = truncateText(tournament2Title, 150);
+        tournament2Tab.title = tournament2Title; // Full title as tooltip
+        
+        // Set active state based on currentTournament
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.tournament-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        if (currentTournament === 'tournament1') {
+            tournament1Tab.classList.add('active');
+            document.getElementById('tournament1-content').classList.add('active');
+        } else {
+            tournament2Tab.classList.add('active');
+            document.getElementById('tournament2-content').classList.add('active');
+        }
+        
+    } catch (error) {
+        console.error('Error loading tournament titles:', error);
+        // Use default titles if API fails
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons[0].textContent = 'Tournament 1';
+        tabButtons[1].textContent = 'Tournament 2';
     }
+}
+
+
+// Helper function to truncate text with ellipsis
+function truncateText(text, maxWidth) {
+    if (!text) return '';
+    
+    // Simple character-based truncation (more sophisticated would need canvas measurement)
+    const maxChars = Math.floor(maxWidth / 8); // Rough estimate: 8px per character
+    if (text.length <= maxChars) return text;
+    
+    return text.substring(0, maxChars - 3) + '...';
 }
 
 // Save and refresh function
@@ -58,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Restore active tab from localStorage
+    // Restore active tab from localStorage and update titles
     restoreActiveTab();
     
     // Load tournament data
@@ -734,6 +790,8 @@ window.onclick = function(event) {
     const playerModal = document.getElementById('playerModal');
     const actionModal = document.getElementById('actionModal');
     const editFoursomeModal = document.getElementById('editFoursomeModal');
+    const importModal = document.getElementById('importModal');
+    const exportModal = document.getElementById('exportModal');
     
     if (event.target === playerModal) {
         closePlayerModal();
@@ -745,6 +803,14 @@ window.onclick = function(event) {
     
     if (event.target === editFoursomeModal) {
         closeEditFoursomeModal();
+    }
+    
+    if (event.target === importModal) {
+        closeImportModal();
+    }
+    
+    if (event.target === exportModal) {
+        closeExportModal();
     }
 };
 
@@ -1016,7 +1082,7 @@ async function saveFoursomeChanges() {
         
         console.log('Sending foursome update:', updateData);
         
-        const response = await fetch(`/api/tournament-manager-foursome/${tournamentId}/${foursomeId}`, {
+        const response = await fetch(`/api/tournament-manager/foursome/${tournamentId}/${foursomeId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1137,3 +1203,141 @@ function selectEditMember(member) {
     document.getElementById('editManualEntryNum').value = '';
     document.getElementById('editManualIndex').value = '';
 }
+
+// Import/Export Functions
+function openImportModal() {
+    document.getElementById('importModal').style.display = 'flex';
+    document.getElementById('importFile').value = '';
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').style.display = 'none';
+    document.getElementById('importFile').value = '';
+}
+
+function openExportModal() {
+    document.getElementById('exportModal').style.display = 'flex';
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').style.display = 'none';
+}
+
+// Import/Export Functions
+async function importPlayersFile() {
+    const fileInput = document.getElementById('importFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select a file to import.');
+        return;
+    }
+    
+    // Check file extension
+    const fileName = file.name.toLowerCase();
+    const allowedExtensions = ['.xlsx', '.csv', '.tsv'];
+    const isValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+    
+    if (!isValidExtension) {
+        alert('Please select a valid file type (.xlsx, .csv, or .tsv).');
+        return;
+    }
+    
+    if (!confirm(`WARNING: This will REPLACE ALL current data in the "${currentTournament === 'tournament1' ? tournament1Title : tournament2Title}" tournament with the data from the uploaded file. This action cannot be undone. Continue?`)) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('adminToken');
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // CORRECTED ENDPOINT - Changed from /api/tournament-manager-import/ to /api/tournament-manager/import/
+        const response = await fetch(`/api/tournament-manager/import/${currentTournament}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token
+                // Note: Don't set Content-Type for FormData, browser sets it automatically with boundary
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to import file: ${response.statusText} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        alert(`Successfully imported ${result.importedCount} foursomes from file.`);
+        
+        // Reload tournament data
+        loadTournamentData(currentTournament);
+        
+        closeImportModal();
+        
+    } catch (error) {
+        console.error('Error importing file:', error);
+        alert('Error importing file: ' + error.message);
+    }
+}
+
+async function exportPlayersFile() {
+    const format = document.getElementById('exportFormat').value;
+    
+    if (!format) {
+        alert('Please select an export format.');
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('adminToken');
+        
+        // CORRECTED ENDPOINT - Changed from /api/tournament-manager-export/ to /api/tournament-manager/export/
+        const response = await fetch(`/api/tournament-manager/export/${currentTournament}?format=${format}`, {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to export file: ${response.statusText} - ${errorText}`);
+        }
+        
+        // Get filename from response headers or generate one
+        const tournamentName = currentTournament === 'tournament1' ? 'monthly-tournament' : 'monthly-tournament2';
+        const filename = `${tournamentName}-foursomes.${format}`;
+        
+        // Download the file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        closeExportModal();
+        
+    } catch (error) {
+        console.error('Error exporting file:', error);
+        alert('Error exporting file: ' + error.message);
+    }
+}
+
+// Handle file selection for import
+document.getElementById('importFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const fileName = file.name.toLowerCase();
+        const allowedExtensions = ['.xlsx', '.csv', '.tsv'];
+        const isValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+        
+        if (!isValidExtension) {
+            alert('Invalid file type. Please select a .xlsx, .csv, or .tsv file.');
+            e.target.value = '';
+        }
+    }
+});

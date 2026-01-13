@@ -18,9 +18,15 @@
 <div id="main-content">
     <div class="tournament-header">
         <div class="tournament-tabs">
-            <button class="tab-button active" onclick="switchTournament('tournament1')">Tournament 1</button>
-            <button class="tab-button" onclick="switchTournament('tournament2')">Tournament 2</button>
+            <button class="tab-button active" onclick="switchTournament('tournament1')" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Loading...</button>
+            <button class="tab-button" onclick="switchTournament('tournament2')" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Loading...</button>
         </div>
+        
+        <div class="import-export-buttons" style="display: flex; gap: 10px;">
+            <button onclick="openImportModal()" style="background: #6c757d;">Import Players File</button>
+            <button onclick="openExportModal()" style="background: #17a2b8;">Export Players File</button>
+        </div>
+        
         <button class="add-foursome-btn" onclick="addEmptyFoursome()">+ Add Foursome</button>
     </div>
     
@@ -170,6 +176,45 @@
         
         <div class="modal-actions">
             <button onclick="closeActionModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div id="importModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <h3>Import Players File</h3>
+        <p>Upload a file to replace all data in the current tournament. Accepted formats: .xlsx, .csv, .tsv</p>
+        
+        <div style="margin: 20px 0;">
+            <input type="file" id="importFile" accept=".xlsx,.csv,.tsv" style="width: 100%; padding: 10px; border: 2px dashed #dee2e6; border-radius: 5px;">
+        </div>
+        
+        <div class="modal-actions">
+            <button onclick="closeImportModal()">Cancel</button>
+            <button onclick="importPlayersFile()" style="background: #28a745; color: white;">Import & Replace</button>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <h3>Export Players File</h3>
+        <p>Select a format to download the current tournament data:</p>
+        
+        <div style="margin: 20px 0;">
+            <select id="exportFormat" style="width: 100%; padding: 10px; border: 1px solid #dee2e6; border-radius: 5px;">
+                <option value="" disabled selected>Select export format...</option>
+                <option value="xlsx">Excel (.xlsx)</option>
+                <option value="csv">CSV (.csv)</option>
+                <option value="tsv">TSV (.tsv)</option>
+            </select>
+        </div>
+        
+        <div class="modal-actions">
+            <button onclick="closeExportModal()">Cancel</button>
+            <button onclick="exportPlayersFile()" style="background: #17a2b8; color: white;">Export</button>
         </div>
     </div>
 </div>
