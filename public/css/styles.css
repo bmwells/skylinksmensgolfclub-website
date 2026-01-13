@@ -96,7 +96,7 @@ body {
 /* HERO SECTION                               */
 /* =========================================== */
 .hero {
-    height: 95vh;
+    height: 100vh;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -359,7 +359,7 @@ body {
     }
     
     .hero {
-        height: 97vh;
+        height: 100vh;
     }
 
     .welcome-text h2 {
@@ -410,7 +410,7 @@ body {
 
 @media (max-width: 768px) {
     .hero {
-        height: 96vh;
+        height: 100vh;
     }
 
     .site-title {
