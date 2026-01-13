@@ -52,12 +52,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // For file uploads in import endpoint
 app.use((req, res, next) => {
-    if (req.url.includes('/api/tournament-manager-import/') && req.method === 'POST') {
+    if ((req.url.includes('/api/tournament-manager/import/') || 
+         req.url.includes('/api/members/import')) && 
+        req.method === 'POST') {
         // Parse multipart/form-data for file uploads
         const busboy = require('busboy');
         const bb = busboy({ headers: req.headers });
         const fileBuffer = [];
         let fileName = '';
+        const fields = {};
         
         bb.on('file', (name, file, info) => {
             fileName = info.filename;
@@ -69,11 +72,11 @@ app.use((req, res, next) => {
         });
         
         bb.on('field', (name, val) => {
-            req.body = req.body || {};
-            req.body[name] = val;
+            fields[name] = val;
         });
         
         bb.on('close', () => {
+            req.body = fields;
             req.files = req.files || {};
             req.files.file = {
                 name: fileName,

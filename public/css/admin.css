@@ -327,31 +327,61 @@ button:disabled {
    ADMIN PANEL & CONTROLS
    ============================================ */
 .admin-links {
-    margin: 2.5rem 0;
+    margin: 1rem auto;
+    max-width: 800px;
+    text-align: center;
 }
 
 .admin-links a {
     display: block;
-    margin: 0.75rem 0;
-    font-size: 1.1rem;
+    margin: 1rem auto;
+    font-size: 1.4rem;
     color: #0066cc;
     text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: 16px 24px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background: white;
+    border: 2px solid #e8f0fe;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.08);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    max-width: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-links a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(to bottom, #0066cc, #0099ff);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .admin-links a:hover {
     text-decoration: none;
-    background: #f8f9fa;
+    background: #f0f7ff;
     color: #0056b3;
-    transform: translateX(5px);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.15);
+    border-color: #0066cc;
+}
+
+.admin-links a:hover::before {
+    opacity: 1;
 }
 
 .button-group {
-    margin-top: 15px;
+    margin-top: 20px;
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
 }
 
 .edit-buttons,
@@ -359,8 +389,10 @@ button:disabled {
 .controls {
     margin-top: 2rem;
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
 }
 
 /* ============================================
@@ -722,7 +754,7 @@ button:disabled {
 
 .tab-button {
     padding: 10px 20px;
-    background: #e9ecef;
+    background: #3a506b;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -731,7 +763,7 @@ button:disabled {
 }
 
 .tab-button:hover {
-    background: #dee2e6;
+    background: #4e8ee1;
 }
 
 .tab-button.active {
@@ -1187,3 +1219,371 @@ label {
 .mb-1 { margin-bottom: 0.5rem; }
 .mb-2 { margin-bottom: 1rem; }
 .mb-3 { margin-bottom: 1.5rem; }
+
+
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .row, 
+    .member-row,
+    .compact-row,
+    .image-row,
+    .foursome-container,
+    .tournament-content,
+    .player-row {
+        background: #1e1e1e;
+        border-color: #333;
+    }
+
+    .row:hover,
+    .member-row:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    input, textarea, select {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+
+    input:focus, textarea:focus, select:focus {
+        border-color: #0066cc;
+        box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.3);
+    }
+
+    .header h1,
+    .section-header h3,
+    .member-header h3,
+    .search-section h3,
+    .image-row h3,
+    .foursome-header h3 {
+        color: #e0e0e0;
+    }
+
+    .input-group label,
+    .compact-name {
+        color: #cccccc;
+    }
+
+    .compact-input label {
+        color: #aaaaaa;
+    }
+
+    button {
+        background: #0066cc;
+        color: white;
+    }
+
+    button:hover {
+        background: #0052a3;
+    }
+
+    button.delete {
+        background: #dc3545;
+    }
+
+    button.delete:hover {
+        background: #c82333;
+    }
+
+    button.save-order,
+    button[style*="background: #28a745"] {
+        background: #28a745;
+    }
+
+    button.save-order:hover,
+    button[style*="background: #28a745"]:hover {
+        background: #218838;
+    }
+
+    .entry-type-selector button {
+        background: #333;
+        color: #e0e0e0;
+    }
+
+    .entry-type-selector button:hover {
+        background: #444;
+    }
+
+    .entry-type-selector button.active {
+        background: #0066cc;
+        color: white;
+    }
+
+    .meeting-date-input,
+    .next-meeting-section,
+    .search-section {
+        background: #2d2d2d;
+        border-color: #444;
+    }
+
+    .next-meeting-section h4 {
+        color: #4caf50;
+    }
+
+    .reorder-notice {
+        background: #332701;
+        border-color: #665600;
+        color: #ffd54f;
+    }
+
+    .modal {
+        background: #2d2d2d;
+        color: #e0e0e0;
+    }
+
+    .modal p {
+        color: #cccccc;
+    }
+
+    .admin-links a {
+        background: #1e1e1e;
+        border-color: #333;
+        color: #66b3ff;
+    }
+
+    .admin-links a:hover {
+        background: #252525;
+        color: #4da6ff;
+        border-color: #0066cc;
+    }
+
+    .admin-links a::before {
+        background: linear-gradient(to bottom, #0066cc, #0099ff);
+    }
+
+    .ghin-badge,
+    .compact-badges span {
+        background: #333;
+        color: #e0e0e0;
+    }
+
+    .search-input input {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+
+    .search-clear-btn {
+        color: #cccccc;
+        border-color: #444;
+    }
+
+    .search-clear-btn:hover {
+        background: #333;
+    }
+
+    .sort-btn {
+        background: #333;
+        color: #e0e0e0;
+    }
+
+    .sort-btn:hover {
+        background: #444;
+    }
+
+    .sort-btn.active {
+        background: #0066cc;
+        color: white;
+    }
+
+    .image-preview {
+        background-color: #2d2d2d;
+        border-color: #444;
+    }
+
+    .current-image-info {
+        background: #2d2d2d;
+        color: #cccccc;
+    }
+
+    .page-description {
+        color: #aaaaaa;
+    }
+
+    .tournament-meta {
+        background: #2d2d2d;
+    }
+
+    .meta-label {
+        color: #aaaaaa;
+    }
+
+    .meta-value {
+        color: #e0e0e0;
+    }
+
+    .no-entries {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #cccccc;
+    }
+
+    .no-entries h3 {
+        color: #e0e0e0;
+    }
+
+    .player-row.player1 {
+        background: #1a2a3a;
+        border-left-color: #0066cc;
+    }
+
+    .badge-yes {
+        background: #1b5e20;
+        color: #c8e6c9;
+    }
+
+    .badge-no {
+        background: #7b1fa2;
+        color: #e1bee7;
+    }
+
+    /* Modal form inputs in dark mode */
+    #manualEntry input,
+    #editManualEntry input,
+    #editStartTime,
+    #editCartOption,
+    .search-input-container input {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+
+    #selectedMemberInfo,
+    #editSelectedMemberInfo {
+        background: #2d2d2d;
+        border-left-color: #28a745;
+    }
+
+    #selectedMemberInfo h4,
+    #editSelectedMemberInfo h4 {
+        color: #4caf50;
+    }
+
+    #memberDetails strong,
+    #editMemberDetails strong {
+        color: #cccccc;
+    }
+
+    .search-results {
+        background: #2d2d2d;
+        border-color: #444;
+    }
+
+    .search-result-item {
+        border-bottom-color: #333;
+    }
+
+    .search-result-item:hover {
+        background: #333;
+    }
+
+    .search-result-item.selected {
+        background: #0066cc;
+        color: white;
+    }
+
+    .loading-spinner {
+        border-color: #444;
+        border-top-color: #0066cc;
+    }
+
+    .header,
+    .section-header,
+    .member-header {
+        border-color: #333;
+    }
+
+    .entry-controls,
+    .member-controls {
+        border-color: #333;
+    }
+
+    .player-actions {
+        border-color: #333;
+    }
+
+    .form-section {
+        border-color: #444;
+    }
+
+    .foursome-header {
+        border-color: #444;
+    }
+
+    .player-number {
+        border-color: #444;
+    }
+
+    .dragging {
+        background: #2d2d2d !important;
+        border-color: #666;
+    }
+
+    .compact-row {
+        background: #2d2d2d;
+        border-color: #444;
+    }
+
+    .compact-fields {
+        background: #2d2d2d;
+    }
+
+    .compact-input input {
+        background: #333;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+
+    .sorting-controls {
+        border-color: #444;
+    }
+
+    .tournament-tabs {
+        background: #1e1e1e;
+    }
+
+    .tab-button {
+        background: #3a506b;
+        color: #e0e0e0;
+    }
+
+    .tab-button:hover {
+        background: #4e8ee1;
+    }
+
+    .tab-button.active {
+        background: #0066cc;
+        color: white;
+    }
+
+    .player-details {
+        color: #aaaaaa;
+    }
+
+    .empty-slot {
+        color: #888;
+    }
+
+    .player-name {
+        color: #e0e0e0;
+    }
+
+    .player-number {
+        color: #66b3ff;
+    }
+
+    .player1 .player-number {
+        color: #4da6ff;
+    }
+
+    .form-section h4 {
+        color: #cccccc;
+    }
+}
