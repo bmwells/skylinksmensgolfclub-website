@@ -1,3 +1,4 @@
+// db.js
 const { MongoClient } = require('mongodb');
 
 const MONGO_URI = process.env.MONGODB_URI;
@@ -10,14 +11,12 @@ const ARRAY_COLLECTIONS = new Set([
     'schedule',
     'members',
     'images',
-    'monthly-tournament-foursomes',
-    'monthly-tournament2-foursomes'
+    'tournaments', 
+    'tournament-registrations' 
 ]);
 
 // Collections that store ONE document (object semantics)
 const SINGLE_DOC_COLLECTIONS = new Set([
-    'monthly-tournament',
-    'monthly-tournament2',
     'who-we-are',
     'presidents-letter'
 ]);
@@ -41,6 +40,16 @@ async function connectDB() {
     db = client.db(DB_NAME);
 
     console.log('MongoDB connected → database:', DB_NAME);
+    
+    // Create indexes for better performance
+    await db.collection('tournaments').createIndex({ id: 1 }, { unique: true });
+    await db.collection('tournaments').createIndex({ activePage: 1 });
+    await db.collection('tournaments').createIndex({ pinned: 1 });
+    await db.collection('tournaments').createIndex({ active: 1 });
+    
+    await db.collection('tournament-registrations').createIndex({ tournamentId: 1 });
+    await db.collection('tournament-registrations').createIndex({ createdAt: 1 });
+
     return db;
 }
 

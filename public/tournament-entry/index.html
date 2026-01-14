@@ -80,39 +80,21 @@
         // Load tournament cards
         async function loadTournamentCards() {
             try {
-                // Load both tournaments
-                const [tournament1Res, tournament2Res] = await Promise.all([
-                    fetch('/api/monthly-tournament'),
-                    fetch('/api/monthly-tournament2')
-                ]);
-                
-                const tournament1Data = await tournament1Res.json();
-                const tournament2Data = await tournament2Res.json();
+                // Load active tournaments from new API
+                const response = await fetch('/api/tournaments?activePage=true');
+                const tournaments = await response.json();
                 
                 const gridContainer = document.getElementById('tournament-grid-container');
-                let activeTournaments = [];
                 
-                // Check if tournament 1 should be shown
-                if (tournament1Data && tournament1Data.activePage !== false) {
-                    activeTournaments.push({
-                        data: tournament1Data,
-                        url: 'monthly-tournament/',
-                        fallbackImage: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg',
-                        fallbackTitle: 'Monthly Tournament',
-                        fallbackPrice: 90.00
-                    });
-                }
+                // Filter to only active tournaments
+                const activeTournaments = tournaments.filter(t => t.activePage === true);
                 
-                // Check if tournament 2 should be shown
-                if (tournament2Data && tournament2Data.activePage !== false) {
-                    activeTournaments.push({
-                        data: tournament2Data,
-                        url: 'monthly-tournament2/',
-                        fallbackImage: 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg',
-                        fallbackTitle: 'Monthly Tournament 2',
-                        fallbackPrice: 90.00
-                    });
-                }
+                // Sort: pinned first, then by creation date
+                activeTournaments.sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                });
                 
                 // Create grid based on number of active tournaments
                 if (activeTournaments.length === 0) {
@@ -154,121 +136,27 @@
                             </a>
                         </div>
                     `;
-                } else if (activeTournaments.length === 1) {
-                    // One tournament active, show it with membership cards
-                    gridContainer.innerHTML = `
-                        <div class="tournament-products-grid">
-                            ${generateTournamentCard(activeTournaments[0])}
-                            
-                            <!-- Membership Renewal Card -->
-                            <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
-                                <div class="tournament-product-image-wrapper">
-                                    <img 
-                                        src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
-                                        alt="Membership Renewal"
-                                        class="tournament-product-image"
-                                        loading="lazy"
-                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG'"
-                                    />
-                                </div>
-                                <div class="tournament-product-meta">
-                                    <h3 class="tournament-product-title">Membership Renewal</h3>
-                                    <p class="tournament-product-price">$89.00</p>
-                                </div>
-                            </a>
-
-                            <!-- New Membership Card -->
-                            <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
-                                <div class="tournament-product-image-wrapper">
-                                    <img 
-                                        src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
-                                        alt="New Membership"
-                                        class="tournament-product-image"
-                                        loading="lazy"
-                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg'"
-                                    />
-                                </div>
-                                <div class="tournament-product-meta">
-                                    <h3 class="tournament-product-title">New Membership</h3>
-                                    <p class="tournament-product-price">$109.00</p>
-                                </div>
-                            </a>
-                        </div>
-                    `;
                 } else {
-                    // Two tournaments active, show both tournaments in first row, membership cards in second row
-                    gridContainer.innerHTML = `
-                        <div class="tournament-products-grid" style="grid-template-columns: repeat(2, 1fr);">
-                            ${generateTournamentCard(activeTournaments[0])}
-                            ${generateTournamentCard(activeTournaments[1])}
-                        </div>
-                        <div class="tournament-products-grid" style="margin-top: 40px; grid-template-columns: repeat(2, 1fr);">
-                            <!-- Membership Renewal Card -->
-                            <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
-                                <div class="tournament-product-image-wrapper">
-                                    <img 
-                                        src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
-                                        alt="Membership Renewal"
-                                        class="tournament-product-image"
-                                        loading="lazy"
-                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG'"
-                                    />
-                                </div>
-                                <div class="tournament-product-meta">
-                                    <h3 class="tournament-product-title">Membership Renewal</h3>
-                                    <p class="tournament-product-price">$89.00</p>
-                                </div>
-                            </a>
-
-                            <!-- New Membership Card -->
-                            <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
-                                <div class="tournament-product-image-wrapper">
-                                    <img 
-                                        src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
-                                        alt="New Membership"
-                                        class="tournament-product-image"
-                                        loading="lazy"
-                                        onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg'"
-                                    />
-                                </div>
-                                <div class="tournament-product-meta">
-                                    <h3 class="tournament-product-title">New Membership</h3>
-                                    <p class="tournament-product-price">$109.00</p>
-                                </div>
-                            </a>
-                        </div>
-                    `;
-                }
-                
-            } catch (error) {
-                console.error('Error loading tournament cards:', error);
-                const gridContainer = document.getElementById('tournament-grid-container');
-                gridContainer.innerHTML = `
-                    <div class="tournament-products-grid">
-                        <!-- Default fallback if API fails -->
-                        <a href="monthly-tournament/" class="tournament-product-card" aria-label="Monthly Tournament">
-                            <div class="tournament-product-image-wrapper">
-                                <img 
-                                    src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg" 
-                                    alt="Monthly Tournament"
-                                    class="tournament-product-image"
-                                    loading="lazy"
-                                />
-                            </div>
-                            <div class="tournament-product-meta">
-                                <h3 class="tournament-product-title">Monthly Tournament</h3>
-                                <p class="tournament-product-price">$90.00</p>
-                            </div>
-                        </a>
-                        
+                    // Create rows: tournaments first, then membership cards
+                    let tournamentsHTML = '';
+                    let membershipHTML = '';
+                    
+                    // Tournament cards
+                    activeTournaments.forEach(tournament => {
+                        tournamentsHTML += generateTournamentCard(tournament);
+                    });
+                    
+                    // Membership cards
+                    membershipHTML = `
                         <!-- Membership Renewal Card -->
                         <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
                             <div class="tournament-product-image-wrapper">
                                 <img 
-                                    src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG" 
+                                    src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
                                     alt="Membership Renewal"
                                     class="tournament-product-image"
                                     loading="lazy"
+                                    onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG'"
                                 />
                             </div>
                             <div class="tournament-product-meta">
@@ -281,10 +169,11 @@
                         <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
                             <div class="tournament-product-image-wrapper">
                                 <img 
-                                    src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg" 
+                                    src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
                                     alt="New Membership"
                                     class="tournament-product-image"
                                     loading="lazy"
+                                    onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg'"
                                 />
                             </div>
                             <div class="tournament-product-meta">
@@ -292,36 +181,55 @@
                                 <p class="tournament-product-price">$109.00</p>
                             </div>
                         </a>
+                    `;
+                    
+                    // Determine grid layout based on number of tournaments
+                    const tournamentCount = activeTournaments.length;
+                    let tournamentsGridCols = tournamentCount === 1 ? '1fr' : 'repeat(2, 1fr)';
+                    
+                    gridContainer.innerHTML = `
+                        <div class="tournament-products-grid" style="grid-template-columns: ${tournamentsGridCols}; margin-bottom: 40px;">
+                            ${tournamentsHTML}
+                        </div>
+                        <div class="tournament-products-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            ${membershipHTML}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Error loading tournament cards:', error);
+                const gridContainer = document.getElementById('tournament-grid-container');
+                gridContainer.innerHTML = `
+                    <div class="tournament-products-grid">
+                        <!-- Default fallback if API fails -->
+                        <div class="error-message">
+                            <p>Unable to load tournaments. Please try again later.</p>
+                        </div>
                     </div>
                 `;
             }
         }
 
-        function generateTournamentCard(tournamentInfo) {
-            const data = tournamentInfo.data;
-            const formattedPrice = data.price ? '$' + parseFloat(data.price).toFixed(2) : '$' + tournamentInfo.fallbackPrice.toFixed(2);
-            const title = data.title || tournamentInfo.fallbackTitle;
+        function generateTournamentCard(tournament) {
+            const formattedPrice = tournament.price ? '$' + parseFloat(tournament.price).toFixed(2) : '$0.00';
+            const title = tournament.title || 'Tournament';
+            const tournamentId = tournament.id || 'tournament';
             
-            // Get image URL from loaded images or tournament data
-            let imageUrl;
-            if (tournamentInfo.url === 'monthly-tournament/') {
-                imageUrl = getImageUrl('monthly-tournament', data.imageUrl || tournamentInfo.fallbackImage);
-            } else if (tournamentInfo.url === 'monthly-tournament2/') {
-                imageUrl = getImageUrl('monthly-tournament2', data.imageUrl || tournamentInfo.fallbackImage);
-            } else {
-                imageUrl = data.imageUrl || tournamentInfo.fallbackImage;
-            }
+            // Get image URL - try tournament's imageUrl first, then fallback
+            let imageUrl = tournament.imageUrl || getImageUrl('tournament-entry', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg');
             
             return `
-                <a href="${tournamentInfo.url}" class="tournament-product-card" aria-label="${title}">
+                <a href="/tournament-entry/${tournamentId}/" class="tournament-product-card" aria-label="${title}">
                     <div class="tournament-product-image-wrapper">
                         <img 
                             src="${imageUrl}" 
                             alt="${title}"
                             class="tournament-product-image"
                             loading="lazy"
-                            onerror="this.src='${tournamentInfo.fallbackImage}'"
+                            onerror="this.src='https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1763488227617-G6Z4R2ORK7FEL2NJVU7H/202512Thumbnail.jpg'"
                         />
+                        ${tournament.pinned ? '<div class="pinned-badge" title="Pinned tournament">📌</div>' : ''}
                     </div>
                     <div class="tournament-product-meta">
                         <h3 class="tournament-product-title">${title}</h3>
@@ -337,6 +245,32 @@
             await loadTournamentCards();
         });
     </script>
+
+    <style>
+        .pinned-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 193, 7, 0.9);
+            color: #212529;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .tournament-product-image-wrapper {
+            position: relative;
+        }
+        
+        .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
 
 </body>
 </html>

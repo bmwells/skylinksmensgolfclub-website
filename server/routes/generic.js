@@ -1,4 +1,4 @@
-// server/routes/generic.js
+// server/routes/generic.js - UPDATED
 const express = require('express');
 const router = express.Router();
 const { readData, writeData } = require('../../db');
@@ -10,6 +10,10 @@ const {
     createMembersExcelWorkbook, 
     createMembersCsvTsvText 
 } = require('../utils/memberImportExport');
+
+// Include tournaments routes
+const tournamentsRouter = require('./tournaments');
+router.use('/tournaments', tournamentsRouter);
 
 // MEMBER AUTOCOMPLETE API
 router.get('/members/search', async (req, res) => {
@@ -35,7 +39,6 @@ router.get('/members/search', async (req, res) => {
 // MEMBER IMPORT/EXPORT ENDPOINTS
 router.post('/members/import', requireAdmin, async (req, res) => {
     try {
-        // Check if file was uploaded
         if (!req.files || !req.files.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
@@ -44,7 +47,6 @@ router.post('/members/import', requireAdmin, async (req, res) => {
         const fileName = file.name.toLowerCase();
         const format = req.body.format || '';
         
-        // Check file extension
         if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.csv') && !fileName.endsWith('.tsv')) {
             return res.status(400).json({ error: 'Invalid file type. Only .xlsx, .csv, and .tsv files are allowed.' });
         }
@@ -55,18 +57,14 @@ router.post('/members/import', requireAdmin, async (req, res) => {
         let members = [];
         
         if (fileName.endsWith('.xlsx')) {
-            // Parse Excel file
             members = await parseMembersExcelFile(file.data);
         } else if (fileName.endsWith('.csv') || fileName.endsWith('.tsv')) {
-            // Parse CSV/TSV file
             const delimiter = fileName.endsWith('.tsv') ? '\t' : ',';
             members = parseMembersCsvTsvFile(file.data, delimiter);
         }
         
-        // Clear existing data
         await collection.deleteMany({});
         
-        // Insert new data
         if (members.length > 0) {
             await collection.insertMany(members);
         }
@@ -94,17 +92,11 @@ router.get('/members/export', requireAdmin, async (req, res) => {
         const db = await connectDB();
         const collection = db.collection('members');
         
-        // Get all members
         const members = await collection.find({}).toArray();
         
-        // Note: The sorting is now handled in the createMembersExcelWorkbook 
-        // and createMembersCsvTsvText functions
-        
         if (format === 'xlsx') {
-            // Create Excel workbook (will sort internally)
             const buffer = await createMembersExcelWorkbook(members);
             
-            // Set headers for download
             const timestamp = new Date().toISOString().split('T')[0];
             res.setHeader('Content-Disposition', `attachment; filename="members-${timestamp}.${format}"`);
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -113,10 +105,8 @@ router.get('/members/export', requireAdmin, async (req, res) => {
         } else if (format === 'csv' || format === 'tsv') {
             const delimiter = format === 'tsv' ? '\t' : ',';
             
-            // Create CSV/TSV (will sort internally)
             const csvData = createMembersCsvTsvText(members, delimiter);
             
-            // Set headers for download
             const timestamp = new Date().toISOString().split('T')[0];
             res.setHeader('Content-Disposition', `attachment; filename="members-${timestamp}.${format}"`);
             res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'text/tab-separated-values');
@@ -126,47 +116,6 @@ router.get('/members/export', requireAdmin, async (req, res) => {
     } catch (error) {
         console.error('Error exporting member data:', error);
         res.status(500).json({ error: 'Error exporting file: ' + error.message });
-    }
-});
-
-// MONTHLY TOURNAMENT
-router.get('/monthly-tournament', async (req, res) => {
-    try {
-        const data = await readData('monthly-tournament');
-        res.json(data);
-    } catch (error) {
-        console.error('Error reading monthly tournament:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-router.post('/monthly-tournament', requireAdmin, async (req, res) => {
-    try {
-        await writeData('monthly-tournament', req.body);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Error writing monthly tournament:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-router.get('/monthly-tournament2', async (req, res) => {
-    try {
-        const data = await readData('monthly-tournament2');
-        res.json(data);
-    } catch (error) {
-        console.error('Error reading monthly tournament 2:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-router.post('/monthly-tournament2', requireAdmin, async (req, res) => {
-    try {
-        await writeData('monthly-tournament2', req.body);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Error writing monthly tournament 2:', error);
-        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

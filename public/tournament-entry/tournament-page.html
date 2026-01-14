@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">  
-    <title>Monthly Tournament 2 - Skylinks Men's Golf Club</title>
+    <title>Tournament - Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/product.css" />
-    
+   
 </head>
-<body data-product-id="monthly-tournament2">
+<body data-product-type="tournament">
     <!-- Added chevron back button -->
     <div class="back-to-tournaments">
         <a href="/tournament-entry/" class="back-button">
@@ -30,7 +30,7 @@
                 <div class="product-image-container">
                     <img id="tournament-image" 
                          src="" 
-                         alt="Monthly Tournament 2" 
+                         alt="Tournament" 
                          class="product-image">
                 </div>
 
@@ -72,7 +72,6 @@
 
     <!-- Scripts -->
     <script src="/js/menu.js"></script>
-    <script src="/js/image.js"></script>
     <script src="/js/cart.js"></script>
     <script src="/js/member-autocomplete.js"></script>
     <script src="/js/product.js"></script>
@@ -81,6 +80,19 @@
     <script>
         // Store tournament data globally for use by product.js
         window.tournamentData = null;
+        
+        // Get tournament ID from URL path
+        function getTournamentIdFromUrl() {
+            const path = window.location.pathname;
+            const parts = path.split('/');
+            // URL format: /tournament-entry/[tournament-id]/
+            for (let i = 0; i < parts.length; i++) {
+                if (parts[i] === 'tournament-entry' && i + 1 < parts.length) {
+                    return parts[i + 1];
+                }
+            }
+            return null;
+        }
         
         // Load header + footer on page
         fetch("/header.html")
@@ -94,14 +106,24 @@
             .then(res => res.text())
             .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
-        // Load monthly tournament content from API
-        async function loadMonthlyTournament2() {
+        // Load tournament content from API
+        async function loadTournament() {
             try {
-                const response = await fetch('/api/monthly-tournament2');
+                const tournamentId = getTournamentIdFromUrl();
+                if (!tournamentId) {
+                    throw new Error('Tournament ID not found in URL');
+                }
+                
+                const response = await fetch(`/api/tournaments/${tournamentId}`);
+                if (!response.ok) {
+                    throw new Error(`Tournament not found: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 // Store data globally for use by product.js
                 window.tournamentData = data;
+                window.tournamentData.tournamentId = tournamentId; // Add tournamentId
                 
                 // Update page content
                 if (data.imageUrl) {
@@ -162,7 +184,7 @@
                     window.ProductModal.setTournamentData(data);
                 }
             } catch (error) {
-                console.error('Error loading monthly tournament 2:', error);
+                console.error('Error loading tournament:', error);
                 document.getElementById('tournament-title').textContent = 'Error Loading Tournament';
                 document.getElementById('tournament-description').innerHTML = 
                     '<p>Unable to load tournament details. Please try again later.</p>';
@@ -183,12 +205,12 @@
                 if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.init === 'function') {
                     window.ProductModal.init();
                     
-                    // SETUP TOOLTIPS AFTER MODAL IS LOADED
+                    // Setup tooltips
                     setTimeout(() => {
                         if (typeof window.ProductModal.setupTooltips === 'function') {
                             window.ProductModal.setupTooltips();
                         }
-                    }, 300); // Slight delay to ensure DOM is ready
+                    }, 300);
                     
                     // If tournament data is already loaded, pass it to the modal
                     if (window.tournamentData && typeof window.ProductModal.setTournamentData === 'function') {
@@ -202,10 +224,10 @@
 
         // Initialize product detection after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing product for tournament page 2...');
+            console.log('DOM loaded, initializing tournament page...');
             
             // Load tournament data when page is ready
-            loadMonthlyTournament2();
+            loadTournament();
         });
     </script>
 </body>

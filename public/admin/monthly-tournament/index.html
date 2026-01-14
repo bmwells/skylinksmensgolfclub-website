@@ -2,339 +2,731 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Monthly Tournament Editor - Skylinks Admin</title>
+<title>Monthly Tournaments Editor - Skylinks Admin</title>
 <link rel="stylesheet" href="/css/admin.css">
 <script src="/js/admin-common.js"></script>
 </head>
 <body>
 
 <div class="header">
-  <h1>Monthly Tournament Editor</h1>
+  <h1>Monthly Tournaments Editor</h1>
   <div>
     <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+    <button onclick="createNewTournament()" style="background: #17a2b8;">+ New Tournament</button>
   </div>
 </div>
 
 <div class="controls">
-  <button onclick="saveAllTournaments()" style="background: #28a745;">💾 Save Changes</button>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <select id="tournament-select" onchange="loadSelectedTournament()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px;">
+      <option value="">Select a tournament...</option>
+    </select>
+    <button onclick="saveTournament()" style="background: #28a745;">💾 Save Changes</button>
+    <button onclick="duplicateTournament()" style="background: #6c757d;">Duplicate</button>
+    <button onclick="deleteTournament()" style="background: #dc3545;">Delete</button>
+  </div>
 </div>
 
-<div id="main-content"></div>
+<div id="main-content">
+  <div class="loading" id="loading-message">Loading tournaments...</div>
+  <div id="tournament-editor" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 style="margin: 0;">Tournament Details</h3>
+      <label id="activePageLabel" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 1.4rem;">
+        <input type="checkbox" id="tournament-active-page" onchange="updateLiveHiddenText()">
+        Show on Tournament Entry Page<span id="live-hidden-text"></span>
+      </label>
+    </div>
+    
+    <div class="form-row">
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Tournament ID *</label>
+          <input type="text" id="tournament-id" placeholder="40-net-skins-jan" 
+                 pattern="^[a-z0-9\-]+$" 
+                 title="Lowercase letters, numbers, and hyphens only">
+          <small style="color: #666;">URL-friendly ID (cannot be changed after creation)</small>
+        </div>
+      </div>
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Date *</label>
+          <input type="text" id="tournament-date" placeholder="Jan 10, 2026 or Aug 16-17, 2025">
+          <small style="color: #666;">Format: 'Jan 10, 2026' or 'Aug 16-17, 2025'</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Title *</label>
+          <input type="text" id="tournament-title" placeholder="$40 Net Skins Game">
+        </div>
+      </div>
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Format</label>
+          <input type="text" id="tournament-format" placeholder="Individual Stroke Play">
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Time Range *</label>
+          <input type="text" id="tournament-time-range" placeholder="8:00 AM - 10:00 AM">
+          <small style="color: #666;">Format: '8:00 AM - 10:00 AM'</small>
+        </div>
+      </div>
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Image URL</label>
+          <input type="text" id="tournament-image-url" placeholder="https://res.cloudinary.com/.../image.jpg">
+        </div>
+      </div>
+    </div>
+    
+    <div class="input-group">
+      <label>Description</label>
+      <textarea id="tournament-description" rows="6" placeholder="Tee times will be between 8:00am - 10:00am"></textarea>
+    </div>
+    
+    <div class="form-row">
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Tournament Price ($) *</label>
+          <input type="number" id="tournament-price" placeholder="105" step="0.01" min="0">
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Roulette Price ($)</label>
+          <input type="number" id="tournament-roulette" placeholder="30" step="0.01" min="0">
+        </div>
+      </div>
+      <div style="flex: 1;">
+        <div class="input-group">
+          <label>Side Pot Price ($)</label>
+          <input type="number" id="tournament-side-pot" placeholder="25" step="0.01" min="0">
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="tournament-cart-option">
+          <span>Show Cart Option</span>
+        </label>
+      </div>
+      <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="tournament-active">
+          <span>Tournament Entry is Open</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="tournament-pinned">
+          <span>Pin in Admin Manager</span>
+          <span style="color: #666; font-size: 0.9rem;">(📌 Shows first in tabs)</span>
+        </label>
+      </div>
+      <div style="flex: 1;"></div> <!-- Empty div to maintain layout -->
+    </div>
+    
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
+      <h4>Schedule Integration</h4>
+      <div class="input-group">
+        <label>Schedule Link</label>
+        <input type="text" id="tournament-schedule-link" placeholder="/schedule/" disabled>
+        <small style="color: #666;">Tournaments automatically appear on schedule page</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Tournament Modal -->
+<div id="createTournamentModal" class="modal-overlay" style="display: none;">
+  <div class="modal">
+    <h3>Create New Tournament</h3>
+    
+    <div class="input-group" style="margin: 20px 0;">
+      <label>Tournament ID *</label>
+      <input type="text" id="new-tournament-id" placeholder="40-net-skins-jan" 
+             pattern="^[a-z0-9\-]+$" 
+             title="Lowercase letters, numbers, and hyphens only">
+      <small style="color: #666;">URL-friendly ID (cannot be changed after creation)</small>
+    </div>
+    
+    <div class="input-group" style="margin: 20px 0;">
+      <label>Date *</label>
+      <input type="text" id="new-tournament-date" placeholder="Jan 10, 2026 or Aug 16-17, 2025">
+      <small style="color: #666;">Format: 'Jan 10, 2026' or 'Aug 16-17, 2025'</small>
+    </div>
+    
+    <div class="input-group" style="margin: 20px 0;">
+      <label>Title *</label>
+      <input type="text" id="new-tournament-title" placeholder="$40 Net Skins Game">
+    </div>
+    
+    <div class="modal-actions">
+      <button onclick="closeCreateTournamentModal()">Cancel</button>
+      <button onclick="confirmCreateTournament()" style="background: #28a745; color: white;">Create Tournament</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
-// Make render globally accessible
-window.render = render;
-
 // Store tournament data
-let tournament1Data = {};
-let tournament2Data = {};
+let tournaments = [];
+let currentTournament = null;
+let originalTournamentData = null;
 
 function init() {
-    if (AdminCommon.init('monthly-tournament', {})) {
-        loadMonthlyTournament();
-        loadMonthlyTournament2();
+    if (AdminCommon.init('tournament-editor', {})) {
+        loadTournaments(true);
     }
 }
 
-function loadMonthlyTournament() {
-    fetch('/api/monthly-tournament')
-        .then(res => {
-            if (!res.ok) throw new Error(`Failed to load: ${res.statusText}`);
-            return res.json();
-        })
-        .then(data => {
-            tournament1Data = data || {};
-            render();
-        })
-        .catch(err => {
-            console.error('Error loading monthly tournament 1:', err);
-            tournament1Data = {};
-            render();
-        });
-}
-
-function loadMonthlyTournament2() {
-    fetch('/api/monthly-tournament2')
-        .then(res => {
-            if (!res.ok) throw new Error(`Failed to load: ${res.statusText}`);
-            return res.json();
-        })
-        .then(data => {
-            tournament2Data = data || {};
-            render();
-        })
-        .catch(err => {
-            console.error('Error loading monthly tournament 2:', err);
-            tournament2Data = {};
-            render();
-        });
-}
-
-function render() {
-    const mainContentContainer = document.getElementById('main-content');
-    
-    // Clear container
-    mainContentContainer.innerHTML = '';
-    
-    // Helper function to get live/hidden text with color
-    const getLiveHiddenText = (isChecked) => {
-        if (isChecked) {
-            return '<span style="color: #28a745; font-weight: 600;"> (LIVE)</span>';
-        } else {
-            return '<span style="color: #dc3545; font-weight: 600;"> (HIDDEN)</span>';
-        }
-    };
-    
-    // Create main content section
-    const mainContentDiv = document.createElement('div');
-    mainContentDiv.className = 'row';
-    mainContentDiv.innerHTML = `
-        <h3>Monthly Tournament 1 Content</h3>
-        ${AdminCommon.templates.textInput('Image URL', tournament1Data?.imageUrl || '', `updateTournament1('imageUrl', this.value)`, 'https://example.com/image.jpg')}
-        ${AdminCommon.templates.textInput('Title', tournament1Data?.title || '', `updateTournament1('title', this.value)`, 'Christmas Schamble')}
-        <div class="form-row">
-            <div style="flex: 1;">
-                ${AdminCommon.templates.textInput('Tournament Price (numbers only)', tournament1Data?.price || '', `updateTournament1('price', this.value)`, '84')}
-            </div>
-            <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" ${tournament1Data?.cartOption === true ? 'checked' : ''} onchange="updateTournament1('cartOption', this.checked)">
-                    <span>Show Cart Option</span>
-                </label>
-            </div>
-        </div>
-        <div class="form-row">
-            <div style="flex: 1;">
-                ${AdminCommon.templates.textInput('Roulette Price ($)', tournament1Data?.roulette || '', `updateTournament1('roulette', this.value)`, '30')}
-            </div>
-            <div style="flex: 1;">
-                ${AdminCommon.templates.textInput('Side Pot Price ($)', tournament1Data?.sidePot || '', `updateTournament1('sidePot', this.value)`, '25')}
-            </div>
-        </div>
-        <div class="form-row">
-            <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" ${tournament1Data?.active !== false ? 'checked' : ''} onchange="updateTournament1('active', this.checked)">
-                    <span>Tournament Entry is Open</span>
-                </label>
-            </div>
-            <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
-                <label id="activePageLabel1" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="activePage1" ${tournament1Data?.activePage === true ? 'checked' : ''} onchange="updateTournament1('activePage', this.checked); updateLiveHiddenText('activePage1', this.checked)">
-                    Show on Tournament Entry Page${getLiveHiddenText(tournament1Data?.activePage === true)}
-                </label>
-            </div>
-        </div>
-        ${AdminCommon.templates.textareaInput('Description', tournament1Data?.description || '', `updateTournament1('description', this.value)`, 'December 14, 2025\\n7:00 AM - 8:00 AM\\n4-Man Shamble (SHOTGUN START)', 'description-textarea')}
-        
-        <h3 style="margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px;">Monthly Tournament 2 Content</h3>
-        ${AdminCommon.templates.textInput('Image URL', tournament2Data?.imageUrl || '', `updateTournament2('imageUrl', this.value)`, 'https://example.com/image2.jpg')}
-        ${AdminCommon.templates.textInput('Title', tournament2Data?.title || '', `updateTournament2('title', this.value)`, 'Summer Scramble')}
-        <div class="form-row">
-            <div style="flex: 1;">
-                ${AdminCommon.templates.textInput('Tournament Price (numbers only)', tournament2Data?.price || '', `updateTournament2('price', this.value)`, '90')}
-            </div>
-            <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" ${tournament2Data?.cartOption === true ? 'checked' : ''} onchange="updateTournament2('cartOption', this.checked)">
-                    <span>Show Cart Option</span>
-                </label>
-            </div>
-        </div>
-        <div class="form-row">
-            <div style="flex: 1;">
-                ${AdminCommon.templates.textInput('Roulette Price ($)', tournament2Data?.roulette || '', `updateTournament2('roulette', this.value)`, '30')}
-            </div>
-            <div style="flex: 1;">
-                ${AdminCommon.templates.textInput('Side Pot Price ($)', tournament2Data?.sidePot || '', `updateTournament2('sidePot', this.value)`, '25')}
-            </div>
-        </div>
-        <div class="form-row">
-            <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" ${tournament2Data?.active !== false ? 'checked' : ''} onchange="updateTournament2('active', this.checked)">
-                    <span>Tournament Entry is Open</span>
-                </label>
-            </div>
-            <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
-                <label id="activePageLabel2" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="activePage2" ${tournament2Data?.activePage === true ? 'checked' : ''} onchange="updateTournament2('activePage', this.checked); updateLiveHiddenText('activePage2', this.checked)">
-                    Show on Tournament Entry Page${getLiveHiddenText(tournament2Data?.activePage === true)}
-                </label>
-            </div>
-        </div>
-        ${AdminCommon.templates.textareaInput('Description', tournament2Data?.description || '', `updateTournament2('description', this.value)`, 'June 15, 2025\\n8:00 AM - 9:00 AM\\n4-Man Scramble', 'description-textarea')}
-    `;
-    mainContentContainer.appendChild(mainContentDiv);
-    
-    // Setup input listeners
-    AdminCommon.setupInputListeners();
-}
-
-function updateTournament1(field, value) {
-    tournament1Data[field] = value;
-    AdminCommon.markUnsaved();
-}
-
-function updateTournament2(field, value) {
-    tournament2Data[field] = value;
-    AdminCommon.markUnsaved();
-}
-
-// Function to update the live/hidden text when checkbox changes
-function updateLiveHiddenText(checkboxId, isChecked) {
-    const checkbox = document.getElementById(checkboxId);
-    if (checkbox && checkbox.parentNode) {
-        const label = checkbox.parentNode;
-        // Clear the label content and rebuild it
-        while (label.firstChild) {
-            label.removeChild(label.firstChild);
-        }
-        
-        // Recreate the checkbox
-        const newCheckbox = document.createElement('input');
-        newCheckbox.type = 'checkbox';
-        newCheckbox.id = checkboxId;
-        newCheckbox.checked = isChecked;
-        newCheckbox.onchange = function() {
-            const tournamentNum = checkboxId === 'activePage1' ? 1 : 2;
-            if (tournamentNum === 1) {
-                updateTournament1('activePage', this.checked);
-            } else {
-                updateTournament2('activePage', this.checked);
-            }
-            updateLiveHiddenText(checkboxId, this.checked);
-        };
-        
-        // Create the text
-        const text = document.createTextNode('Show on Tournament Entry Page');
-        const statusSpan = document.createElement('span');
-        statusSpan.style.color = isChecked ? '#28a745' : '#dc3545';
-        statusSpan.style.fontWeight = '600';
-        statusSpan.textContent = isChecked ? ' (LIVE)' : ' (HIDDEN)';
-        
-        // Append everything back to the label
-        label.appendChild(newCheckbox);
-        label.appendChild(document.createTextNode(' ')); // Add space
-        label.appendChild(text);
-        label.appendChild(statusSpan);
-    }
-}
-
-// Save both tournaments
-async function saveAllTournaments() {
+async function loadTournaments(autoLoadFirst = true) {
     try {
-        // Get token from localStorage
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-            alert('Session expired. Please login again.');
-            window.location.href = '/admin';
-            return;
-        }
+        const response = await fetch('/api/tournaments');
+        tournaments = await response.json();
         
-        // Save tournament 1
-        const save1Promise = fetch('/api/monthly-tournament', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(tournament1Data)
+        // Sort: pinned first, then alphabetical by title (A-Z)
+        tournaments.sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            
+            // Alphabetical order by title (case-insensitive)
+            const titleA = a.title ? a.title.toLowerCase() : '';
+            const titleB = b.title ? b.title.toLowerCase() : '';
+            
+            if (titleA < titleB) return -1;
+            if (titleA > titleB) return 1;
+            return 0;
         });
         
-        // Save tournament 2
-        const save2Promise = fetch('/api/monthly-tournament2', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(tournament2Data)
-        });
+        populateTournamentSelect();
         
-        // Wait for both to complete
-        const [response1, response2] = await Promise.all([save1Promise, save2Promise]);
+        document.getElementById('loading-message').style.display = 'none';
         
-        // Check responses
-        if (!response1.ok) {
-            throw new Error(`Tournament 1 save failed: ${response1.statusText}`);
+        // Load first tournament by default only if autoLoadFirst is true
+        if (tournaments.length > 0 && autoLoadFirst) {
+            loadTournament(tournaments[0].id);
+        } else if (tournaments.length === 0) {
+            document.getElementById('tournament-editor').style.display = 'block';
+            resetForm();
         }
         
-        if (!response2.ok) {
-            throw new Error(`Tournament 2 save failed: ${response2.statusText}`);
+    } catch (error) {
+        console.error('Error loading tournaments:', error);
+        document.getElementById('loading-message').innerHTML = 
+            `<p style="color: #dc3545;">Error loading tournaments: ${error.message}</p>`;
+    }
+}
+
+function populateTournamentSelect() {
+    const select = document.getElementById('tournament-select');
+    select.innerHTML = '<option value="">Select a tournament...</option>';
+    
+    tournaments.forEach(tournament => {
+        const option = document.createElement('option');
+        option.value = tournament.id;
+        
+        // Format: [Title] - [month]
+        let displayText = tournament.title;
+        if (tournament.date) {
+            try {
+                // Extract month from date string (first word)
+                const month = tournament.date.split(' ')[0];
+                displayText += ` - ${month}`;
+            } catch (e) {
+                console.error('Error parsing date:', e);
+            }
         }
+        
+        if (tournament.pinned) {
+            displayText += ' 📌';
+        }
+        
+        option.textContent = displayText;
+        select.appendChild(option);
+    });
+}
+
+async function loadTournament(tournamentId) {
+    try {
+        const response = await fetch(`/api/tournaments/${tournamentId}`);
+        const tournament = await response.json();
+        
+        currentTournament = tournamentId;
+        originalTournamentData = { ...tournament };
+        
+        // Update select
+        document.getElementById('tournament-select').value = tournamentId;
+        
+        // Fill form
+        document.getElementById('tournament-id').value = tournament.id || '';
+        document.getElementById('tournament-id').readOnly = true; // ID cannot be changed
+        document.getElementById('tournament-date').value = tournament.date || '';
+        document.getElementById('tournament-title').value = tournament.title || '';
+        document.getElementById('tournament-format').value = tournament.format || '';
+        document.getElementById('tournament-time-range').value = tournament.displayDate?.timeRange || '';
+        document.getElementById('tournament-image-url').value = tournament.imageUrl || '';
+        document.getElementById('tournament-description').value = tournament.description || '';
+        document.getElementById('tournament-price').value = tournament.price || '';
+        document.getElementById('tournament-roulette').value = tournament.roulette || '';
+        document.getElementById('tournament-side-pot').value = tournament.sidePot || '';
+        document.getElementById('tournament-cart-option').checked = tournament.cartOption === true;
+        document.getElementById('tournament-active').checked = tournament.active !== false;
+        document.getElementById('tournament-active-page').checked = tournament.activePage === true;
+        document.getElementById('tournament-pinned').checked = tournament.pinned === true;
+                
+        // Update live/hidden text
+        updateLiveHiddenText();
+        
+        // Update schedule link
+        document.getElementById('tournament-schedule-link').value = `/tournament-entry/${tournament.id}/`;
+        
+        // Show editor
+        document.getElementById('tournament-editor').style.display = 'block';
         
         // Clear unsaved changes flag
         AdminCommon.hasUnsavedChanges = false;
         
-        alert('Both tournaments saved successfully!');
-        
     } catch (error) {
-        console.error('Save error:', error);
-        alert('Error saving tournaments: ' + error.message);
-        
-        // Handle token expiration
-        if (error.message.includes('403') || error.message.includes('Unauthorized') || error.message.includes('expired')) {
-            localStorage.removeItem('adminToken');
-            window.location.href = '/admin';
-        }
+        console.error('Error loading tournament:', error);
+        alert('Error loading tournament: ' + error.message);
     }
 }
 
+function loadSelectedTournament() {
+    const tournamentId = document.getElementById('tournament-select').value;
+    if (tournamentId) {
+        loadTournament(tournamentId);
+    }
+}
+
+function updateLiveHiddenText() {
+    const isChecked = document.getElementById('tournament-active-page').checked;
+    const textElement = document.getElementById('live-hidden-text');
+    
+    // Remove any existing color classes
+    textElement.classList.remove('live-text', 'hidden-text');
+    
+    if (isChecked) {
+        textElement.textContent = ' (*LIVE*)';
+        textElement.classList.add('live-text');
+    } else {
+        textElement.textContent = ' (HIDDEN)';
+        textElement.classList.add('hidden-text');
+    }
+}
+
+function createNewTournament() {
+    document.getElementById('createTournamentModal').style.display = 'flex';
+    document.getElementById('new-tournament-id').value = '';
+    document.getElementById('new-tournament-date').value = '';
+    document.getElementById('new-tournament-title').value = '';
+}
+
+function closeCreateTournamentModal() {
+    document.getElementById('createTournamentModal').style.display = 'none';
+}
+
+function validateDateFormat(dateString) {
+    // Updated to accept:
+    // 1. Single day: Jan 10, 2026 or Sept 10, 2026
+    // 2. Date range: Aug 16-17, 2025
+    const datePattern = /^[A-Z][a-z]{2,3} \d{1,2}(-\d{1,2})?, \d{4}$/;
+    if (!datePattern.test(dateString)) {
+        return false;
+    }
+    
+    // Additional validation: try to parse the date
+    // For date ranges, parse just the first date
+    const firstDate = dateString.replace(/-\d{1,2}/, '');
+    const date = new Date(firstDate);
+    return !isNaN(date.getTime());
+}
+
+function validateTimeRangeFormat(timeRange) {
+    // Validate format: 8:00 AM - 10:00 AM
+    const timePattern = /^\d{1,2}:\d{2} [AP]M - \d{1,2}:\d{2} [AP]M$/;
+    return timePattern.test(timeRange);
+}
+
+async function confirmCreateTournament() {
+    const tournamentId = document.getElementById('new-tournament-id').value.trim();
+    const date = document.getElementById('new-tournament-date').value.trim();
+    const title = document.getElementById('new-tournament-title').value.trim();
+    
+    if (!tournamentId) {
+        alert('Please enter a Tournament ID');
+        return;
+    }
+    
+    if (!/^[a-z0-9\-]+$/.test(tournamentId)) {
+        alert('Tournament ID can only contain lowercase letters, numbers, and hyphens');
+        return;
+    }
+    
+    if (!date) {
+        alert('Please enter a Date');
+        return;
+    }
+    
+    if (!validateDateFormat(date)) {
+        alert('Please enter a valid date in the format: Jan 10, 2026 or Aug 16-17, 2025');
+        return;
+    }
+    
+    if (!title) {
+        alert('Please enter a Tournament Title');
+        return;
+    }
+    
+    // Check if tournament ID already exists
+    if (tournaments.some(t => t.id === tournamentId)) {
+        alert('A tournament with this ID already exists');
+        return;
+    }
+    
+    try {
+        // Parse date to get month and day(s)
+        // For date ranges like "Aug 16-17, 2025", extract month and day part
+        const month = date.split(' ')[0];
+        const dayPart = date.split(' ')[1]; // Could be "10" or "16-17"
+        
+        // Create new tournament with default values
+        const newTournament = {
+            id: tournamentId,
+            date: date,
+            displayDate: {
+                month: month,
+                day: dayPart, // Keep full day part (could be "10" or "16-17")
+                timeRange: "8:00 AM - 10:00 AM" // Default time range
+            },
+            title: title,
+            imageUrl: "",
+            description: "Tee times will be between 8:00am - 10:00am",
+            price: 105,
+            format: "Individual Stroke Play",
+            active: true,
+            activePage: true,
+            pinned: false,
+            cartOption: true,
+            roulette: 30,
+            sidePot: 25,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/tournaments/${tournamentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(newTournament)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to create tournament');
+        }
+        
+        closeCreateTournamentModal();
+        
+        // Reload tournaments list
+        await loadTournaments(true);
+        
+        // Load the new tournament
+        loadTournament(tournamentId);
+        
+        alert('Tournament created successfully!');
+        
+    } catch (error) {
+        console.error('Error creating tournament:', error);
+        alert('Error creating tournament: ' + error.message);
+    }
+}
+
+async function saveTournament() {
+    if (!currentTournament) {
+        alert('Please select a tournament to edit');
+        return;
+    }
+    
+    // Store the current tournament ID before saving
+    const tournamentToKeepSelected = currentTournament;
+    
+    // Validate required fields
+    const date = document.getElementById('tournament-date').value.trim();
+    const title = document.getElementById('tournament-title').value.trim();
+    const price = document.getElementById('tournament-price').value;
+    const timeRange = document.getElementById('tournament-time-range').value.trim();
+    const format = document.getElementById('tournament-format').value.trim();
+    
+    if (!date) {
+        alert('Please enter a Date');
+        return;
+    }
+    
+    if (!validateDateFormat(date)) {
+        alert('Please enter a valid date in the format: Jan 10, 2026 or Aug 16-17, 2025');
+        return;
+    }
+    
+    if (!title) {
+        alert('Please enter a Tournament Title');
+        return;
+    }
+    
+    if (!price || parseFloat(price) <= 0) {
+        alert('Please enter a valid Tournament Price');
+        return;
+    }
+    
+    if (!timeRange) {
+        alert('Please enter a Time Range');
+        return;
+    }
+    
+    if (!validateTimeRangeFormat(timeRange)) {
+        alert('Please enter a valid time range in the format: 8:00 AM - 10:00 AM');
+        return;
+    }
+    
+    if (!format) {
+        alert('Please enter a Tournament Format');
+        return;
+    }
+    
+    try {
+        // Parse date to get month and day(s)
+        // For date ranges like "Aug 16-17, 2025", extract month and day part
+        const month = date.split(' ')[0];
+        const dayPart = date.split(' ')[1]; // Could be "10" or "16-17"
+        
+        const tournamentData = {
+            id: currentTournament,
+            date: date,
+            displayDate: {
+                month: month,
+                day: dayPart, // Keep full day part (could be "10" or "16-17")
+                timeRange: timeRange
+            },
+            title: title,
+            imageUrl: document.getElementById('tournament-image-url').value.trim(),
+            description: document.getElementById('tournament-description').value.trim(),
+            format: format,
+            price: parseFloat(price),
+            roulette: parseFloat(document.getElementById('tournament-roulette').value) || 30,
+            sidePot: parseFloat(document.getElementById('tournament-side-pot').value) || 25,
+            cartOption: document.getElementById('tournament-cart-option').checked,
+            active: document.getElementById('tournament-active').checked,
+            activePage: document.getElementById('tournament-active-page').checked,
+            pinned: document.getElementById('tournament-pinned').checked,
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Preserve createdAt if it exists
+        if (originalTournamentData && originalTournamentData.createdAt) {
+            tournamentData.createdAt = originalTournamentData.createdAt;
+        } else {
+            tournamentData.createdAt = new Date().toISOString();
+        }
+        
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/tournaments/${currentTournament}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(tournamentData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save tournament');
+        }
+        
+        // Update original data
+        originalTournamentData = tournamentData;
+        
+        // Clear unsaved changes flag
+        AdminCommon.hasUnsavedChanges = false;
+        
+        // Reload tournaments list to update the select - but don't load the first one
+        await loadTournaments(false); // Pass false to prevent auto-loading first tournament
+        
+        // Load the tournament we just saved
+        loadTournament(tournamentToKeepSelected);
+        
+        alert('Tournament saved successfully!');
+        
+    } catch (error) {
+        console.error('Error saving tournament:', error);
+        alert('Error saving tournament: ' + error.message);
+    }
+}
+
+async function duplicateTournament() {
+    if (!currentTournament) {
+        alert('Please select a tournament to duplicate');
+        return;
+    }
+    
+    const newId = prompt('Enter new Tournament ID (lowercase, numbers, hyphens only):');
+    if (!newId) return;
+    
+    if (!/^[a-z0-9\-]+$/.test(newId)) {
+        alert('Tournament ID can only contain lowercase letters, numbers, and hyphens');
+        return;
+    }
+    
+    if (tournaments.some(t => t.id === newId)) {
+        alert('A tournament with this ID already exists');
+        return;
+    }
+    
+    try {
+        // Get current tournament data
+        const response = await fetch(`/api/tournaments/${currentTournament}`);
+        const tournament = await response.json();
+        
+        // Create duplicate with new ID
+        const duplicateTournament = {
+            ...tournament,
+            id: newId,
+            title: tournament.title + ' (Copy)',
+            pinned: false, // Don't pin duplicates by default
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Remove _id if it exists
+        delete duplicateTournament._id;
+        
+        const token = localStorage.getItem('adminToken');
+        const saveResponse = await fetch(`/api/tournaments/${newId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(duplicateTournament)
+        });
+        
+        if (!saveResponse.ok) {
+            throw new Error('Failed to duplicate tournament');
+        }
+        
+        // Reload tournaments list
+        await loadTournaments(false);
+        
+        // Load the duplicated tournament
+        loadTournament(newId);
+        
+        alert('Tournament duplicated successfully!');
+        
+    } catch (error) {
+        console.error('Error duplicating tournament:', error);
+        alert('Error duplicating tournament: ' + error.message);
+    }
+}
+
+async function deleteTournament() {
+    if (!currentTournament) {
+        alert('Please select a tournament to delete');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete "${currentTournament}"? This will also delete all registrations for this tournament. This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/tournaments/${currentTournament}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to delete tournament');
+        }
+        
+        // Reload tournaments list
+        await loadTournaments(false);
+        
+        // Reset form
+        resetForm();
+        
+        alert('Tournament deleted successfully!');
+        
+    } catch (error) {
+        console.error('Error deleting tournament:', error);
+        alert('Error deleting tournament: ' + error.message);
+    }
+}
+
+function resetForm() {
+    document.getElementById('tournament-id').value = '';
+    document.getElementById('tournament-id').readOnly = false;
+    document.getElementById('tournament-date').value = '';
+    document.getElementById('tournament-title').value = '';
+    document.getElementById('tournament-format').value = '';
+    document.getElementById('tournament-time-range').value = '';
+    document.getElementById('tournament-image-url').value = '';
+    document.getElementById('tournament-description').value = '';
+    document.getElementById('tournament-price').value = '';
+    document.getElementById('tournament-roulette').value = '';
+    document.getElementById('tournament-side-pot').value = '';
+    document.getElementById('tournament-cart-option').checked = true;
+    document.getElementById('tournament-active').checked = true;
+    document.getElementById('tournament-active-page').checked = true;
+    document.getElementById('tournament-pinned').checked = false;
+    document.getElementById('tournament-schedule-link').value = '';
+    
+    updateLiveHiddenText();
+    
+    currentTournament = null;
+    originalTournamentData = null;
+    document.getElementById('tournament-select').value = '';
+    
+    AdminCommon.hasUnsavedChanges = false;
+}
+
+// Mark unsaved changes when form fields change
+document.addEventListener('DOMContentLoaded', function() {
+    const formFields = document.querySelectorAll('#tournament-editor input, #tournament-editor textarea, #tournament-editor select');
+    formFields.forEach(field => {
+        field.addEventListener('input', () => {
+            AdminCommon.markUnsaved();
+        });
+        field.addEventListener('change', () => {
+            AdminCommon.markUnsaved();
+        });
+    });
+});
+
 window.onload = init;
 </script>
-
-<style>
-.description-textarea textarea {
-    min-height: 200px;
-    font-family: monospace;
-    line-height: 1.4;
-}
-
-.form-row label input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-}
-
-.form-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 15px;
-}
-
-.form-row > div {
-    flex: 1;
-}
-
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #333;
-}
-
-.input-group input,
-.input-group textarea,
-.input-group select {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-
-.input-group textarea {
-    min-height: 100px;
-    resize: vertical;
-    font-family: monospace;
-}
-</style>
 
 </body>
 </html>

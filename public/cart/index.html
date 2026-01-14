@@ -72,29 +72,20 @@
 
 
 
-    <script>
-      // Load header + footer on page
-      fetch("/header.html")
-          .then(res => res.text())
-          .then(html => {
-              document.getElementById("header-placeholder").innerHTML = html;
-              if (typeof initMenu === "function") initMenu();
-          });
+    <!-- In cart.html, replace the existing script block with this: -->
+<script>
+  // Load header + footer on page
+  fetch("/header.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("header-placeholder").innerHTML = html;
+      if (typeof initMenu === "function") initMenu();
+    });
 
-      fetch("/footer.html")
-          .then(res => res.text())
-          .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+  fetch("/footer.html")
+    .then(res => res.text())
+    .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
-
-      // Expose helper to render cart when DOM is ready
-      document.addEventListener('DOMContentLoaded', function() {
-        // renderCart is defined in /js/cart.js
-        if (typeof renderCart === 'function') {
-          renderCart();
-        } else {
-          // cart.js defines its own DOMContentLoaded rendering; nothing necessary here
-        }
-      });
-    </script>
+</script>
 </body>
 </html>

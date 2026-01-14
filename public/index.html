@@ -120,121 +120,158 @@
 
     <!-- Scripts -->
     <script src="/js/menu.js"></script>
-    <script src="/js/image.js"></script>
     <script src="/js/cart-count.js"></script>
     <script src="/js/contact.js"></script> 
 
-    <script>
-        // Load header + footer on page
-        fetch("/header.html")
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("header-placeholder").innerHTML = html;
-                if (typeof initMenu === "function") initMenu();
-            });
+   <script>
+    // Load header + footer on page
+    fetch("/header.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("header-placeholder").innerHTML = html;
+            if (typeof initMenu === "function") initMenu();
+        });
 
-        fetch("/footer.html")
-            .then(res => res.text())
-            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+    fetch("/footer.html")
+        .then(res => res.text())
+        .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
 
-        // Load images from API and apply them
-        async function loadAndApplyImages() {
-            try {
-                const response = await fetch('/api/images');
-                const images = await response.json();
-                
-                // Apply home page hero image
-                const homeImage = images.find(img => img.id === 'home');
-                if (homeImage && homeImage.imageUrl) {
-                    const heroSection = document.getElementById('hero-section');
-                    if (heroSection) {
-                        heroSection.style.backgroundImage = `url('${homeImage.imageUrl}')`;
-                    }
+    // Load images from API and apply them
+    async function loadAndApplyImages() {
+        try {
+            const response = await fetch('/api/images');
+            const images = await response.json();
+            
+            // Apply home page hero image
+            const homeImage = images.find(img => img.id === 'home');
+            if (homeImage && homeImage.imageUrl) {
+                const heroSection = document.getElementById('hero-section');
+                if (heroSection) {
+                    heroSection.style.backgroundImage = `url('${homeImage.imageUrl}')`;
+                }
+            }
+            
+            // Apply welcome section logo image (using 'logo' from MongoDB)
+            const logoImage = images.find(img => img.id === 'logo');
+            if (logoImage && logoImage.imageUrl) {
+                const welcomeLogoDiv = document.getElementById('welcome-logo-image');
+                if (welcomeLogoDiv) {
+                    welcomeLogoDiv.style.backgroundImage = `url('${logoImage.imageUrl}')`;
                 }
                 
-                // Apply welcome section logo image (using 'logo' from MongoDB)
-                const logoImage = images.find(img => img.id === 'logo');
-                if (logoImage && logoImage.imageUrl) {
-                    const welcomeLogoDiv = document.getElementById('welcome-logo-image');
-                    if (welcomeLogoDiv) {
-                        welcomeLogoDiv.style.backgroundImage = `url('${logoImage.imageUrl}')`;
-                    }
-                    
-                    // Also apply the same logo to all Instagram posts
-                    for (let i = 1; i <= 4; i++) {
-                        const instagramDiv = document.getElementById(`instagram-logo-${i}`);
-                        if (instagramDiv) {
-                            instagramDiv.style.backgroundImage = `url('${logoImage.imageUrl}')`;
-                        }
-                    }
-                }
-                
-                // Apply new membership image
-                const newMembershipImage = images.find(img => img.id === 'new-membership');
-                if (newMembershipImage && newMembershipImage.imageUrl) {
-                    const newMembershipDiv = document.getElementById('new-membership-image');
-                    if (newMembershipDiv) {
-                        newMembershipDiv.style.backgroundImage = `url('${newMembershipImage.imageUrl}')`;
-                    }
-                }
-                
-                // Apply membership renewal image
-                const renewalImage = images.find(img => img.id === 'membership-renewal');
-                if (renewalImage && renewalImage.imageUrl) {
-                    const renewalDiv = document.getElementById('membership-renewal-image');
-                    if (renewalDiv) {
-                        renewalDiv.style.backgroundImage = `url('${renewalImage.imageUrl}')`;
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error loading images:', error);
-                // Set fallback background colors if images fail to load
-                document.getElementById('welcome-logo-image').style.backgroundColor = '#f0f0f0';
+                // Also apply the same logo to all Instagram posts
                 for (let i = 1; i <= 4; i++) {
                     const instagramDiv = document.getElementById(`instagram-logo-${i}`);
                     if (instagramDiv) {
-                        instagramDiv.style.backgroundColor = '#f0f0f0';
+                        instagramDiv.style.backgroundImage = `url('${logoImage.imageUrl}')`;
                     }
                 }
             }
+            
+            // Apply new membership image
+            const newMembershipImage = images.find(img => img.id === 'new-membership');
+            if (newMembershipImage && newMembershipImage.imageUrl) {
+                const newMembershipDiv = document.getElementById('new-membership-image');
+                if (newMembershipDiv) {
+                    newMembershipDiv.style.backgroundImage = `url('${newMembershipImage.imageUrl}')`;
+                }
+            }
+            
+            // Apply membership renewal image
+            const renewalImage = images.find(img => img.id === 'membership-renewal');
+            if (renewalImage && renewalImage.imageUrl) {
+                const renewalDiv = document.getElementById('membership-renewal-image');
+                if (renewalDiv) {
+                    renewalDiv.style.backgroundImage = `url('${renewalImage.imageUrl}')`;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error loading images:', error);
+            // Set fallback background colors if images fail to load
+            const welcomeLogoDiv = document.getElementById('welcome-logo-image');
+            if (welcomeLogoDiv) welcomeLogoDiv.style.backgroundColor = '#f0f0f0';
+            
+            for (let i = 1; i <= 4; i++) {
+                const instagramDiv = document.getElementById(`instagram-logo-${i}`);
+                if (instagramDiv) {
+                    instagramDiv.style.backgroundColor = '#f0f0f0';
+                }
+            }
         }
+    }
 
-        // Load monthly tournament data for the homepage card
-        async function loadHomeMonthlyTournamentCard() {
-            try {
-                const response = await fetch('/api/monthly-tournament');
-                const data = await response.json();
-                
-                const cardContainer = document.getElementById('home-monthly-tournament-card');
-                
-                // Format price with $ and .00, show "From $" if active, otherwise show base price
-                const basePrice = data.price ? parseFloat(data.price) : 90;
-                const formattedPrice = data.active !== false ? `From $${basePrice}` : `$${basePrice}`;
-                const title = data.title || 'Monthly Tournament';
-                const imageUrl = data.imageUrl;
-                
+    // Load the first active tournament for the homepage card
+    async function loadHomeTournamentCard() {
+        try {
+            // Get active tournaments that are shown on the tournament entry page
+            const response = await fetch('/api/tournaments?activePage=true');
+            const tournaments = await response.json();
+            
+            const cardContainer = document.getElementById('home-monthly-tournament-card');
+            
+            if (tournaments.length === 0) {
+                // No active tournaments, show a default card
                 cardContainer.outerHTML = `
                     <div class="tournament-card">
-                        <a href="/tournament-entry/monthly-tournament/">
-                            <div class="tournament-image" style="background-image: url('${imageUrl}')"></div>
-                            <h3>${title}</h3>
-                            <p class="price">${formattedPrice}</p>
+                        <a href="/tournament-entry/">
+                            <div class="tournament-image" style="background-color: #f0f0f0;"></div>
+                            <h3>Upcoming Tournaments</h3>
+                            <p class="price">View All</p>
                         </a>
                     </div>
                 `;
-                
-            } catch (error) {
-                console.error('Error loading monthly tournament for homepage:', error);
+                return;
             }
+            
+            // Sort: pinned first, then by creation date
+            tournaments.sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            });
+            
+            // Use the first tournament
+            const tournament = tournaments[0];
+            
+            // Format price
+            const price = tournament.price ? parseFloat(tournament.price) : 90;
+            const formattedPrice = tournament.active !== false ? `From $${price}` : `$${price}`;
+            const title = tournament.title || 'Tournament';
+            const imageUrl = tournament.imageUrl || '';
+            const tournamentId = tournament.id;
+            
+            cardContainer.outerHTML = `
+                <div class="tournament-card">
+                    <a href="/tournament-entry/${tournamentId}/">
+                        <div class="tournament-image" style="background-image: url('${imageUrl}')"></div>
+                        <h3>${title}</h3>
+                        <p class="price">${formattedPrice}</p>
+                    </a>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Error loading tournament for homepage:', error);
+            const cardContainer = document.getElementById('home-monthly-tournament-card');
+            cardContainer.outerHTML = `
+                <div class="tournament-card">
+                    <a href="/tournament-entry/">
+                        <div class="tournament-image" style="background-color: #f0f0f0;"></div>
+                        <h3>Tournament Entry</h3>
+                        <p class="price">View All</p>
+                    </a>
+                </div>
+            `;
         }
+    }
 
-        // Load everything when page is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAndApplyImages();
-            loadHomeMonthlyTournamentCard();
-        });
-    </script>
+    // Load everything when page is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAndApplyImages();
+        loadHomeTournamentCard();
+    });
+</script>
 
 </body>
 </html>

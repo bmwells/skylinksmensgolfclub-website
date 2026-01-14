@@ -1,6 +1,5 @@
 /* ============================================================
-   Skylinks Custom Cart
-   Fully LocalStorage Cart + Stripe Checkout
+   Skylinks Custom Cart - Updated for dynamic tournaments
    ============================================================ */
 
 const CART_KEY = "skylinks_cart_v1";
@@ -13,7 +12,7 @@ if (window.location.pathname.includes("success")) {
   localStorage.removeItem(CART_KEY);
 }
 
-// Store tooltip state globally (same as product.js)
+// Store tooltip state globally
 let activeTooltip = null;
 let activeTooltipButton = null;
 
@@ -30,7 +29,7 @@ function saveCart(items) {
 }
 
 function generateId() {
-  return "item_" + Math.random().toString(36).substr(2, 9);
+  return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
 // Function to fetch images from Image Manager API
@@ -41,7 +40,6 @@ async function fetchImagesFromImageManager() {
     // Check if we got HTML instead of JSON
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('text/html')) {
-      console.warn('Images API returned HTML, no images available');
       return null;
     }
     
@@ -51,15 +49,13 @@ async function fetchImagesFromImageManager() {
     }
     return null;
   } catch (error) {
-    console.error('Error loading images from Image Manager:', error);
     return null;
   }
 }
 
 // Get image URL from Image Manager data based on product ID
-function getImageForProduct(productId) {
+function getImageForProduct(productId, tournamentData = null) {
   if (!imageManagerImages || !Array.isArray(imageManagerImages)) {
-    console.warn('No images available from Image Manager');
     return ''; // Return empty string instead of fallback
   }
   
@@ -67,26 +63,25 @@ function getImageForProduct(productId) {
   const imageKeyMap = {
     'new-membership': 'new-membership',
     'membership-renewal': 'membership-renewal',
-    'monthly-tournament': 'tournament-entry',
-    'monthly-tournament2': 'tournament-entry'
+    'tournament': 'tournament-entry' // Default for tournaments
   };
   
-  const imageKey = imageKeyMap[productId];
-  if (!imageKey) {
-    console.warn(`No image key mapping for product: ${productId}`);
-    return '';
-  }
-  
+  const imageKey = imageKeyMap[productId] || 'tournament-entry';
   const imageData = imageManagerImages.find(img => img.id === imageKey);
-  if (imageData && imageData.imageUrl) {  // CHANGED: from imageData.url to imageData.imageUrl
-    return imageData.imageUrl;  // CHANGED: from imageData.url to imageData.imageUrl
+  
+  if (imageData && imageData.imageUrl) {
+    return imageData.imageUrl;
   }
   
-  console.warn(`No image found for product key: ${imageKey} (product: ${productId})`);
+  // For tournaments, use the tournament's own image if available
+  if (tournamentData && tournamentData.imageUrl) {
+    return tournamentData.imageUrl;
+  }
+  
   return ''; // Return empty string if no image found
 }
 
-// Phone number formatting function (same as in product.js)
+// Phone number formatting function
 function formatPhoneNumber(value) {
   // Remove all non-numeric characters
   const numbers = value.replace(/\D/g, '');
@@ -172,7 +167,7 @@ function setupEditModalPhoneFormatting() {
   });
 }
 
-// Function to create and show tooltip (same as product.js)
+// Function to create and show tooltip
 function showTooltip(event, text) {
   const button = event.currentTarget;
   
@@ -257,7 +252,7 @@ function showTooltip(event, text) {
   event.stopPropagation();
 }
 
-// Setup tooltips for edit modal (same as product.js)
+// Setup tooltips for edit modal
 function setupEditModalTooltips() {
   // Add click handlers to info icons in the edit modal
   document.querySelectorAll('.info-icon').forEach(icon => {
@@ -317,6 +312,8 @@ function updateCartItem(id, updatedFields) {
    Remove an item - FIXED VERSION
    ============================================================ */
 function removeCartItem(itemId) {
+  if (!itemId) return;
+  
   let cart = loadCart();
   cart = cart.filter(i => i.id !== itemId);
   saveCart(cart);
@@ -324,7 +321,7 @@ function removeCartItem(itemId) {
 }
 
 /* ============================================================
-   Render Cart Page - UPDATED to use Image Manager images
+   Render Cart Page - UPDATED for dynamic tournaments
    ============================================================ */
 async function renderCart() {
   if (!document.getElementById("cart-rows")) return; // not on cart page
@@ -354,7 +351,8 @@ async function renderCart() {
 
   let subtotal = 0;
 
-  cart.forEach(item => {
+  // Process each cart item
+  for (const item of cart) {
     const row = document.createElement("div");
     row.className = "cart-row sqs-row";
 
@@ -362,10 +360,23 @@ async function renderCart() {
     const imgWrap = document.createElement("div");
     imgWrap.className = "cart-row-img sqs-cart-img";
     
-    // Get image from Image Manager or use the stored image
+    // Get tournament data if this is a tournament item
+    let tournamentData = null;
+    if (item.type === 'tournament' && item.tournamentId) {
+      try {
+        const response = await fetch(`/api/tournaments/${item.tournamentId}`);
+        if (response.ok) {
+          tournamentData = await response.json();
+        }
+      } catch (error) {
+        // Silently handle error
+      }
+    }
+    
+    // Get image from tournament data or Image Manager
     let imageUrl = item.image;
     if (!imageUrl) {
-      imageUrl = getImageForProduct(item.productId);
+      imageUrl = getImageForProduct(item.productId, tournamentData);
     }
     
     if (imageUrl) {
@@ -423,6 +434,11 @@ async function renderCart() {
         details.push(`Additional Players: ${item.form.additionalPlayers.length}`);
       }
       
+      // Add tournament ID if available
+      if (item.tournamentId) {
+        details.push(`Tournament: ${item.tournamentId}`);
+      }
+      
       detailsDiv.textContent = details.join(' | ');
     } else {
       // Membership details
@@ -475,42 +491,40 @@ async function renderCart() {
        ====================================================== */
     removeBtn.addEventListener("click", (e) => {
       const itemId = e.currentTarget.dataset.itemId;
-      console.log('Removing item with ID:', itemId);
       removeCartItem(itemId);
-      renderCart();
     });
 
     /* ======================================================
        Edit Handler (open modal)
        ====================================================== */
     editDetailsBtn.addEventListener("click", () => {
-      openEditModal(item);
+      openEditModal(item, tournamentData);
     });
-  });
+  }
 
   subtotalEl.textContent = "$" + subtotal.toFixed(2);
 }
 
 /* ============================================================
-   Modal Editing
+   Modal Editing - UPDATED for dynamic tournaments
    ============================================================ */
 
 let editingItemId = null;
 
-function openEditModal(item) {
+function openEditModal(item, tournamentData = null) {
   editingItemId = item.id;
   
   // Determine which edit modal to use based on item type
   if (item.type === 'tournament') {
-    openTournamentEditModal(item);
+    openTournamentEditModal(item, tournamentData);
   } else {
     openMembershipEditModal(item);
   }
 }
 
-function openTournamentEditModal(item) {
+function openTournamentEditModal(item, tournamentData = null) {
   // Check if cart option is enabled for this tournament
-  const cartOptionEnabled = item.cartOptionEnabled || false;
+  const cartOptionEnabled = tournamentData ? tournamentData.cartOption : item.cartOptionEnabled || false;
   
   // Load tournament edit modal
   fetch("/cart/edit-tournament-modal.html")
@@ -603,7 +617,7 @@ function openTournamentEditModal(item) {
       setTimeout(() => {
         setupEditModalPhoneFormatting();
         setupEditModalGHINFormatting();
-        setupEditModalTooltips(); // ADDED: Setup tooltips for edit modal
+        setupEditModalTooltips();
       }, 50);
       
       // Initialize autocomplete
@@ -618,7 +632,6 @@ function openTournamentEditModal(item) {
       bindEditModalEvents();
     })
     .catch(error => {
-      console.error('Error loading tournament edit modal:', error);
       openSimpleEditModal(item);
     });
 }
@@ -669,7 +682,6 @@ function openMembershipEditModal(item) {
       bindEditModalEvents();
     })
     .catch(error => {
-      console.error('Error loading membership edit modal:', error);
       openSimpleEditModal(item);
     });
 }
@@ -790,7 +802,7 @@ function saveTournamentEditModal() {
     const item = cart.find(i => i.id === editingItemId);
     if (!item) return;
     
-    // Check if cart option is enabled for this tournament
+    // Get tournament data to check cart option
     const cartOptionEnabled = item.cartOptionEnabled || false;
     
     // Get form values
@@ -955,7 +967,6 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = data.url;
       
     } catch (error) {
-      console.error("Checkout error:", error);
       alert("Error during checkout: " + error.message);
       checkoutButton.disabled = false;
       checkoutButton.textContent = "Checkout";

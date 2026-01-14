@@ -1,3 +1,4 @@
+// server.js - UPDATED
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -35,8 +36,8 @@ const DOMAIN = process.env.FRONTEND_DOMAIN || (isLocal ? 'http://localhost:3000'
 // --------------------
 app.use(cors({
     origin: [
-        'https://skylinksmensgolfclub-website.vercel.app',  // Vercel domain
-        'http://localhost:3000',         // Local development
+        'https://skylinksmensgolfclub-website.vercel.app',
+        'http://localhost:3000',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -45,7 +46,6 @@ app.use(cors({
 
 // Handle preflight OPTIONS requests
 app.options('*', cors());
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -55,7 +55,6 @@ app.use((req, res, next) => {
     if ((req.url.includes('/api/tournament-manager/import/') || 
          req.url.includes('/api/members/import')) && 
         req.method === 'POST') {
-        // Parse multipart/form-data for file uploads
         const busboy = require('busboy');
         const bb = busboy({ headers: req.headers });
         const fileBuffer = [];
@@ -110,7 +109,7 @@ app.use('/api', stripeRoutes);
 // Tournament manager routes
 app.use('/api/tournament-manager', tournamentManagerRoutes);
 
-// Generic data routes
+// Generic data routes (includes /api/tournaments)
 app.use('/api', genericRoutes);
 
 // Contact routes
@@ -192,6 +191,13 @@ app.get('/admin/:page', (req, res) => {
 });
 
 // --------------------
+// DYNAMIC TOURNAMENT PAGES
+// --------------------
+app.get('/tournament-entry/:tournamentId', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'tournament-entry', 'tournament-page.html'));
+});
+
+// --------------------
 // FALLBACK
 // --------------------
 app.use((req, res) => {
@@ -199,21 +205,15 @@ app.use((req, res) => {
 });
 
 // --------------------
-// CONNECT TO DATABASE AND EXPORT APP
-// --------------------
-// Database connections will be established lazily when API endpoints are called
-// This is the optimal pattern for serverless environments like Vercel
-
-// --------------------
 // START SERVER FOR LOCAL DEVELOPMENT
 // --------------------
-// Only start listening if NOT on Vercel
 if (isLocal) {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`Server running locally on http://localhost:${PORT}`);
         console.log(`API: http://localhost:${PORT}/api/health`);
         console.log(`Admin: http://localhost:${PORT}/admin`);
+        console.log(`Tournament Entry: http://localhost:${PORT}/tournament-entry`);
         console.log(`Stripe Checkout enabled: ${!!process.env.STRIPE_SECRET_KEY}`);
         console.log(`Stripe Webhook enabled: ${!!process.env.STRIPE_WEBHOOK_SECRET}`);
     });

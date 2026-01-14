@@ -1,4 +1,4 @@
-// server/routes/tournamentManager.js
+// server/routes/tournamentManager.js - UPDATED FOR DYNAMIC TOURNAMENTS
 const express = require('express');
 const router = express.Router();
 const { ObjectId } = require('mongodb');
@@ -11,19 +11,15 @@ const {
     createCsvTsvText 
 } = require('../utils/tournamentImportExport');
 
-// Get tournament entries
+// Get tournament registrations
 router.get('/:tournamentId', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.tournamentId;
-        const collectionName = tournamentId === 'tournament2' 
-            ? 'monthly-tournament2-foursomes' 
-            : 'monthly-tournament-foursomes';
-        
         const db = await connectDB();
-        const collection = db.collection(collectionName);
+        const collection = db.collection('tournament-registrations');
         
-        // Get all entries
-        const entries = await collection.find({}).toArray();
+        // Get all entries for this tournament
+        const entries = await collection.find({ tournamentId: tournamentId }).toArray();
         
         // Sort entries by startTime with custom logic
         const sortedEntries = entries.sort((a, b) => {
@@ -62,7 +58,6 @@ router.get('/:tournamentId', requireAdmin, async (req, res) => {
                 const normalized = timeStr.trim().toUpperCase();
                 
                 // Try to parse time in various formats
-                // Match patterns like: "8:00 AM", "8 AM", "8:00AM", "8:00 A.M.", "8 A.M."
                 const timeMatch = normalized.match(/(\d+):?(\d+)?\s*([AP]\.?M\.?)?/);
                 if (!timeMatch) return Infinity;
                 
@@ -93,7 +88,6 @@ router.get('/:tournamentId', requireAdmin, async (req, res) => {
                 const playerKey = `player${i}`;
                 if (entry[playerKey] && entry[playerKey].memberId) {
                     try {
-                        // FIX: Handle both string and object ID formats
                         let memberId = entry[playerKey].memberId;
                         
                         // If memberId is an object with $oid property, extract it
@@ -145,18 +139,16 @@ router.put('/foursome/:tournamentId/:entryId', requireAdmin, async (req, res) =>
         const { tournamentId, entryId } = req.params;
         const { player1, startTime, cartOption, sidePot, roulette } = req.body;
         
-        console.log('Received update request:', req.body);
-        
-        const collectionName = tournamentId === 'tournament2' 
-            ? 'monthly-tournament2-foursomes' 
-            : 'monthly-tournament-foursomes';
-        
         const db = await connectDB();
-        const collection = db.collection(collectionName);
+        const collection = db.collection('tournament-registrations');
         const membersCollection = db.collection('members');
         
         // Get the entry
-        const entry = await collection.findOne({ _id: new ObjectId(entryId) });
+        const entry = await collection.findOne({ 
+            _id: new ObjectId(entryId),
+            tournamentId: tournamentId 
+        });
+        
         if (!entry) {
             return res.status(404).json({ error: 'Entry not found' });
         }
@@ -170,26 +162,22 @@ router.put('/foursome/:tournamentId/:entryId', requireAdmin, async (req, res) =>
             // Check if we have memberId
             if (player1.memberId) {
                 try {
-                    // Try to find the member by ID
                     const member = await membersCollection.findOne({ 
                         _id: new ObjectId(player1.memberId) 
                     });
                     
                     if (member) {
-                        // Found member, create player object from member
                         playerObject = {
                             memberId: member._id,
                             name: `${member.firstName} ${member.lastName}`,
                             email: player1.email || member.email || '',
-                            phoneNum: player1.phoneNum || player1.phone || member.phoneNum || '', // STANDARDIZED
+                            phoneNum: player1.phoneNum || player1.phone || member.phoneNum || '',
                             ghin: member.ghin,
                             entryNum: member.entryNum,
                             index: player1.index || member.index || '',
                             sidePot: player1.sidePot || false,
                             roulette: player1.roulette || false
                         };
-                    } else {
-                        console.log('Member not found by ID:', player1.memberId);
                     }
                 } catch (error) {
                     console.error('Error finding member by ID:', error);
@@ -202,7 +190,7 @@ router.put('/foursome/:tournamentId/:entryId', requireAdmin, async (req, res) =>
                     memberId: null,
                     name: `${player1.firstName || ''} ${player1.lastName || ''}`.trim(),
                     email: player1.email || '',
-                    phoneNum: player1.phoneNum || player1.phone || '', // STANDARDIZED
+                    phoneNum: player1.phoneNum || player1.phone || '',
                     ghin: player1.ghin ? parseInt(player1.ghin) : null,
                     entryNum: player1.entryNum ? parseInt(player1.entryNum) : null,
                     index: player1.index || '',
@@ -214,30 +202,24 @@ router.put('/foursome/:tournamentId/:entryId', requireAdmin, async (req, res) =>
             // Only update if we have a valid player object
             if (playerObject.name && playerObject.name.trim() !== '') {
                 updateData.player1 = playerObject;
-                console.log('Setting player1:', playerObject);
             }
         }
         
-        // Update other fields - always include them
+        // Update other fields
         if (startTime !== undefined) updateData.startTime = startTime;
         if (cartOption !== undefined) updateData.cartOption = cartOption;
         if (sidePot !== undefined) updateData.sidePot = sidePot;
         if (roulette !== undefined) updateData.roulette = roulette;
         
-        console.log('Final update data:', updateData);
-        
         // Update the entry
-        const result = await collection.updateOne(
-            { _id: new ObjectId(entryId) },
-            { $set: updateData }
+        await collection.updateOne(
+            { _id: new ObjectId(entryId), tournamentId: tournamentId },
+            { $set: { ...updateData, updatedAt: new Date() } }
         );
-        
-        console.log('Update result:', result);
         
         res.json({ 
             success: true,
-            message: 'Foursome updated successfully',
-            data: updateData
+            message: 'Foursome updated successfully'
         });
         
     } catch (error) {
@@ -249,22 +231,22 @@ router.put('/foursome/:tournamentId/:entryId', requireAdmin, async (req, res) =>
     }
 });
 
-// Update tournament entry (add/replace/remove player)
+// Update tournament registration (add/replace/remove player)
 router.put('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
     try {
         const { tournamentId, entryId } = req.params;
         const { playerNumber, action, memberId, memberData } = req.body;
         
-        const collectionName = tournamentId === 'tournament2' 
-            ? 'monthly-tournament2-foursomes' 
-            : 'monthly-tournament-foursomes';
-        
         const db = await connectDB();
-        const collection = db.collection(collectionName);
+        const collection = db.collection('tournament-registrations');
         const membersCollection = db.collection('members');
         
         // Get the entry
-        const entry = await collection.findOne({ _id: new ObjectId(entryId) });
+        const entry = await collection.findOne({ 
+            _id: new ObjectId(entryId),
+            tournamentId: tournamentId 
+        });
+        
         if (!entry) {
             return res.status(404).json({ error: 'Entry not found' });
         }
@@ -273,10 +255,8 @@ router.put('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
         let updateData = {};
         
         if (action === 'remove') {
-            // Remove player from slot
             updateData[playerKey] = null;
         } else if (action === 'replace' || action === 'add') {
-            // Initialize player object
             let playerObject = {};
             
             // First, try to find member by memberId if provided
@@ -284,12 +264,11 @@ router.put('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
                 try {
                     const member = await membersCollection.findOne({ _id: new ObjectId(memberId) });
                     if (member) {
-                        // Found member by ID, create player object from member
                         playerObject = {
                             memberId: member._id,
                             name: `${member.firstName} ${member.lastName}`,
                             email: member.email || '',
-                            phoneNum: member.phoneNum || '', // STANDARDIZED
+                            phoneNum: member.phoneNum || '',
                             ghin: member.ghin,
                             entryNum: member.entryNum,
                             index: member.index || ''
@@ -304,7 +283,7 @@ router.put('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
             if (!playerObject.memberId && memberData) {
                 let foundMember = null;
                 
-                // Try to find by GHIN first (most unique)
+                // Try to find by GHIN first
                 if (memberData.ghin && memberData.ghin.toString().trim() !== '') {
                     foundMember = await membersCollection.findOne({ 
                         ghin: parseInt(memberData.ghin) 
@@ -327,24 +306,22 @@ router.put('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
                 }
                 
                 if (foundMember) {
-                    // Found member by search criteria
                     playerObject = {
                         memberId: foundMember._id,
                         name: `${foundMember.firstName} ${foundMember.lastName}`,
                         email: foundMember.email || '',
-                        phoneNum: foundMember.phoneNum || '', // STANDARDIZED
+                        phoneNum: foundMember.phoneNum || '',
                         ghin: foundMember.ghin,
                         entryNum: foundMember.entryNum,
                         index: foundMember.index || ''
                     };
                 } else {
                     // No member found, create player object from memberData
-                    // This is for non-members playing in tournaments
                     playerObject = {
                         memberId: null,
                         name: `${memberData.firstName || ''} ${memberData.lastName || ''}`.trim(),
                         email: memberData.email || '',
-                        phoneNum: memberData.phoneNum || memberData.phone || '', // STANDARDIZED
+                        phoneNum: memberData.phoneNum || memberData.phone || '',
                         ghin: memberData.ghin && memberData.ghin.toString().trim() !== '' 
                             ? parseInt(memberData.ghin) 
                             : null,
@@ -366,8 +343,8 @@ router.put('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
         
         // Update the entry
         await collection.updateOne(
-            { _id: new ObjectId(entryId) },
-            { $set: updateData }
+            { _id: new ObjectId(entryId), tournamentId: tournamentId },
+            { $set: { ...updateData, updatedAt: new Date() } }
         );
         
         res.json({ success: true });
@@ -377,20 +354,18 @@ router.put('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
     }
 });
 
-// Create empty foursome
+// Create empty registration
 router.post('/:tournamentId', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.tournamentId;
-        const collectionName = tournamentId === 'tournament2' 
-            ? 'monthly-tournament2-foursomes' 
-            : 'monthly-tournament-foursomes';
-        
         const db = await connectDB();
-        const collection = db.collection(collectionName);
+        const collection = db.collection('tournament-registrations');
         
-        // Create empty foursome
-        const emptyFoursome = {
+        // Create empty registration
+        const emptyRegistration = {
+            tournamentId: tournamentId,
             createdAt: new Date(),
+            updatedAt: new Date(),
             stripeSessionId: '',
             paymentAmount: 0,
             player1: null,
@@ -403,7 +378,7 @@ router.post('/:tournamentId', requireAdmin, async (req, res) => {
             roulette: false
         };
         
-        const result = await collection.insertOne(emptyFoursome);
+        const result = await collection.insertOne(emptyRegistration);
         
         // Get the created entry
         const createdEntry = await collection.findOne({ _id: result.insertedId });
@@ -413,24 +388,23 @@ router.post('/:tournamentId', requireAdmin, async (req, res) => {
             entry: createdEntry 
         });
     } catch (error) {
-        console.error('Error creating empty foursome:', error);
+        console.error('Error creating empty registration:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// Remove entire foursome
+// Remove entire registration
 router.delete('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
     try {
         const { tournamentId, entryId } = req.params;
         
-        const collectionName = tournamentId === 'tournament2' 
-            ? 'monthly-tournament2-foursomes' 
-            : 'monthly-tournament-foursomes';
-        
         const db = await connectDB();
-        const collection = db.collection(collectionName);
+        const collection = db.collection('tournament-registrations');
         
-        const result = await collection.deleteOne({ _id: new ObjectId(entryId) });
+        const result = await collection.deleteOne({ 
+            _id: new ObjectId(entryId),
+            tournamentId: tournamentId 
+        });
         
         if (result.deletedCount === 0) {
             return res.status(404).json({ error: 'Entry not found' });
@@ -447,11 +421,7 @@ router.delete('/:tournamentId/:entryId', requireAdmin, async (req, res) => {
 router.post('/import/:tournamentId', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.tournamentId;
-        const collectionName = tournamentId === 'tournament2' 
-            ? 'monthly-tournament2-foursomes' 
-            : 'monthly-tournament-foursomes';
         
-        // Check if file was uploaded
         if (!req.files || !req.files.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
@@ -459,37 +429,42 @@ router.post('/import/:tournamentId', requireAdmin, async (req, res) => {
         const file = req.files.file;
         const fileName = file.name.toLowerCase();
         
-        // Check file extension
         if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.csv') && !fileName.endsWith('.tsv')) {
             return res.status(400).json({ error: 'Invalid file type. Only .xlsx, .csv, and .tsv files are allowed.' });
         }
         
         const db = await connectDB();
-        const collection = db.collection(collectionName);
+        const collection = db.collection('tournament-registrations');
         
-        let foursomes = [];
+        let registrations = [];
         
         if (fileName.endsWith('.xlsx')) {
-            // Parse Excel file
-            foursomes = await parseExcelFile(file.data);
+            registrations = await parseExcelFile(file.data);
         } else if (fileName.endsWith('.csv') || fileName.endsWith('.tsv')) {
-            // Parse CSV/TSV file
             const delimiter = fileName.endsWith('.tsv') ? '\t' : ',';
-            foursomes = parseCsvTsvFile(file.data, delimiter);
+            registrations = parseCsvTsvFile(file.data, delimiter);
         }
         
-        // Clear existing data
-        await collection.deleteMany({});
+        // Add tournamentId to each registration
+        registrations = registrations.map(reg => ({
+            ...reg,
+            tournamentId: tournamentId,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }));
+        
+        // Clear existing data for this tournament
+        await collection.deleteMany({ tournamentId: tournamentId });
         
         // Insert new data
-        if (foursomes.length > 0) {
-            await collection.insertMany(foursomes);
+        if (registrations.length > 0) {
+            await collection.insertMany(registrations);
         }
         
         res.json({ 
             success: true, 
-            importedCount: foursomes.length,
-            message: `Successfully imported ${foursomes.length} foursomes`
+            importedCount: registrations.length,
+            message: `Successfully imported ${registrations.length} registrations`
         });
         
     } catch (error) {
@@ -503,39 +478,30 @@ router.get('/export/:tournamentId', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.tournamentId;
         const format = req.query.format || 'xlsx';
-        const collectionName = tournamentId === 'tournament2' 
-            ? 'monthly-tournament2-foursomes' 
-            : 'monthly-tournament-foursomes';
         
         if (!['xlsx', 'csv', 'tsv'].includes(format)) {
             return res.status(400).json({ error: 'Invalid format. Must be xlsx, csv, or tsv.' });
         }
         
         const db = await connectDB();
-        const collection = db.collection(collectionName);
+        const collection = db.collection('tournament-registrations');
         
-        // Get all entries
-        const entries = await collection.find({}).toArray();
+        // Get all entries for this tournament
+        const entries = await collection.find({ tournamentId: tournamentId }).toArray();
         
         if (format === 'xlsx') {
-            // Create Excel workbook
             const buffer = await createExcelWorkbook(entries);
             
-            // Set headers for download
-            const tournamentName = tournamentId === 'tournament2' ? 'monthly-tournament2' : 'monthly-tournament';
-            res.setHeader('Content-Disposition', `attachment; filename="${tournamentName}-foursomes.xlsx"`);
+            res.setHeader('Content-Disposition', `attachment; filename="${tournamentId}-registrations.xlsx"`);
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.send(buffer);
             
         } else if (format === 'csv' || format === 'tsv') {
             const delimiter = format === 'tsv' ? '\t' : ',';
             
-            // Create CSV/TSV
             const csvData = createCsvTsvText(entries, delimiter);
             
-            // Set headers for download
-            const tournamentName = tournamentId === 'tournament2' ? 'monthly-tournament2' : 'monthly-tournament';
-            res.setHeader('Content-Disposition', `attachment; filename="${tournamentName}-foursomes.${format}"`);
+            res.setHeader('Content-Disposition', `attachment; filename="${tournamentId}-registrations.${format}"`);
             res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'text/tab-separated-values');
             res.send(csvData);
         }

@@ -1,8 +1,8 @@
-// public/js/product.js - Updated version with cart option support
+// public/js/product.js - Updated for dynamic tournaments
 (function () {
     'use strict';
 
-    // Base product definitions WITHOUT hardcoded images
+    // Base product definitions
     const PRODUCTS = {
         'new-membership': {
             id: 'new-membership',
@@ -19,27 +19,8 @@
             type: 'membership',
             useAutocomplete: true,
             imageKey: 'membership-renewal'
-        },
-        'monthly-tournament': {
-            id: 'monthly-tournament',
-            name: 'Monthly Tournament',
-            basePrice: 90.00,
-            type: 'tournament',
-            sidePotsPrice: 25.00,
-            roulettePrice: 30.00,
-            useAutocomplete: true,
-            imageKey: 'monthly-tournament' 
-        },
-        'monthly-tournament2': {
-            id: 'monthly-tournament2',
-            name: 'Monthly Tournament 2',
-            basePrice: 90.00,
-            type: 'tournament',
-            sidePotsPrice: 25.00,
-            roulettePrice: 30.00,
-            useAutocomplete: true,
-            imageKey: 'monthly-tournament2' 
         }
+        // Tournament products are now dynamic
     };
 
     let currentProduct;
@@ -50,15 +31,14 @@
     
     let isInitialized = false;
     let eventListenersBound = false;
-    let tournamentData = null; // Store dynamic tournament data
-    let imageManagerImages = null; // Store images from Image Manager API
+    let tournamentData = null;
+    let imageManagerImages = null;
 
     // Function to fetch images from Image Manager API
     async function fetchImagesFromImageManager() {
         try {
             const response = await fetch('/api/images');
             
-            // Check if we got HTML instead of JSON
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('text/html')) {
                 console.warn('Images API returned HTML, no images available');
@@ -78,18 +58,24 @@
 
     // Get image URL from Image Manager data
     function getImageForProduct(product) {
-    if (!imageManagerImages || !Array.isArray(imageManagerImages)) {
-        console.warn('No images available from Image Manager');
-        return ''; // Return empty string instead of fallback
-    }
-    
-    const imageData = imageManagerImages.find(img => img.id === product.imageKey);
-    if (imageData && imageData.imageUrl) {  // CHANGED: from imageData.url to imageData.imageUrl
-        return imageData.imageUrl;  // CHANGED: from imageData.url to imageData.imageUrl
-    }
-    
-    console.warn(`No image found for product key: ${product.imageKey}`);
-    return ''; // Return empty string if no image found
+        // If tournament has its own imageUrl, use that first
+        if (product.type === 'tournament' && product.imageUrl) {
+            return product.imageUrl;
+        }
+        
+        // Fallback to image manager for other products
+        if (!imageManagerImages || !Array.isArray(imageManagerImages)) {
+            console.warn('No images available from Image Manager');
+            return '';
+        }
+        
+        const imageData = imageManagerImages.find(img => img.id === product.imageKey);
+        if (imageData && imageData.imageUrl) {
+            return imageData.imageUrl;
+        }
+        
+        console.warn(`No image found for product key: ${product.imageKey}`);
+        return '';
     }
 
     // Update product images on the page
@@ -105,7 +91,7 @@
             }
         }
         
-        // Update product image references in the PRODUCTS object
+        // Update product image references
         Object.values(PRODUCTS).forEach(product => {
             product.image = getImageForProduct(product);
         });
@@ -119,8 +105,22 @@
 
     function getCurrentProduct() {
         const body = document.body;
+        const productType = body.getAttribute('data-product-type');
+        
+        if (productType === 'tournament') {
+            // This is a dynamic tournament page
+            return {
+                id: window.tournamentData?.id || 'tournament',
+                name: window.tournamentData?.title || 'Tournament',
+                type: 'tournament',
+                useAutocomplete: true,
+                // Use tournament's imageUrl directly
+                imageUrl: window.tournamentData?.imageUrl || '',
+                imageKey: 'tournament-entry' // Keep for fallback
+            };
+        }
+        
         const productId = body.getAttribute('data-product-id');
-
         if (productId && PRODUCTS[productId]) {
             return PRODUCTS[productId];
         }
@@ -282,7 +282,7 @@
             }, 100);
         }
 
-        // ALWAYS setup tooltips when modal opens
+        // Setup tooltips when modal opens
         setTimeout(() => {
             if (typeof setupTooltips === 'function') {
                 setupTooltips();
@@ -511,9 +511,7 @@
             .join(' ');
 
         // Calculate total price
-        let totalPrice = currentProduct.type === 'tournament' && tournamentData ? 
-            parseFloat(tournamentData.price) : 
-            (currentProduct.price || currentProduct.basePrice);
+        let totalPrice = tournamentData ? parseFloat(tournamentData.price) : 0;
             
         let formData = {
             name: formattedName,
@@ -548,11 +546,11 @@
             let addons = [];
             let addonsTotal = 0;
             
-            // Get add-on prices from tournament data or fallback to defaults
+            // Get add-on prices from tournament data
             const sidePotPrice = tournamentData && tournamentData.sidePot ? 
-                parseFloat(tournamentData.sidePot) : currentProduct.sidePotsPrice;
+                parseFloat(tournamentData.sidePot) : 25;
             const roulettePrice = tournamentData && tournamentData.roulette ? 
-                parseFloat(tournamentData.roulette) : currentProduct.roulettePrice;
+                parseFloat(tournamentData.roulette) : 30;
             
             if (formData.sidePots) {
                 addons.push({ name: 'Side Pots', price: sidePotPrice });
@@ -570,7 +568,7 @@
             
             // Store tournament info
             formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
-            formData.tournamentPrice = tournamentData ? tournamentData.price : (currentProduct.basePrice || currentProduct.price);
+            formData.tournamentPrice = tournamentData ? tournamentData.price : 0;
             formData.cartOptionEnabled = tournamentData ? tournamentData.cartOption : false;
             
             // Additional players
@@ -600,29 +598,28 @@
             formData.additionalPlayers = additionalPlayers;
         }
 
-        // IMPORTANT FIX: Generate a unique cart item ID here
+        // Generate a unique cart item ID
         const cartItemId = "cart_item_" + Math.random().toString(36).substr(2, 9);
 
-        // Get image from Image Manager data
-        const productImage = getImageForProduct(currentProduct);
+        // Get image for product - use tournament's imageUrl if available
+        const productImage = currentProduct.type === 'tournament' && tournamentData && tournamentData.imageUrl ? 
+            tournamentData.imageUrl : getImageForProduct(currentProduct);
 
         return {
             id: cartItemId,
             productId: currentProduct.id,
-            name: currentProduct.type === 'tournament' && tournamentData ? 
-                tournamentData.title : currentProduct.name,
+            tournamentId: tournamentData ? tournamentData.id : null,
+            name: tournamentData ? tournamentData.title : currentProduct.name,
             price: totalPrice,
-            basePrice: currentProduct.type === 'tournament' && tournamentData ? 
-                parseFloat(tournamentData.price) : (currentProduct.basePrice || currentProduct.price),
-            image: currentProduct.type === 'tournament' && tournamentData && tournamentData.imageUrl ? 
-                tournamentData.imageUrl : productImage,
+            basePrice: tournamentData ? parseFloat(tournamentData.price) : (currentProduct.basePrice || currentProduct.price),
+            image: productImage,
             type: currentProduct.type,
             quantity: 1,
             form: formData,
             roulettePrice: currentProduct.type === 'tournament' ? 
-                (tournamentData && tournamentData.roulette ? parseFloat(tournamentData.roulette) : currentProduct.roulettePrice) : null,
+                (tournamentData && tournamentData.roulette ? parseFloat(tournamentData.roulette) : 30) : null,
             sidePotPrice: currentProduct.type === 'tournament' ? 
-                (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : currentProduct.sidePotsPrice) : null,
+                (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : 25) : null,
             cartOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
                 tournamentData.cartOption : false
         };
@@ -750,16 +747,16 @@
             });
         }
 
-        // Save/Add to Cart button - CRITICAL FIX: Use clone to remove existing listeners
+        // Save/Add to Cart button
         if (saveBtn) {
             // Clone and replace to remove any existing event listeners
             const newSaveBtn = saveBtn.cloneNode(true);
             saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
             
-            // Add single event listener with once: true to ensure it only fires once per click
+            // Add single event listener
             newSaveBtn.addEventListener('click', function handleSaveClick(e) {
                 e.preventDefault();
-                e.stopImmediatePropagation(); // Prevent any other handlers
+                e.stopImmediatePropagation();
                 console.log('Save button clicked - adding to cart');
                 handleSave();
                 
@@ -854,8 +851,7 @@
                 });
             }
         }
-        // IMPORTANT: Setup tooltips AFTER all inputs have been set up
-        // This ensures info icons have their event listeners attached
+        // Setup tooltips AFTER all inputs have been set up
         if (typeof setupTooltips === 'function') {
             setupTooltips();
             console.log('Tooltips setup in setupFormInputs');
@@ -1060,6 +1056,15 @@
                 if (data.price && document.querySelector('.product-price-value')) {
                     const formattedPrice = '$' + parseFloat(data.price).toFixed(2);
                     document.querySelector('.product-price-value').textContent = formattedPrice;
+                }
+                // Update the product's imageUrl
+                if (data.imageUrl) {
+                    currentProduct.imageUrl = data.imageUrl;
+                    // Also update the image on the page
+                    const productImage = document.querySelector('.product-image');
+                    if (productImage) {
+                        productImage.src = data.imageUrl;
+                    }
                 }
             }
         },

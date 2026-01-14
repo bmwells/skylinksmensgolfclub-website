@@ -2,13 +2,13 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tournament Manager - Skylinks Admin</title>
+<title>Tournament Foursome Manager - Skylinks Admin</title>
 <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
 
 <div class="header">
-    <h1>Tournament Manager</h1>
+    <h1>Tournament Foursome Manager</h1>
     <div>
         <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
         <button onclick="saveAndRefresh()">🔄 Refresh</button>
@@ -17,9 +17,9 @@
 
 <div id="main-content">
     <div class="tournament-header">
-        <div class="tournament-tabs">
-            <button class="tab-button active" onclick="switchTournament('tournament1')" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Loading...</button>
-            <button class="tab-button" onclick="switchTournament('tournament2')" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Loading...</button>
+        <div class="tournament-tabs" id="tournament-tabs">
+            <!-- Tabs will be populated dynamically -->
+            <div class="loading">Loading tournaments...</div>
         </div>
         
         <div class="import-export-buttons" style="display: flex; gap: 10px;">
@@ -30,20 +30,12 @@
         <button class="add-foursome-btn" onclick="addEmptyFoursome()">+ Add Foursome</button>
     </div>
     
-    <div id="tournament1-content" class="tournament-content active">
-        <div id="tournament1-loading" class="loading">
+    <div id="tournament-content">
+        <div id="tournament-loading" class="loading">
             <div class="loading-spinner"></div>
-            <p>Loading Tournament 1 entries...</p>
+            <p>Select a tournament to view entries...</p>
         </div>
-        <div id="tournament1-container"></div>
-    </div>
-    
-    <div id="tournament2-content" class="tournament-content">
-        <div id="tournament2-loading" class="loading">
-            <div class="loading-spinner"></div>
-            <p>Loading Tournament 2 entries...</p>
-        </div>
-        <div id="tournament2-container"></div>
+        <div id="tournament-container"></div>
     </div>
 </div>
 
@@ -221,6 +213,196 @@
 
 <script src="/js/admin-common.js"></script>
 <script src="/js/tournament-manager.js"></script>
+
+<script>
+// Override tournament-manager.js functions for dynamic tournaments
+
+// Global state
+let currentTournamentId = null;
+let currentFoursomeId = null;
+let currentPlayerNumber = null;
+let selectedMember = null;
+let currentTournamentData = [];
+let tournaments = [];
+
+// Function to save active tab to localStorage
+function saveActiveTab(tournamentId) {
+    localStorage.setItem('activeTournamentTab', tournamentId);
+}
+
+// Function to restore active tab from localStorage
+function restoreActiveTab() {
+    return localStorage.getItem('activeTournamentTab');
+}
+
+// Save and refresh function
+function saveAndRefresh() {
+    // Ensure current tab is saved
+    if (currentTournamentId) {
+        saveActiveTab(currentTournamentId);
+    }
+    location.reload();
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    const savedToken = localStorage.getItem('adminToken');
+    if (!savedToken) {
+        alert('Please login first');
+        window.location.href = '/admin';
+        return;
+    }
+    
+    // Load tournaments
+    loadTournaments();
+    
+    // Setup event listeners
+    setupEventListeners();
+});
+
+async function loadTournaments() {
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch('/api/tournaments?activePage=true', {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load tournaments: ${response.statusText}`);
+        }
+        
+        tournaments = await response.json();
+        
+        // Sort: pinned first, then by creation date
+        tournaments.sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        });
+        
+        // Create tabs
+        createTournamentTabs();
+        
+        // Restore active tab or select first
+        const savedTab = restoreActiveTab();
+        if (savedTab && tournaments.some(t => t.id === savedTab)) {
+            switchTournament(savedTab);
+        } else if (tournaments.length > 0) {
+            switchTournament(tournaments[0].id);
+        }
+        
+    } catch (error) {
+        console.error('Error loading tournaments:', error);
+        document.getElementById('tournament-tabs').innerHTML = 
+            `<p style="color: #dc3545;">Error loading tournaments: ${error.message}</p>`;
+    }
+}
+
+function createTournamentTabs() {
+    const tabsContainer = document.getElementById('tournament-tabs');
+    
+    if (tournaments.length === 0) {
+        tabsContainer.innerHTML = '<p>No tournaments found</p>';
+        return;
+    }
+    
+    let tabsHTML = '';
+    tournaments.forEach(tournament => {
+        const truncatedTitle = truncateText(tournament.title, 150);
+        const pinIcon = tournament.pinned ? '📌 ' : '';
+        tabsHTML += `
+            <button class="tab-button" onclick="switchTournament('${tournament.id}')" 
+                    title="${tournament.title}" 
+                    style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${pinIcon}${truncatedTitle}
+            </button>
+        `;
+    });
+    
+    tabsContainer.innerHTML = tabsHTML;
+}
+
+function switchTournament(tournamentId) {
+    currentTournamentId = tournamentId;
+    
+    // Save to localStorage
+    saveActiveTab(tournamentId);
+    
+    // Update tabs
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Find and activate the correct tab
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        if (btn.textContent.includes(tournamentId) || btn.onclick.toString().includes(tournamentId)) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Load tournament data
+    loadTournamentData(tournamentId);
+}
+
+// Override the loadTournamentData function from tournament-manager.js
+window.loadTournamentData = async function(tournamentId) {
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/tournament-manager/${tournamentId}`, {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load ${tournamentId}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        currentTournamentData = data;
+        
+        document.getElementById('tournament-loading').style.display = 'none';
+        renderTournamentData(tournamentId, data);
+        
+    } catch (error) {
+        console.error('Error loading tournament data:', error);
+        const loadingEl = document.getElementById('tournament-loading');
+        if (loadingEl) {
+            loadingEl.innerHTML = `<p style="color: #dc3545;">Error loading data: ${error.message}</p>`;
+        }
+    }
+};
+
+// Override the renderTournamentData function
+window.renderTournamentData = function(tournamentId, data) {
+    const container = document.getElementById('tournament-container');
+    if (!container) return;
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div class="no-entries">
+                <h3>No Tournament Entries Yet</h3>
+                <p>When players purchase tournament entries through the website, they will appear here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    data.forEach((foursome, index) => {
+        html += renderFoursome(foursome, tournamentId, index);
+    });
+    
+    container.innerHTML = html;
+};
+
+// Keep the rest of the tournament-manager.js functions as they are
+// They will work with the updated currentTournamentId variable
+</script>
 
 </body>
 </html>

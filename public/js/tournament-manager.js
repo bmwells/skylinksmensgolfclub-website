@@ -1,90 +1,6 @@
-// File: public/js/tournament-manager.js
+// File: public/js/tournament-manager.js - UPDATED FOR DYNAMIC TOURNAMENTS
 
-// Global state
-let currentTournament = 'tournament1';
-let currentFoursomeId = null;
-let currentPlayerNumber = null;
-let selectedMember = null;
-let tournament1Data = [];
-let tournament2Data = [];
-let tournament1Title = 'Tournament 1';
-let tournament2Title = 'Tournament 2';
-
-// Function to save active tab to localStorage
-function saveActiveTab(tournamentId) {
-    localStorage.setItem('activeTournamentTab', tournamentId);
-}
-
-// Function to restore active tab from localStorage
-function restoreActiveTab() {
-    const savedTab = localStorage.getItem('activeTournamentTab') || 'tournament1';
-    currentTournament = savedTab;
-    
-    // Update tab buttons visually
-    updateTabTitles();
-}
-
-// Update tab titles with tournament names
-async function updateTabTitles() {
-    try {
-        // Load tournament data from API
-        const [tournament1Response, tournament2Response] = await Promise.all([
-            fetch('/api/monthly-tournament'),
-            fetch('/api/monthly-tournament2')
-        ]);
-        
-        if (tournament1Response.ok) {
-            const tournament1Data = await tournament1Response.json();
-            // Use 'title' field instead of 'name'
-            tournament1Title = tournament1Data.title || 'Tournament 1';
-        }
-        
-        if (tournament2Response.ok) {
-            const tournament2Data = await tournament2Response.json();
-            // Use 'title' field instead of 'name'
-            tournament2Title = tournament2Data.title || 'Tournament 2';
-        }
-        
-        // Update tab buttons with truncated titles
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tournament1Tab = tabButtons[0];
-        const tournament2Tab = tabButtons[1];
-        
-        // Set truncated titles with ellipsis
-        tournament1Tab.textContent = truncateText(tournament1Title, 150);
-        tournament1Tab.title = tournament1Title; // Full title as tooltip
-        
-        tournament2Tab.textContent = truncateText(tournament2Title, 150);
-        tournament2Tab.title = tournament2Title; // Full title as tooltip
-        
-        // Set active state based on currentTournament
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        document.querySelectorAll('.tournament-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        
-        if (currentTournament === 'tournament1') {
-            tournament1Tab.classList.add('active');
-            document.getElementById('tournament1-content').classList.add('active');
-        } else {
-            tournament2Tab.classList.add('active');
-            document.getElementById('tournament2-content').classList.add('active');
-        }
-        
-    } catch (error) {
-        console.error('Error loading tournament titles:', error);
-        // Use default titles if API fails
-        const tabButtons = document.querySelectorAll('.tab-button');
-        tabButtons[0].textContent = 'Tournament 1';
-        tabButtons[1].textContent = 'Tournament 2';
-    }
-}
-
-
-// Helper function to truncate text with ellipsis
+// Helper function to truncate text with ellipsis - MOVED TO TOP
 function truncateText(text, maxWidth) {
     if (!text) return '';
     
@@ -93,6 +9,31 @@ function truncateText(text, maxWidth) {
     if (text.length <= maxChars) return text;
     
     return text.substring(0, maxChars - 3) + '...';
+}
+
+// Helper function for ordinal numbers
+function getOrdinal(n) {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+// Global state
+let currentTournament = null;
+let currentFoursomeId = null;
+let currentPlayerNumber = null;
+let selectedMember = null;
+let currentTournamentData = [];
+let tournaments = []; // Array to store all tournament info
+
+// Function to save active tab to localStorage
+function saveActiveTab(tournamentId) {
+    localStorage.setItem('activeTournamentTab', tournamentId);
+}
+
+// Function to restore active tab from localStorage
+function restoreActiveTab() {
+    return localStorage.getItem('activeTournamentTab');
 }
 
 // Save and refresh function
@@ -114,16 +55,101 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Restore active tab from localStorage and update titles
-    restoreActiveTab();
-    
-    // Load tournament data
-    loadTournamentData('tournament1');
-    loadTournamentData('tournament2');
+    // Load tournaments and setup
+    loadTournaments();
     
     // Setup event listeners
     setupEventListeners();
 });
+
+// Load all tournaments
+async function loadTournaments() {
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch('/api/tournaments?activePage=true', {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load tournaments: ${response.statusText}`);
+        }
+        
+        tournaments = await response.json();
+        
+        // Sort: pinned first, then by creation date
+        tournaments.sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        });
+        
+        // Create tabs
+        createTournamentTabs();
+        
+        // Restore active tab or select first
+        const savedTab = restoreActiveTab();
+        if (savedTab && tournaments.some(t => t.id === savedTab)) {
+            switchTournament(savedTab);
+        } else if (tournaments.length > 0) {
+            switchTournament(tournaments[0].id);
+        }
+        
+    } catch (error) {
+        console.error('Error loading tournaments:', error);
+        document.getElementById('tournament-tabs').innerHTML = 
+            `<p style="color: #dc3545;">Error loading tournaments: ${error.message}</p>`;
+    }
+}
+
+// Create tournament tabs dynamically
+function createTournamentTabs() {
+    const tabsContainer = document.getElementById('tournament-tabs');
+    
+    if (tournaments.length === 0) {
+        tabsContainer.innerHTML = '<p>No tournaments found</p>';
+        return;
+    }
+    
+    let tabsHTML = '';
+    tournaments.forEach(tournament => {
+        const truncatedTitle = truncateText(tournament.title, 150);
+        const pinIcon = tournament.pinned ? '📌 ' : '';
+        tabsHTML += `
+            <button class="tab-button" onclick="switchTournament('${tournament.id}')" 
+                    title="${tournament.title}" 
+                    style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${pinIcon}${truncatedTitle}
+            </button>
+        `;
+    });
+    
+    tabsContainer.innerHTML = tabsHTML;
+}
+
+// Switch between tournaments
+function switchTournament(tournamentId) {
+    currentTournament = tournamentId;
+    
+    // Save to localStorage
+    saveActiveTab(tournamentId);
+    
+    // Update tabs
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Find and activate the correct tab
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        if (btn.textContent.includes(tournamentId) || btn.onclick.toString().includes(tournamentId)) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Load tournament data
+    loadTournamentData(tournamentId);
+}
 
 function setupEventListeners() {
     // Member search input
@@ -162,61 +188,11 @@ function setupEventListeners() {
     });
 }
 
-// Switch between tournaments
-function switchTournament(tournamentId) {
-    currentTournament = tournamentId;
-    
-    // Save to localStorage
-    saveActiveTab(tournamentId);
-    
-    // Update tabs
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    // Update content
-    document.querySelectorAll('.tournament-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    document.getElementById(`${tournamentId}-content`).classList.add('active');
-}
-
-// Add empty foursome
-async function addEmptyFoursome() {
-    if (!confirm('Add an empty foursome to this tournament?')) {
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/api/tournament-manager/${currentTournament}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to add foursome: ${response.statusText} - ${errorText}`);
-        }
-        
-        // Reload tournament data
-        loadTournamentData(currentTournament);
-        
-    } catch (error) {
-        console.error('Error adding empty foursome:', error);
-        alert('Error adding empty foursome: ' + error.message);
-    }
-}
-
 // Load tournament data
 async function loadTournamentData(tournamentId) {
     try {
         const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/api/tournament-manager/${tournamentId}`, {
+        const response = await fetch(`/api/tournaments/${tournamentId}/registrations`, {
             headers: {
                 'Authorization': 'Bearer ' + token
             }
@@ -227,19 +203,19 @@ async function loadTournamentData(tournamentId) {
         }
         
         const data = await response.json();
+        currentTournamentData = data;
         
-        if (tournamentId === 'tournament1') {
-            tournament1Data = data;
-            document.getElementById('tournament1-loading').style.display = 'none';
-            renderTournamentData('tournament1', data);
-        } else {
-            tournament2Data = data;
-            document.getElementById('tournament2-loading').style.display = 'none';
-            renderTournamentData('tournament2', data);
+        // Safely hide loading element if it exists
+        const loadingEl = document.getElementById('tournament-loading');
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
         }
+        
+        renderTournamentData(tournamentId, data);
+        
     } catch (error) {
         console.error('Error loading tournament data:', error);
-        const loadingEl = document.getElementById(`${tournamentId}-loading`);
+        const loadingEl = document.getElementById('tournament-loading');
         if (loadingEl) {
             loadingEl.innerHTML = `<p style="color: #dc3545;">Error loading data: ${error.message}</p>`;
         }
@@ -248,7 +224,7 @@ async function loadTournamentData(tournamentId) {
 
 // Render tournament data with proper display of all fields
 function renderTournamentData(tournamentId, data) {
-    const container = document.getElementById(`${tournamentId}-container`);
+    const container = document.getElementById('tournament-container');
     if (!container) return;
     
     if (!data || data.length === 0) {
@@ -314,8 +290,8 @@ function renderFoursome(foursome, tournamentId, index) {
     // Create title: "Foursome # - R. Aldana, P. Aguiar, J. Almeida, Empty - 8 AM"
     const title = `Foursome ${index + 1} - ${playerNames.join(', ')} - ${startTime}`;
     
-    // Use actual _id from database
-    const foursomeId = foursome._id ? foursome._id.$oid || foursome._id : index;
+    // Use actual _id from database or generate a temporary one
+    const foursomeId = foursome._id || index;
     
     return `
         <div class="foursome-container" data-foursome-id="${foursomeId}">
@@ -407,11 +383,39 @@ function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId) {
     `;
 }
 
-// Helper function for ordinal numbers
-function getOrdinal(n) {
-    const s = ["th", "st", "nd", "rd"];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+// Add empty foursome
+async function addEmptyFoursome() {
+    if (!currentTournament) {
+        alert('Please select a tournament first.');
+        return;
+    }
+    
+    if (!confirm('Add an empty foursome to this tournament?')) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/tournaments/${currentTournament}/registrations`, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to add foursome: ${response.statusText} - ${errorText}`);
+        }
+        
+        // Reload tournament data
+        loadTournamentData(currentTournament);
+        
+    } catch (error) {
+        console.error('Error adding empty foursome:', error);
+        alert('Error adding empty foursome: ' + error.message);
+    }
 }
 
 // Remove foursome
@@ -422,7 +426,7 @@ async function removeFoursome(tournamentId, foursomeId) {
     
     try {
         const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/api/tournament-manager/${tournamentId}/${foursomeId}`, {
+        const response = await fetch(`/api/tournaments/${tournamentId}/registrations/${foursomeId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + token
@@ -565,16 +569,19 @@ async function removePlayer() {
     
     try {
         const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/api/tournament-manager/${finalTournamentId}/${finalFoursomeId}`, {
+        
+        // Prepare update data to clear the player
+        const updateData = {
+            [`player${finalPlayerNumber}`]: null
+        };
+        
+        const response = await fetch(`/api/tournaments/${finalTournamentId}/registrations/${finalFoursomeId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token
             },
-            body: JSON.stringify({
-                playerNumber: finalPlayerNumber,
-                action: 'remove'
-            })
+            body: JSON.stringify(updateData)
         });
         
         if (!response.ok) {
@@ -681,19 +688,16 @@ function closePlayerModal() {
 async function confirmPlayerAction() {
     let memberId = null;
     let memberData = null;
-    let action;
     
     if (selectedMember) {
         // Use selected member from search
         memberId = selectedMember._id;
-        action = 'replace';
         
         // Also send memberData to help the server
         memberData = {
-            firstName: selectedMember.firstName,
-            lastName: selectedMember.lastName,
+            name: `${selectedMember.firstName} ${selectedMember.lastName}`,
             email: selectedMember.email || '',
-            phone: selectedMember.phone || selectedMember.phoneNum || '',
+            phoneNum: selectedMember.phone || selectedMember.phoneNum || '',
             ghin: selectedMember.ghin ? selectedMember.ghin.toString() : '',
             entryNum: selectedMember.entryNum ? selectedMember.entryNum.toString() : '',
             index: selectedMember.index || ''
@@ -714,42 +718,40 @@ async function confirmPlayerAction() {
         }
         
         memberData = {
-            firstName,
-            lastName,
+            name: `${firstName} ${lastName}`,
             email,
-            phone,
+            phoneNum: phone,
             ghin: ghin,
             entryNum: entryNum,
             index
         };
-        action = 'add';
     }
     
     try {
         const token = localStorage.getItem('adminToken');
-        const requestBody = {
-            playerNumber: currentPlayerNumber,
-            action: action
-        };
         
-        // Send both memberId and memberData when available
+        // Prepare update data
+        const updateData = {};
+        
         if (memberId) {
-            requestBody.memberId = memberId;
-        }
-        if (memberData) {
-            requestBody.memberData = memberData;
+            updateData[`player${currentPlayerNumber}`] = {
+                memberId: memberId,
+                ...memberData
+            };
+        } else if (memberData) {
+            updateData[`player${currentPlayerNumber}`] = memberData;
         }
         
-        console.log('Sending player update request:', requestBody);
+        console.log('Sending player update request:', updateData);
         console.log('Using tournament:', currentTournament, 'foursome:', currentFoursomeId);
         
-        const response = await fetch(`/api/tournament-manager/${currentTournament}/${currentFoursomeId}`, {
+        const response = await fetch(`/api/tournaments/${currentTournament}/registrations/${currentFoursomeId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(updateData)
         });
         
         if (!response.ok) {
@@ -821,9 +823,8 @@ function editFoursome(tournamentId, foursomeId) {
     currentFoursomeId = foursomeId;
     
     // Find the foursome data
-    const tournamentData = tournamentId === 'tournament1' ? tournament1Data : tournament2Data;
-    const foursome = tournamentData.find(f => 
-        f._id?.$oid === foursomeId || f._id === foursomeId
+    const foursome = currentTournamentData.find(f => 
+        f._id === foursomeId || f.id === foursomeId
     );
     
     if (!foursome) {
@@ -855,32 +856,30 @@ function fillEditFoursomeModal(foursome) {
         
         // Check if player1 has a memberId (is a member)
         if (player1.memberId) {
-            const memberInfo = player1.fullMember || player1;
-            
             // Pre-fill the search input
-            document.getElementById('editMemberSearch').value = memberInfo.name || '';
+            document.getElementById('editMemberSearch').value = player1.name || '';
             
             // Show selected member info
             document.getElementById('editMemberDetails').innerHTML = `
-                <div><strong>Name:</strong> ${memberInfo.name || 'Unknown'}</div>
-                <div><strong>Email:</strong> ${memberInfo.email || 'Not provided'}</div>
-                <div><strong>Phone:</strong> ${memberInfo.phone || memberInfo.phoneNum || 'Not provided'}</div>
-                <div><strong>GHIN:</strong> ${memberInfo.ghin || 'Not provided'}</div>
-                <div><strong>Entry #:</strong> ${memberInfo.entryNum || 'Not provided'}</div>
-                <div><strong>Index:</strong> ${memberInfo.index || 'Not provided'}</div>
+                <div><strong>Name:</strong> ${player1.name || 'Unknown'}</div>
+                <div><strong>Email:</strong> ${player1.email || 'Not provided'}</div>
+                <div><strong>Phone:</strong> ${player1.phoneNum || player1.phone || 'Not provided'}</div>
+                <div><strong>GHIN:</strong> ${player1.ghin || 'Not provided'}</div>
+                <div><strong>Entry #:</strong> ${player1.entryNum || 'Not provided'}</div>
+                <div><strong>Index:</strong> ${player1.index || 'Not provided'}</div>
             `;
             document.getElementById('editSelectedMemberInfo').style.display = 'block';
             
             // Store selected member data
             selectedMember = {
                 _id: player1.memberId,
-                firstName: memberInfo.name?.split(' ')[0] || '',
-                lastName: memberInfo.name?.split(' ').slice(1).join(' ') || '',
-                email: memberInfo.email || '',
-                phone: memberInfo.phone || memberInfo.phoneNum || '',
-                ghin: memberInfo.ghin,
-                entryNum: memberInfo.entryNum,
-                index: memberInfo.index || ''
+                firstName: player1.name?.split(' ')[0] || '',
+                lastName: player1.name?.split(' ').slice(1).join(' ') || '',
+                email: player1.email || '',
+                phoneNum: player1.phoneNum || '',
+                ghin: player1.ghin,
+                entryNum: player1.entryNum,
+                index: player1.index || ''
             };
         } else {
             // Player is not a member, show manual entry
@@ -895,7 +894,7 @@ function fillEditFoursomeModal(foursome) {
             document.getElementById('editManualFirstName').value = firstName;
             document.getElementById('editManualLastName').value = lastName;
             document.getElementById('editManualEmail').value = player1.email || '';
-            document.getElementById('editManualPhone').value = player1.phone || '';
+            document.getElementById('editManualPhone').value = player1.phoneNum || '';
             document.getElementById('editManualGhin').value = player1.ghin || '';
             document.getElementById('editManualEntryNum').value = player1.entryNum || '';
             document.getElementById('editManualIndex').value = player1.index || '';
@@ -1021,10 +1020,9 @@ async function saveFoursomeChanges() {
             console.log('Using selected member:', selectedMember);
             player1Data = {
                 memberId: selectedMember._id,
-                firstName: selectedMember.firstName,
-                lastName: selectedMember.lastName,
+                name: `${selectedMember.firstName} ${selectedMember.lastName}`,
                 email: selectedMember.email || '',
-                phoneNum: selectedMember.phoneNum || selectedMember.phone || '', // STANDARDIZED
+                phoneNum: selectedMember.phoneNum || '',
                 ghin: selectedMember.ghin || '',
                 entryNum: selectedMember.entryNum || '',
                 index: selectedMember.index || '',
@@ -1045,10 +1043,9 @@ async function saveFoursomeChanges() {
             }
             
             player1Data = {
-                firstName: firstName,
-                lastName: lastName,
+                name: `${firstName} ${lastName}`,
                 email: document.getElementById('editManualEmail').value.trim(),
-                phoneNum: document.getElementById('editManualPhone').value.trim(), // STANDARDIZED
+                phoneNum: document.getElementById('editManualPhone').value.trim(),
                 ghin: document.getElementById('editManualGhin').value.trim(),
                 entryNum: document.getElementById('editManualEntryNum').value.trim(),
                 index: document.getElementById('editManualIndex').value.trim(),
@@ -1082,7 +1079,7 @@ async function saveFoursomeChanges() {
         
         console.log('Sending foursome update:', updateData);
         
-        const response = await fetch(`/api/tournament-manager/foursome/${tournamentId}/${foursomeId}`, {
+        const response = await fetch(`/api/tournaments/${tournamentId}/registrations/${foursomeId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1225,6 +1222,11 @@ function closeExportModal() {
 
 // Import/Export Functions
 async function importPlayersFile() {
+    if (!currentTournament) {
+        alert('Please select a tournament first.');
+        return;
+    }
+    
     const fileInput = document.getElementById('importFile');
     const file = fileInput.files[0];
     
@@ -1243,7 +1245,11 @@ async function importPlayersFile() {
         return;
     }
     
-    if (!confirm(`WARNING: This will REPLACE ALL current data in the "${currentTournament === 'tournament1' ? tournament1Title : tournament2Title}" tournament with the data from the uploaded file. This action cannot be undone. Continue?`)) {
+    // Get tournament title for confirmation message
+    const tournament = tournaments.find(t => t.id === currentTournament);
+    const tournamentTitle = tournament ? tournament.title : currentTournament;
+    
+    if (!confirm(`WARNING: This will REPLACE ALL current data in the "${tournamentTitle}" tournament with the data from the uploaded file. This action cannot be undone. Continue?`)) {
         return;
     }
     
@@ -1252,7 +1258,6 @@ async function importPlayersFile() {
         const formData = new FormData();
         formData.append('file', file);
         
-        // CORRECTED ENDPOINT - Changed from /api/tournament-manager-import/ to /api/tournament-manager/import/
         const response = await fetch(`/api/tournament-manager/import/${currentTournament}`, {
             method: 'POST',
             headers: {
@@ -1282,6 +1287,11 @@ async function importPlayersFile() {
 }
 
 async function exportPlayersFile() {
+    if (!currentTournament) {
+        alert('Please select a tournament first.');
+        return;
+    }
+    
     const format = document.getElementById('exportFormat').value;
     
     if (!format) {
@@ -1292,12 +1302,11 @@ async function exportPlayersFile() {
     try {
         const token = localStorage.getItem('adminToken');
         
-        // CORRECTED ENDPOINT - Changed from /api/tournament-manager-export/ to /api/tournament-manager/export/
         const response = await fetch(`/api/tournament-manager/export/${currentTournament}?format=${format}`, {
             headers: {
                 'Authorization': 'Bearer ' + token
             }
-        });
+        }); // REMOVED THE EXTRA PARENTHESIS HERE
         
         if (!response.ok) {
             const errorText = await response.text();
@@ -1305,7 +1314,8 @@ async function exportPlayersFile() {
         }
         
         // Get filename from response headers or generate one
-        const tournamentName = currentTournament === 'tournament1' ? 'monthly-tournament' : 'monthly-tournament2';
+        const tournament = tournaments.find(t => t.id === currentTournament);
+        const tournamentName = tournament ? tournament.title.replace(/\s+/g, '-').toLowerCase() : currentTournament;
         const filename = `${tournamentName}-foursomes.${format}`;
         
         // Download the file

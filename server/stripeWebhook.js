@@ -1,201 +1,157 @@
-// server/stripeWebhook.js
-const { ObjectId } = require('mongodb');
+// server/stripeWebhook.js - UPDATED FOR DYNAMIC TOURNAMENTS
 const { connectDB } = require('../db');
+const { ObjectId } = require('mongodb');
 
-// Handle completed payment
 async function handleCompletedPayment(session) {
-    console.log('Processing completed payment for session:', session.id);
-    
     try {
-        // Parse metadata
-        let items = [];
+        console.log('Processing completed payment for session:', session.id);
         
-        if (session.metadata.cartData) {
-            // Parse the simplified cart data
-            items = JSON.parse(session.metadata.cartData);
-        } else {
-            // Parse structured metadata
-            const itemCount = parseInt(session.metadata.itemsCount || '0');
+        const db = await connectDB();
+        const registrationsCollection = db.collection('tournament-registrations');
+        
+        // Parse metadata
+        const metadata = session.metadata || {};
+        const itemCount = parseInt(metadata.itemsCount || '0');
+        
+        for (let i = 0; i < itemCount; i++) {
+            const itemType = metadata[`item_${i}_type`];
             
-            for (let i = 0; i < itemCount; i++) {
-                if (session.metadata[`item_${i}_type`]) {
-                    const item = {
-                        type: session.metadata[`item_${i}_type`],
-                        name: session.metadata[`item_${i}_name`] || '',
-                        price: session.metadata[`item_${i}_price`] || '0'
+            if (itemType === 'tournament') {
+                try {
+                    // Get tournament data from metadata
+                    const tournamentId = metadata[`item_${i}_tournamentId`];
+                    const mainPlayer = JSON.parse(metadata[`item_${i}_mainPlayer`] || '{}');
+                    const additionalPlayers = JSON.parse(metadata[`item_${i}_additionalPlayers`] || '[]');
+                    
+                    if (!tournamentId) {
+                        console.error('Missing tournamentId in metadata for item', i);
+                        continue;
+                    }
+                    
+                    // Create registration object
+                    const registration = {
+                        tournamentId: tournamentId,
+                        stripeSessionId: session.id,
+                        paymentAmount: parseFloat(metadata[`item_${i}_price`] || '0'),
+                        createdAt: new Date(session.created * 1000),
+                        updatedAt: new Date(session.created * 1000),
+                        cartOption: mainPlayer.cartOption || '',
+                        startTime: mainPlayer.startingTime || 'Doesn\'t Matter',
+                        sidePot: mainPlayer.sidePots === 'true',
+                        roulette: mainPlayer.roulette === 'true'
                     };
                     
-                    if (item.type === 'tournament') {
-                        try {
-                            if (session.metadata[`item_${i}_mainPlayer`]) {
-                                item.mainPlayer = JSON.parse(session.metadata[`item_${i}_mainPlayer`]);
+                    // Add player1
+                    if (mainPlayer.fullName) {
+                        registration.player1 = {
+                            name: mainPlayer.fullName,
+                            email: mainPlayer.email || '',
+                            phoneNum: mainPlayer.phone || '',
+                            ghin: mainPlayer.ghin ? parseInt(mainPlayer.ghin) : null,
+                            entryNum: mainPlayer.entryNum ? parseInt(mainPlayer.entryNum) : null,
+                            index: mainPlayer.index || '',
+                            sidePot: mainPlayer.sidePots === 'true',
+                            roulette: mainPlayer.roulette === 'true',
+                            memberId: null // Will be populated later if member found
+                        };
+                    }
+                    
+                    // Add additional players
+                    if (additionalPlayers.length > 0) {
+                        for (let j = 0; j < Math.min(additionalPlayers.length, 3); j++) {
+                            const playerKey = `player${j + 2}`;
+                            const player = additionalPlayers[j];
+                            
+                            if (player.fullName) {
+                                registration[playerKey] = {
+                                    name: player.fullName,
+                                    email: player.email || '',
+                                    phoneNum: player.phone || '',
+                                    ghin: player.ghin ? parseInt(player.ghin) : null,
+                                    entryNum: player.entryNum ? parseInt(player.entryNum) : null,
+                                    index: player.index || '',
+                                    memberId: null
+                                };
                             }
-                            if (session.metadata[`item_${i}_additionalPlayers`]) {
-                                item.additionalPlayers = JSON.parse(session.metadata[`item_${i}_additionalPlayers`]);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing tournament data:', e);
-                        }
-                    } else if (item.type === 'membership') {
-                        try {
-                            if (session.metadata[`item_${i}_member`]) {
-                                item.member = JSON.parse(session.metadata[`item_${i}_member`]);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing membership data:', e);
                         }
                     }
                     
-                    items.push(item);
-                }
-            }
-        }
-        
-        // Process each item
-        for (const item of items) {
-            if (item.type === 'membership') {
-                // Handle new membership purchase
-                if (item.name === 'New Membership' && item.member) {
-                    await addNewMember(item.member);
-                }
-                // Membership renewal doesn't need action
-            } else if (item.type === 'tournament') {
-                // Handle tournament entry purchase
-                if (item.name.includes('Tournament') && item.mainPlayer) {
-                    // Determine which tournament collection to use
-                    const tournamentCollection = item.name.includes('Tournament 2') 
-                        ? 'monthly-tournament2-foursomes' 
-                        : 'monthly-tournament-foursomes';
+                    // Try to match players with members
+                    const membersCollection = db.collection('members');
                     
-                    await addTournamentEntry(tournamentCollection, item);
+                    // Match player1
+                    if (registration.player1) {
+                        const member = await findMember(membersCollection, registration.player1);
+                        if (member) {
+                            registration.player1.memberId = member._id;
+                        }
+                    }
+                    
+                    // Match additional players
+                    for (let j = 2; j <= 4; j++) {
+                        const playerKey = `player${j}`;
+                        if (registration[playerKey]) {
+                            const member = await findMember(membersCollection, registration[playerKey]);
+                            if (member) {
+                                registration[playerKey].memberId = member._id;
+                            }
+                        }
+                    }
+                    
+                    // Save registration to database
+                    await registrationsCollection.insertOne(registration);
+                    
+                    console.log(`Registration saved for tournament ${tournamentId}, session ${session.id}`);
+                    
+                } catch (error) {
+                    console.error('Error processing tournament registration:', error);
                 }
             }
         }
         
-        console.log('Successfully processed payment for session:', session.id);
     } catch (error) {
-        console.error('Error processing payment:', error);
-        throw error;
+        console.error('Error handling completed payment:', error);
     }
 }
 
-// Add new member to members collection
-async function addNewMember(memberData) {
+// Helper function to find member
+async function findMember(membersCollection, player) {
     try {
-        const db = await connectDB();
-        const membersCollection = db.collection('members');
+        let member = null;
         
-        // Find the highest entry number
-        const highestEntry = await membersCollection.find().sort({ entryNum: -1 }).limit(1).toArray();
-        const nextEntryNum = highestEntry.length > 0 ? highestEntry[0].entryNum + 1 : 1;
+        // Try by GHIN first
+        if (player.ghin) {
+            member = await membersCollection.findOne({ ghin: player.ghin });
+            if (member) return member;
+        }
         
-        // Create new member document
-        const newMember = {
-            firstName: memberData.firstName || '',
-            lastName: memberData.lastName || '',
-            email: memberData.email || '',
-            phoneNum: memberData.phone || '', // FIXED: Should be phoneNum
-            ghin: memberData.ghin ? parseInt(memberData.ghin) : null,
-            entryNum: nextEntryNum,
-            index: '', // New members don't have an index yet
-            createdAt: new Date()
-        };
-        
-        // Insert into database
-        await membersCollection.insertOne(newMember);
-        console.log('Added new member:', newMember);
-        
-    } catch (error) {
-        console.error('Error adding new member:', error);
-        throw error;
-    }
-}
-
-// Add tournament entry to tournament management collection
-async function addTournamentEntry(collectionName, itemData) {
-    try {
-        const db = await connectDB();
-        const tournamentCollection = db.collection(collectionName);
-        const membersCollection = db.collection('members');
-        
-        // Create foursome object
-        const foursome = {
-            createdAt: new Date(),
-            stripeSessionId: itemData.stripeSessionId || '',
-            paymentAmount: parseFloat(itemData.price) || 0,
-            player1: await getOrCreatePlayerData(itemData.mainPlayer),
-            player2: null,
-            player3: null,
-            player4: null,
-            cartOption: itemData.mainPlayer?.cartOption || '',
-            startTime: itemData.mainPlayer?.startingTime || '',
-            sidePot: itemData.mainPlayer?.sidePots === 'true',
-            roulette: itemData.mainPlayer?.roulette === 'true'
-        };
-        
-        // Process additional players
-        if (itemData.additionalPlayers && itemData.additionalPlayers.length > 0) {
-            const additionalPlayers = itemData.additionalPlayers;
-            
-            if (additionalPlayers.length > 0) {
-                foursome.player2 = await getOrCreatePlayerData(additionalPlayers[0]);
-            }
-            if (additionalPlayers.length > 1) {
-                foursome.player3 = await getOrCreatePlayerData(additionalPlayers[1]);
-            }
-            if (additionalPlayers.length > 2) {
-                foursome.player4 = await getOrCreatePlayerData(additionalPlayers[2]);
+        // Try by name
+        if (player.name) {
+            const nameParts = player.name.split(' ');
+            if (nameParts.length >= 2) {
+                const firstName = nameParts[0];
+                const lastName = nameParts.slice(1).join(' ');
+                
+                member = await membersCollection.findOne({
+                    firstName: { $regex: new RegExp(`^${firstName}$`, 'i') },
+                    lastName: { $regex: new RegExp(`^${lastName}$`, 'i') }
+                });
+                
+                if (member) return member;
             }
         }
         
-        // Insert into database
-        await tournamentCollection.insertOne(foursome);
-        console.log('Added tournament entry to', collectionName, ':', foursome);
+        // Try by entry number
+        if (player.entryNum) {
+            member = await membersCollection.findOne({ entryNum: player.entryNum });
+            if (member) return member;
+        }
         
     } catch (error) {
-        console.error('Error adding tournament entry:', error);
-        throw error;
-    }
-}
-
-// Helper function to get or create player data
-async function getOrCreatePlayerData(playerData) {
-    const db = await connectDB();
-    const membersCollection = db.collection('members');
-    
-    if (!playerData || !playerData.ghin) {
-        return null;
+        console.error('Error finding member:', error);
     }
     
-    // Try to find existing member by GHIN
-    const existingMember = await membersCollection.findOne({ 
-        ghin: parseInt(playerData.ghin) 
-    });
-    
-    if (existingMember) {
-        // Return reference to existing member
-        return {
-            memberId: existingMember._id,
-            name: `${playerData.firstName} ${playerData.lastName}`,
-            email: playerData.email || existingMember.email,
-            phoneNum: playerData.phone || playerData.phoneNum || existingMember.phoneNum || '', // STANDARDIZED
-            ghin: parseInt(playerData.ghin),
-            entryNum: existingMember.entryNum,
-            index: playerData.index || existingMember.index || ''
-        };
-    }
-    
-    // If not found, just return the player data without creating a member
-    // Non-members can play in tournaments
-    return {
-        memberId: null, // No member ID
-        name: `${playerData.firstName} ${playerData.lastName}`,
-        email: playerData.email || '',
-        phoneNum: playerData.phone || playerData.phoneNum || '', // STANDARDIZED
-        ghin: parseInt(playerData.ghin),
-        entryNum: null, // No entry number for non-members
-        index: playerData.index || ''
-    };
+    return null;
 }
 
 module.exports = {
