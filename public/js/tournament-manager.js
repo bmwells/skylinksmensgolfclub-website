@@ -1,4 +1,4 @@
-// File: public/js/tournament-manager.js - UPDATED FOR DYNAMIC TOURNAMENTS
+// File: public/js/tournament-manager.js
 
 // Helper function to truncate text with ellipsis - MOVED TO TOP
 function truncateText(text, maxWidth) {
@@ -25,6 +25,7 @@ let currentPlayerNumber = null;
 let selectedMember = null;
 let currentTournamentData = [];
 let tournaments = []; // Array to store all tournament info
+let originalTournamentData = []; // Store unsorted data for reference
 
 // Function to save active tab to localStorage
 function saveActiveTab(tournamentId) {
@@ -54,6 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/admin';
         return;
     }
+    
+    // Initialize button states (disabled initially)
+    updateButtonStates();
     
     // Load tournaments and setup
     loadTournaments();
@@ -88,18 +92,26 @@ async function loadTournaments() {
         // Create tabs
         createTournamentTabs();
         
+        // Update button states (initially disabled)
+        updateButtonStates();
+        
         // Restore active tab or select first
         const savedTab = restoreActiveTab();
         if (savedTab && tournaments.some(t => t.id === savedTab)) {
             switchTournament(savedTab);
         } else if (tournaments.length > 0) {
+            // Auto-select the first tournament
             switchTournament(tournaments[0].id);
+        } else {
+            // No tournaments available
+            updateButtonStates();
         }
         
     } catch (error) {
         console.error('Error loading tournaments:', error);
         document.getElementById('tournament-tabs').innerHTML = 
             `<p style="color: #dc3545;">Error loading tournaments: ${error.message}</p>`;
+        updateButtonStates();
     }
 }
 
@@ -146,6 +158,9 @@ function switchTournament(tournamentId) {
             btn.classList.add('active');
         }
     });
+    
+    // Update button states
+    updateButtonStates();
     
     // Load tournament data
     loadTournamentData(tournamentId);
@@ -204,6 +219,7 @@ async function loadTournamentData(tournamentId) {
         
         const data = await response.json();
         currentTournamentData = data;
+        originalTournamentData = [...data]; // Store unsorted copy
         
         // Safely hide loading element if it exists
         const loadingEl = document.getElementById('tournament-loading');
@@ -211,7 +227,9 @@ async function loadTournamentData(tournamentId) {
             loadingEl.style.display = 'none';
         }
         
-        renderTournamentData(tournamentId, data);
+        // Sort the data by startTime before rendering
+        const sortedData = sortRegistrationsByTime(data);
+        renderTournamentData(tournamentId, sortedData);
         
     } catch (error) {
         console.error('Error loading tournament data:', error);
@@ -222,12 +240,74 @@ async function loadTournamentData(tournamentId) {
     }
 }
 
+// Helper function to get foursome ID
+function getFoursomeId(foursome, tournamentId, originalIndex) {
+    if (foursome._id && /^[0-9a-fA-F]{24}$/.test(foursome._id.toString())) {
+        return foursome._id.toString();
+    } else if (foursome.id) {
+        return foursome.id;
+    } else {
+        return `temp_${tournamentId}_${originalIndex}_${Date.now()}`;
+    }
+}
+
+// Add this helper function to sort registrations by startTime
+function sortRegistrationsByTime(registrations) {
+    if (!registrations || !Array.isArray(registrations)) return [];
+    
+    return [...registrations].sort((a, b) => {
+        // Helper function to convert time string to sortable value
+        const getTimeValue = (timeStr) => {
+            if (!timeStr) return 999; // No time specified goes last
+            if (timeStr === "Doesn't Matter") return 998;
+            if (timeStr === "Not specified") return 997;
+            
+            try {
+                // Parse time like "6am", "10am", "2pm", "12pm", "12am"
+                const timeMatch = timeStr.toLowerCase().match(/^(\d+)(am|pm)$/);
+                if (timeMatch) {
+                    let hour = parseInt(timeMatch[1]);
+                    const period = timeMatch[2];
+                    
+                    // Convert to 24-hour format for sorting
+                    if (period === 'pm' && hour < 12) {
+                        hour += 12;
+                    }
+                    if (period === 'am' && hour === 12) {
+                        hour = 0; // 12am = 0
+                    }
+                    
+                    return hour;
+                }
+            } catch (error) {
+                console.error('Error parsing time:', timeStr, error);
+            }
+            
+            // If can't parse, sort alphabetically
+            return 996;
+        };
+        
+        const timeA = getTimeValue(a.startTime);
+        const timeB = getTimeValue(b.startTime);
+        
+        // First sort by time
+        if (timeA !== timeB) {
+            return timeA - timeB;
+        }
+        
+        // If same time, sort by creation date
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateA - dateB;
+    });
+}
+
 // Render tournament data with proper display of all fields
-function renderTournamentData(tournamentId, data) {
+function renderTournamentData(tournamentId, sortedData) {
     const container = document.getElementById('tournament-container');
     if (!container) return;
     
-    if (!data || data.length === 0) {
+    if (!sortedData || sortedData.length === 0) {
         container.innerHTML = `
             <div class="no-entries">
                 <h3>No Tournament Entries Yet</h3>
@@ -237,32 +317,69 @@ function renderTournamentData(tournamentId, data) {
         return;
     }
     
+    // Create a mapping of foursome identifiers to their original indices
+    const identifierToOriginalIndex = new Map();
+    
+    originalTournamentData.forEach((foursome, originalIndex) => {
+        if (foursome) {
+            // Create a unique identifier for the foursome
+            const identifier = createFoursomeIdentifier(foursome);
+            identifierToOriginalIndex.set(identifier, originalIndex);
+        }
+    });
+    
     let html = '';
     
-    data.forEach((foursome, index) => {
-        html += renderFoursome(foursome, tournamentId, index);
+    sortedData.forEach((foursome, sortedIndex) => {
+        // Find the original index using the identifier
+        let originalIndex = -1;
+        const identifier = createFoursomeIdentifier(foursome);
+        if (identifierToOriginalIndex.has(identifier)) {
+            originalIndex = identifierToOriginalIndex.get(identifier);
+        }
+        
+        // If not found by identifier, try to find by matching properties
+        if (originalIndex === -1) {
+            originalIndex = originalTournamentData.findIndex(item => 
+                JSON.stringify(item) === JSON.stringify(foursome)
+            );
+        }
+        
+        // Fallback to sorted index if still not found
+        if (originalIndex === -1) {
+            originalIndex = sortedIndex;
+        }
+        
+        html += renderFoursome(foursome, tournamentId, originalIndex, sortedIndex);
     });
     
     container.innerHTML = html;
 }
 
-// Helper function to format name as "R. Aldana"
-function formatPlayerNameForTitle(player) {
-    if (!player || !player.name) return 'Empty';
+// Helper function to create a unique identifier for a foursome
+function createFoursomeIdentifier(foursome) {
+    if (!foursome) return '';
     
-    const nameParts = player.name.trim().split(' ');
-    if (nameParts.length >= 2) {
-        // First initial + period + space + last name
-        return nameParts[0].charAt(0).toUpperCase() + '. ' + nameParts[nameParts.length - 1];
-    } else if (nameParts.length === 1) {
-        // Just one name, use as is
-        return nameParts[0];
+    // Use _id if available
+    if (foursome._id) {
+        return foursome._id.toString();
     }
-    return 'Empty';
+    
+    // Otherwise, create a hash from the data
+    const dataString = JSON.stringify({
+        player1: foursome.player1?.name,
+        player2: foursome.player2?.name,
+        player3: foursome.player3?.name,
+        player4: foursome.player4?.name,
+        startTime: foursome.startTime,
+        createdAt: foursome.createdAt
+    });
+    
+    return dataString;
 }
 
-// Render a single foursome - UPDATED for empty cart option
-function renderFoursome(foursome, tournamentId, index) {
+// Render a single foursome
+function renderFoursome(foursome, tournamentId, originalIndex, sortedIndex) {
     const player1 = foursome.player1 || {};
     const player2 = foursome.player2 || {};
     const player3 = foursome.player3 || {};
@@ -287,21 +404,25 @@ function renderFoursome(foursome, tournamentId, index) {
     playerNames.push(formatPlayerNameForTitle(player3));
     playerNames.push(formatPlayerNameForTitle(player4));
     
-    // Create title: "Foursome # - R. Aldana, P. Aguiar, J. Almeida, Empty - 8 AM"
-    const title = `Foursome ${index + 1} - ${playerNames.join(', ')} - ${startTime}`;
+    // Use sorted index for display (since that's what users see)
+    const displayIndex = sortedIndex !== undefined ? sortedIndex : originalIndex;
+    const title = `Foursome ${displayIndex + 1} - ${playerNames.join(', ')} - ${startTime}`;
     
-    // Use actual _id from database or generate a temporary one
-    const foursomeId = foursome._id || index;
+    // Get the foursome ID
+    const foursomeId = getFoursomeId(foursome, tournamentId, originalIndex);
     
     return `
-        <div class="foursome-container" data-foursome-id="${foursomeId}">
+        <div class="foursome-container" 
+             data-foursome-id="${foursomeId}" 
+             data-original-index="${originalIndex}"
+             data-sorted-index="${sortedIndex}">
             <div class="foursome-header">
                 <h3>${title}</h3>
                 <div class="foursome-actions">
-                    <button class="edit-foursome-btn" onclick="editFoursome('${tournamentId}', '${foursomeId}')">
+                    <button class="edit-foursome-btn" onclick="editFoursome('${tournamentId}', '${foursomeId}', ${originalIndex})">
                         Edit Foursome
                     </button>
-                    <button class="remove-foursome-btn" onclick="removeFoursome('${tournamentId}', '${foursomeId}')">
+                    <button class="remove-foursome-btn" onclick="removeFoursome('${tournamentId}', '${foursomeId}', ${originalIndex})">
                         Remove Foursome
                     </button>
                 </div>
@@ -335,6 +456,21 @@ function renderFoursome(foursome, tournamentId, index) {
             </div>
         </div>
     `;
+}
+
+// Helper function to format name as "R. Aldana"
+function formatPlayerNameForTitle(player) {
+    if (!player || !player.name) return 'Empty';
+    
+    const nameParts = player.name.trim().split(' ');
+    if (nameParts.length >= 2) {
+        // First initial + period + space + last name
+        return nameParts[0].charAt(0).toUpperCase() + '. ' + nameParts[nameParts.length - 1];
+    } else if (nameParts.length === 1) {
+        // Just one name, use as is
+        return nameParts[0];
+    }
+    return 'Empty';
 }
 
 // Render a player row 
@@ -418,8 +554,17 @@ async function addEmptyFoursome() {
     }
 }
 
+function openExportModal() {
+    if (!currentTournament) {
+        alert('Please select a tournament first.');
+        return;
+    }
+    
+    document.getElementById('exportModal').style.display = 'flex';
+}
+
 // Remove foursome
-async function removeFoursome(tournamentId, foursomeId) {
+async function removeFoursome(tournamentId, foursomeId, originalIndex) {
     if (!confirm('Are you sure you want to remove this foursome? This action cannot be undone.')) {
         return;
     }
@@ -434,7 +579,18 @@ async function removeFoursome(tournamentId, foursomeId) {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to remove foursome');
+            const errorText = await response.text();
+            let errorMessage = 'Failed to remove foursome';
+            try {
+                const errorJson = JSON.parse(errorText);
+                if (errorJson.error) {
+                    errorMessage += `: ${errorJson.error}`;
+                }
+            } catch (e) {
+                // Not JSON, use raw text
+                errorMessage += `: ${errorText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         // Reload tournament data
@@ -690,8 +846,12 @@ async function confirmPlayerAction() {
     let memberData = null;
     
     if (selectedMember) {
+        console.log('Selected member:', selectedMember);
+        console.log('Selected member _id:', selectedMember._id, 'Type:', typeof selectedMember._id);
+        
         // Use selected member from search
-        memberId = selectedMember._id;
+        // Ensure memberId is a string (not ObjectId)
+        memberId = selectedMember._id ? selectedMember._id.toString() : null;
         
         // Also send memberData to help the server
         memberData = {
@@ -735,15 +895,23 @@ async function confirmPlayerAction() {
         
         if (memberId) {
             updateData[`player${currentPlayerNumber}`] = {
-                memberId: memberId,
+                memberId: memberId,  // This should now be a string
                 ...memberData
             };
         } else if (memberData) {
             updateData[`player${currentPlayerNumber}`] = memberData;
         }
         
+        // If we're updating player1, we should NOT include sidePot/roulette in player1 object
+        // since they're stored at the document level
+        if (currentPlayerNumber === 1 && updateData.player1) {
+            // Remove sidePot and roulette from player1 if they exist
+            delete updateData.player1.sidePot;
+            delete updateData.player1.roulette;
+        }
+        
         console.log('Sending player update request:', updateData);
-        console.log('Using tournament:', currentTournament, 'foursome:', currentFoursomeId);
+        console.log('Using tournament:', currentTournament, 'foursome:', currentFoursomeId, 'player:', currentPlayerNumber);
         
         const response = await fetch(`/api/tournaments/${currentTournament}/registrations/${currentFoursomeId}`, {
             method: 'PUT',
@@ -816,19 +984,42 @@ window.onclick = function(event) {
     }
 };
 
-// Edit Foursome - Open modal
-function editFoursome(tournamentId, foursomeId) {
+// Edit Foursome - Open modal 
+function editFoursome(tournamentId, foursomeId, originalIndex) {
+    console.log('editFoursome called with:', { tournamentId, foursomeId, originalIndex });
+    
     // Store values for later use
     currentTournament = tournamentId;
     currentFoursomeId = foursomeId;
     
-    // Find the foursome data
-    const foursome = currentTournamentData.find(f => 
-        f._id === foursomeId || f.id === foursomeId
-    );
+    // Find the foursome data using the original index
+    let foursome = null;
+    
+    if (foursomeId && foursomeId.startsWith('temp_')) {
+        console.log('Using temporary ID, finding by original index:', originalIndex);
+        foursome = originalTournamentData[originalIndex];
+    } else {
+        // Try to find by _id in the original data
+        foursome = originalTournamentData.find(f => {
+            if (!f) return false;
+            
+            // Check if _id matches (as string)
+            if (f._id && f._id.toString() === foursomeId) {
+                return true;
+            }
+            
+            // Check if there's an id property that matches
+            if (f.id && f.id === foursomeId) {
+                return true;
+            }
+            
+            return false;
+        });
+    }
     
     if (!foursome) {
-        alert('Foursome not found!');
+        console.error('Foursome not found! Looking for:', { tournamentId, foursomeId, originalIndex });
+        alert('Foursome not found! Please refresh the page and try again.');
         return;
     }
     
@@ -842,7 +1033,7 @@ function editFoursome(tournamentId, foursomeId) {
     document.getElementById('editFoursomeModal').style.display = 'flex';
 }
 
-// Fill edit modal with existing data 
+// Fill edit modal with existing data - UPDATED for proper dropdown setting
 function fillEditFoursomeModal(foursome) {
     console.log('Filling modal with foursome:', foursome);
     
@@ -910,21 +1101,31 @@ function fillEditFoursomeModal(foursome) {
     
     // Set start time - match the value exactly
     if (foursome.startTime) {
+        // Set the value directly - this automatically selects the matching option
         startTimeSelect.value = foursome.startTime;
+        
+        // Debug log to verify
+        console.log('Set startTime to:', foursome.startTime, 'Current value:', startTimeSelect.value);
     } else {
+        // Reset to default
         startTimeSelect.value = '';
     }
-    
+
     // Set cart option - match the value exactly (can be empty string)
     if (foursome.cartOption) {
+        // Set the value directly - this automatically selects the matching option
         cartOptionSelect.value = foursome.cartOption;
+        
+        // Debug log to verify
+        console.log('Set cartOption to:', foursome.cartOption, 'Current value:', cartOptionSelect.value);
     } else {
+        // Reset to default
         cartOptionSelect.value = '';
     }
     
     // Set checkboxes - check both player1 and foursome level
-    const sidePotChecked = foursome.player1?.sidePot || foursome.sidePot || false;
-    const rouletteChecked = foursome.player1?.roulette || foursome.roulette || false;
+    const sidePotChecked = foursome.sidePot || false;
+    const rouletteChecked = foursome.roulette || false;
     
     document.getElementById('editSidePot').checked = sidePotChecked;
     document.getElementById('editRoulette').checked = rouletteChecked;
@@ -986,7 +1187,7 @@ function closeEditFoursomeModal() {
     currentFoursomeId = null;
 }
 
-// Save foursome changes 
+// Save foursome changes - UPDATED to properly get form values
 async function saveFoursomeChanges() {
     const tournamentId = currentTournament;
     const foursomeId = currentFoursomeId;
@@ -998,10 +1199,26 @@ async function saveFoursomeChanges() {
         return;
     }
     
-    // Validate required fields - ONLY START TIME IS REQUIRED
-    const startTime = document.getElementById('editStartTime').value;
-    const cartOption = document.getElementById('editCartOption').value;
+    // Get form values - FIXED: using correct element IDs
+    const startTimeSelect = document.getElementById('editStartTime');
+    const cartOptionSelect = document.getElementById('editCartOption');
+    const sidePotCheckbox = document.getElementById('editSidePot');
+    const rouletteCheckbox = document.getElementById('editRoulette');
     
+    if (!startTimeSelect || !cartOptionSelect || !sidePotCheckbox || !rouletteCheckbox) {
+        console.error('Form elements not found!');
+        alert('Error: Could not find form elements.');
+        return;
+    }
+    
+    const startTime = startTimeSelect.value;
+    const cartOption = cartOptionSelect.value;
+    const sidePot = sidePotCheckbox.checked;
+    const roulette = rouletteCheckbox.checked;
+    
+    console.log('Form values:', { startTime, cartOption, sidePot, roulette });
+    
+    // Validate required fields - ONLY START TIME IS REQUIRED
     if (!startTime) {
         alert('Please select a start time.');
         return;
@@ -1025,9 +1242,9 @@ async function saveFoursomeChanges() {
                 phoneNum: selectedMember.phoneNum || '',
                 ghin: selectedMember.ghin || '',
                 entryNum: selectedMember.entryNum || '',
-                index: selectedMember.index || '',
-                sidePot: document.getElementById('editSidePot').checked,
-                roulette: document.getElementById('editRoulette').checked
+                index: selectedMember.index || ''
+                // NOTE: sidePot and roulette are NOT in player1 object anymore
+                // They're at the document level
             };
         } 
         // Check if manual entry is visible and has data
@@ -1048,26 +1265,25 @@ async function saveFoursomeChanges() {
                 phoneNum: document.getElementById('editManualPhone').value.trim(),
                 ghin: document.getElementById('editManualGhin').value.trim(),
                 entryNum: document.getElementById('editManualEntryNum').value.trim(),
-                index: document.getElementById('editManualIndex').value.trim(),
-                sidePot: document.getElementById('editSidePot').checked,
-                roulette: document.getElementById('editRoulette').checked
+                index: document.getElementById('editManualIndex').value.trim()
+                // NOTE: sidePot and roulette are NOT in player1 object anymore
             };
         }
         // If neither member nor manual entry, but player1 existed before, keep it
         else if (window.currentPlayer1Data) {
             console.log('Keeping existing player1 data');
             player1Data = window.currentPlayer1Data;
-            // Update side pot and roulette values from checkboxes
-            player1Data.sidePot = document.getElementById('editSidePot').checked;
-            player1Data.roulette = document.getElementById('editRoulette').checked;
+            // Remove sidePot and roulette from player1 if they exist
+            delete player1Data.sidePot;
+            delete player1Data.roulette;
         }
         
         // Prepare update data - ALWAYS include these fields
         const updateData = {
             startTime: startTime,
             cartOption: cartOption, // This can be empty string
-            sidePot: document.getElementById('editSidePot').checked,
-            roulette: document.getElementById('editRoulette').checked
+            sidePot: sidePot,
+            roulette: roulette
         };
         
         // Add player1 data if available
@@ -1203,6 +1419,11 @@ function selectEditMember(member) {
 
 // Import/Export Functions
 function openImportModal() {
+    if (!currentTournament) {
+        alert('Please select a tournament first.');
+        return;
+    }
+    
     document.getElementById('importModal').style.display = 'flex';
     document.getElementById('importFile').value = '';
 }
@@ -1270,7 +1491,7 @@ async function importPlayersFile() {
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Failed to import file: ${response.statusText} - ${errorText}`);
-        }
+        };
         
         const result = await response.json();
         alert(`Successfully imported ${result.importedCount} foursomes from file.`);
@@ -1306,7 +1527,7 @@ async function exportPlayersFile() {
             headers: {
                 'Authorization': 'Bearer ' + token
             }
-        }); // REMOVED THE EXTRA PARENTHESIS HERE
+        });
         
         if (!response.ok) {
             const errorText = await response.text();
@@ -1351,3 +1572,59 @@ document.getElementById('importFile').addEventListener('change', function(e) {
         }
     }
 });
+
+// Helper function to enable/disable buttons based on tournament selection
+function updateButtonStates() {
+    const importButton = document.getElementById('importButton');
+    const exportButton = document.getElementById('exportButton');
+    const addFoursomeButton = document.getElementById('addFoursomeButton');
+    const tournamentTabs = document.getElementById('tournament-tabs');
+    
+    if (importButton && exportButton && addFoursomeButton && tournamentTabs) {
+        // Check if we have tournaments loaded and one is selected
+        const hasTournaments = tournaments && tournaments.length > 0;
+        const hasSelectedTournament = currentTournament !== null;
+        
+        if (!hasTournaments || !hasSelectedTournament) {
+            // Disable buttons
+            importButton.disabled = true;
+            exportButton.disabled = true;
+            addFoursomeButton.disabled = true;
+            
+            // Add tooltips
+            importButton.title = 'Please select a tournament first';
+            exportButton.title = 'Please select a tournament first';
+            addFoursomeButton.title = 'Please select a tournament first';
+            
+            // Style disabled buttons
+            importButton.style.opacity = '0.5';
+            importButton.style.cursor = 'not-allowed';
+            
+            exportButton.style.opacity = '0.5';
+            exportButton.style.cursor = 'not-allowed';
+            
+            addFoursomeButton.style.opacity = '0.5';
+            addFoursomeButton.style.cursor = 'not-allowed';
+        } else {
+            // Enable buttons
+            importButton.disabled = false;
+            exportButton.disabled = false;
+            addFoursomeButton.disabled = false;
+            
+            // Remove tooltips
+            importButton.title = '';
+            exportButton.title = '';
+            addFoursomeButton.title = '';
+            
+            // Style enabled buttons
+            importButton.style.opacity = '1';
+            importButton.style.cursor = 'pointer';
+            
+            exportButton.style.opacity = '1';
+            exportButton.style.cursor = 'pointer';
+            
+            addFoursomeButton.style.opacity = '1';
+            addFoursomeButton.style.cursor = 'pointer';
+        }
+    }
+}

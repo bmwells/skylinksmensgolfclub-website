@@ -11,10 +11,6 @@ const {
     createMembersCsvTsvText 
 } = require('../utils/memberImportExport');
 
-// Include tournaments routes
-const tournamentsRouter = require('./tournaments');
-router.use('/tournaments', tournamentsRouter);
-
 // MEMBER AUTOCOMPLETE API
 router.get('/members/search', async (req, res) => {
     try {

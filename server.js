@@ -1,4 +1,4 @@
-// server.js - UPDATED
+// server.js
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -96,6 +96,7 @@ app.use((req, res, next) => {
 const adminRoutes = require('./server/routes/admin');
 const stripeRoutes = require('./server/routes/stripe');
 const tournamentManagerRoutes = require('./server/routes/tournamentManager');
+const tournamentRoutes = require('./server/routes/tournaments');
 const genericRoutes = require('./server/routes/generic');
 const contactRoutes = require('./server/routes/contact');
 const { handleCompletedPayment } = require('./server/stripeWebhook');
@@ -109,7 +110,10 @@ app.use('/api', stripeRoutes);
 // Tournament manager routes
 app.use('/api/tournament-manager', tournamentManagerRoutes);
 
-// Generic data routes (includes /api/tournaments)
+// Tournament data routes
+app.use('/api/tournaments', tournamentRoutes);
+
+// Generic data routes
 app.use('/api', genericRoutes);
 
 // Contact routes
