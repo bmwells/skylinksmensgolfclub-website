@@ -18,7 +18,7 @@
 
 <div class="controls">
   <div style="display: flex; gap: 10px; align-items: center;">
-    <select id="tournament-select" onchange="loadSelectedTournament()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px;">
+    <select id="tournament-select" onchange="handleTournamentSelectionChange()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px;">
       <option value="">Select a tournament...</option>
     </select>
     <button onclick="saveTournament()" style="background: #28a745;">💾 Save Changes</button>
@@ -45,7 +45,7 @@
           <input type="text" id="tournament-id" placeholder="40-net-skins-jan" 
                  pattern="^[a-z0-9\-]+$" 
                  title="Lowercase letters, numbers, and hyphens only">
-          <small style="color: #666;">URL-friendly ID (cannot be changed after creation)</small>
+          <small style="color: #666;">URL-friendly ID (use - instead of spaces)</small>
         </div>
       </div>
       <div style="flex: 1;">
@@ -148,7 +148,7 @@
       <div class="input-group">
         <label>Schedule Link</label>
         <input type="text" id="tournament-schedule-link" placeholder="/schedule/" disabled>
-        <small style="color: #666;">Tournaments automatically appear on schedule page</small>
+        <small style="color: #666;">Tournament ID is used for URL</small>
       </div>
     </div>
   </div>
@@ -164,7 +164,7 @@
       <input type="text" id="new-tournament-id" placeholder="40-net-skins-jan" 
              pattern="^[a-z0-9\-]+$" 
              title="Lowercase letters, numbers, and hyphens only">
-      <small style="color: #666;">URL-friendly ID (cannot be changed after creation)</small>
+      <small style="color: #666;">URL-friendly ID (use - instead of spaces)</small>
     </div>
     
     <div class="input-group" style="margin: 20px 0;">
@@ -185,12 +185,25 @@
   </div>
 </div>
 
+<!-- Unsaved Changes Modal -->
+<div id="unsavedChangesModal" class="modal-overlay" style="display: none;">
+  <div class="modal">
+    <h3>Unsaved Changes</h3>
+    <p>You have unsaved changes to the current tournament. What would you like to do?</p>
+    <div class="modal-actions">
+      <button onclick="handleUnsavedChanges('save')" style="background: #28a745; color: white;">Save Changes</button>
+      <button onclick="handleUnsavedChanges('discard')">Discard Changes</button>
+      <button onclick="handleUnsavedChanges('cancel')" style="background: #6c757d; color: white;">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // Store tournament data
 let tournaments = [];
 let currentTournament = null;
 let originalTournamentData = null;
+let pendingTournamentSelection = null; // Store tournament ID when user tries to switch with unsaved changes
 
 function init() {
     if (AdminCommon.init('tournament-editor', {})) {
@@ -203,8 +216,16 @@ async function loadTournaments(autoLoadFirst = true) {
         const response = await fetch('/api/tournaments');
         tournaments = await response.json();
         
-        // Sort: pinned first, then alphabetical by title (A-Z)
+        // Sort: Active (LIVE) tournaments first, then pinned, then alphabetical by title (A-Z)
         tournaments.sort((a, b) => {
+            // First: Active (LIVE) tournaments (activePage = true AND active = true)
+            const aIsActive = a.activePage === true && a.active === true;
+            const bIsActive = b.activePage === true && b.active === true;
+            
+            if (aIsActive && !bIsActive) return -1;
+            if (!aIsActive && bIsActive) return 1;
+            
+            // Second: Pinned tournaments
             if (a.pinned && !b.pinned) return -1;
             if (!a.pinned && b.pinned) return 1;
             
@@ -246,6 +267,13 @@ function populateTournamentSelect() {
         
         // Format: [Title] - [month]
         let displayText = tournament.title;
+        
+        // Add LIVE indicator for active tournaments (activePage = true AND active = true)
+        const isActiveTournament = tournament.activePage === true && tournament.active === true;
+        if (isActiveTournament) {
+            displayText += ' 🟢 LIVE';
+        }
+        
         if (tournament.date) {
             try {
                 // Extract month from date string (first word)
@@ -256,7 +284,7 @@ function populateTournamentSelect() {
             }
         }
         
-        if (tournament.pinned) {
+        if (tournament.pinned && !isActiveTournament) {
             displayText += ' 📌';
         }
         
@@ -278,7 +306,7 @@ async function loadTournament(tournamentId) {
         
         // Fill form
         document.getElementById('tournament-id').value = tournament.id || '';
-        document.getElementById('tournament-id').readOnly = true; // ID cannot be changed
+        document.getElementById('tournament-id').readOnly = false; // ID CAN NOW BE CHANGED
         document.getElementById('tournament-date').value = tournament.date || '';
         document.getElementById('tournament-title').value = tournament.title || '';
         document.getElementById('tournament-format').value = tournament.format || '';
@@ -311,10 +339,71 @@ async function loadTournament(tournamentId) {
     }
 }
 
-function loadSelectedTournament() {
+function handleTournamentSelectionChange() {
     const tournamentId = document.getElementById('tournament-select').value;
-    if (tournamentId) {
+    
+    if (!tournamentId) {
+        if (currentTournament && AdminCommon.hasUnsavedChanges) {
+            showUnsavedChangesPrompt(() => {
+                // If user cancels, reset the dropdown
+                document.getElementById('tournament-select').value = currentTournament;
+            });
+        } else {
+            resetForm();
+        }
+        return;
+    }
+    
+    if (currentTournament === tournamentId) {
+        return; // Already selected this tournament
+    }
+    
+    if (AdminCommon.hasUnsavedChanges) {
+        pendingTournamentSelection = tournamentId;
+        showUnsavedChangesPrompt();
+    } else {
         loadTournament(tournamentId);
+    }
+}
+
+function showUnsavedChangesPrompt(onCancelCallback) {
+    document.getElementById('unsavedChangesModal').style.display = 'flex';
+    if (onCancelCallback) {
+        window.unsavedChangesCancelCallback = onCancelCallback;
+    }
+}
+
+function handleUnsavedChanges(action) {
+    document.getElementById('unsavedChangesModal').style.display = 'none';
+    
+    switch(action) {
+        case 'save':
+            // Save current tournament, then load the pending one
+            saveTournament().then(() => {
+                if (pendingTournamentSelection) {
+                    loadTournament(pendingTournamentSelection);
+                    pendingTournamentSelection = null;
+                }
+            });
+            break;
+            
+        case 'discard':
+            // Discard changes and load the pending tournament
+            AdminCommon.hasUnsavedChanges = false;
+            if (pendingTournamentSelection) {
+                loadTournament(pendingTournamentSelection);
+                pendingTournamentSelection = null;
+            }
+            break;
+            
+        case 'cancel':
+            // Cancel the switch
+            if (window.unsavedChangesCancelCallback) {
+                window.unsavedChangesCancelCallback();
+                delete window.unsavedChangesCancelCallback;
+            }
+            pendingTournamentSelection = null;
+            break;
     }
 }
 
@@ -472,12 +561,25 @@ async function saveTournament() {
     // Store the current tournament ID before saving
     const tournamentToKeepSelected = currentTournament;
     
+    // Get the new tournament ID from the form
+    const newTournamentId = document.getElementById('tournament-id').value.trim();
+    
     // Validate required fields
     const date = document.getElementById('tournament-date').value.trim();
     const title = document.getElementById('tournament-title').value.trim();
     const price = document.getElementById('tournament-price').value;
     const timeRange = document.getElementById('tournament-time-range').value.trim();
     const format = document.getElementById('tournament-format').value.trim();
+    
+    if (!newTournamentId) {
+        alert('Please enter a Tournament ID');
+        return;
+    }
+    
+    if (!/^[a-z0-9\-]+$/.test(newTournamentId)) {
+        alert('Tournament ID can only contain lowercase letters, numbers, and hyphens');
+        return;
+    }
     
     if (!date) {
         alert('Please enter a Date');
@@ -521,7 +623,7 @@ async function saveTournament() {
         const dayPart = date.split(' ')[1]; // Could be "10" or "16-17"
         
         const tournamentData = {
-            id: currentTournament,
+            id: newTournamentId, // Use the new ID from the form
             date: date,
             displayDate: {
                 month: month,
@@ -550,7 +652,30 @@ async function saveTournament() {
         }
         
         const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/api/tournaments/${currentTournament}`, {
+        
+        // If the tournament ID has changed, we need to delete the old one and create a new one
+        if (newTournamentId !== currentTournament) {
+            // Check if new ID already exists
+            if (newTournamentId !== currentTournament && tournaments.some(t => t.id === newTournamentId)) {
+                alert('A tournament with this ID already exists. Please choose a different ID.');
+                return;
+            }
+            
+            // First, delete the old tournament
+            const deleteResponse = await fetch(`/api/tournaments/${currentTournament}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!deleteResponse.ok) {
+                throw new Error('Failed to delete old tournament');
+            }
+        }
+        
+        // Save the tournament (with potentially new ID)
+        const response = await fetch(`/api/tournaments/${newTournamentId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -563,6 +688,11 @@ async function saveTournament() {
             throw new Error('Failed to save tournament');
         }
         
+        // Update current tournament ID if it changed
+        if (newTournamentId !== currentTournament) {
+            currentTournament = newTournamentId;
+        }
+        
         // Update original data
         originalTournamentData = tournamentData;
         
@@ -573,7 +703,7 @@ async function saveTournament() {
         await loadTournaments(false); // Pass false to prevent auto-loading first tournament
         
         // Load the tournament we just saved
-        loadTournament(tournamentToKeepSelected);
+        loadTournament(currentTournament);
         
         alert('Tournament saved successfully!');
         
