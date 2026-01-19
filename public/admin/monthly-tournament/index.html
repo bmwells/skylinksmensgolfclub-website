@@ -218,12 +218,12 @@ async function loadTournaments(autoLoadFirst = true) {
         
         // Sort: Active (LIVE) tournaments first, then pinned, then alphabetical by title (A-Z)
         tournaments.sort((a, b) => {
-            // First: Active (LIVE) tournaments (activePage = true AND active = true)
-            const aIsActive = a.activePage === true && a.active === true;
-            const bIsActive = b.activePage === true && b.active === true;
+            // First: ActivePage (LIVE) tournaments (activePage = true)
+            const aIsLive = a.activePage === true;
+            const bIsLive = b.activePage === true;
             
-            if (aIsActive && !bIsActive) return -1;
-            if (!aIsActive && bIsActive) return 1;
+            if (aIsLive && !bIsLive) return -1;
+            if (!aIsLive && bIsLive) return 1;
             
             // Second: Pinned tournaments
             if (a.pinned && !b.pinned) return -1;
@@ -268,11 +268,14 @@ function populateTournamentSelect() {
         // Format: [Title] - [month]
         let displayText = tournament.title;
         
-        // Add LIVE indicator for active tournaments (activePage = true AND active = true)
-        const isActiveTournament = tournament.activePage === true && tournament.active === true;
-        if (isActiveTournament) {
+        // Add LIVE indicator for activePage tournaments ONLY
+        // Only show 🟢 LIVE when activePage is true
+        if (tournament.activePage === true) {
             displayText += ' 🟢 LIVE';
         }
+        
+        // DON'T check tournament.active for the LIVE indicator
+        // The LIVE indicator should ONLY be based on activePage
         
         if (tournament.date) {
             try {
@@ -284,7 +287,8 @@ function populateTournamentSelect() {
             }
         }
         
-        if (tournament.pinned && !isActiveTournament) {
+        // Add pin indicator for pinned tournaments
+        if (tournament.pinned) {
             displayText += ' 📌';
         }
         
