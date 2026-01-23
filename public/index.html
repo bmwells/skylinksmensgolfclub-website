@@ -7,6 +7,48 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <title>Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Add these styles for the Instagram widget */
+        .instagram-widget-container {
+            width: 100%;
+            max-width: 1260px;
+            margin: 30px auto 0;
+            overflow: hidden;
+        }
+        
+        .snapwidget-widget {
+            width: 100% !important;
+            max-width: 1260px;
+            height: auto !important;
+            aspect-ratio: 1260 / 1048; /* Maintain original aspect ratio */
+            border-radius: 12px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1300px) {
+            .instagram-widget-container {
+                max-width: 1000px;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .instagram-widget-container {
+                max-width: 800px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .instagram-widget-container {
+                max-width: 600px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .instagram-widget-container {
+                max-width: 350px;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -61,15 +103,22 @@
         </div>
     </section>
 
-    <!-- Instagram Section -->
+    <!-- Instagram Section - UPDATED WITH WIDGET -->
     <section class="instagram-section">
         <div class="container">
-            <h2 class="section-title">Follow us on Instagram @skylinksmensgolfclub</h2>
-            <div class="instagram-grid">
-                <div class="instagram-post" id="instagram-logo-1"></div>
-                <div class="instagram-post" id="instagram-logo-2"></div>
-                <div class="instagram-post" id="instagram-logo-3"></div>
-                <div class="instagram-post" id="instagram-logo-4"></div>
+            <h2 class="section-title">Follow us on Instagram <a href="https://instagram.com/skylinksmensgolf" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">@skylinksmensgolf</a></h2>
+            <div class="instagram-widget-container">
+                <!-- SnapWidget -->
+<iframe src="https://snapwidget.com/embed/1116674" class="snapwidget-widget" allowtransparency="true" frameborder="0" scrolling="no" style="border:none; overflow:hidden;  width:1480px; height:1158px" title="Posts from Instagram"></iframe>
+            </div>
+            <!-- Optional: Fallback link -->
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="https://instagram.com/skylinksmensgolf" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   style="color: #00704A; text-decoration: none; font-weight: 500;">
+                   View more on Instagram →
+                </a>
             </div>
         </div>
     </section>
@@ -158,14 +207,6 @@
                 if (welcomeLogoDiv) {
                     welcomeLogoDiv.style.backgroundImage = `url('${logoImage.imageUrl}')`;
                 }
-                
-                // Also apply the same logo to all Instagram posts
-                for (let i = 1; i <= 4; i++) {
-                    const instagramDiv = document.getElementById(`instagram-logo-${i}`);
-                    if (instagramDiv) {
-                        instagramDiv.style.backgroundImage = `url('${logoImage.imageUrl}')`;
-                    }
-                }
             }
             
             // Apply new membership image
@@ -191,13 +232,6 @@
             // Set fallback background colors if images fail to load
             const welcomeLogoDiv = document.getElementById('welcome-logo-image');
             if (welcomeLogoDiv) welcomeLogoDiv.style.backgroundColor = '#f0f0f0';
-            
-            for (let i = 1; i <= 4; i++) {
-                const instagramDiv = document.getElementById(`instagram-logo-${i}`);
-                if (instagramDiv) {
-                    instagramDiv.style.backgroundColor = '#f0f0f0';
-                }
-            }
         }
     }
 
@@ -266,10 +300,34 @@
         }
     }
 
+    // Make the SnapWidget responsive
+    function makeWidgetResponsive() {
+        const widget = document.querySelector('.snapwidget-widget');
+        if (widget) {
+            // Remove fixed width/height and make responsive
+            widget.style.width = '100%';
+            widget.style.height = 'auto';
+            
+            // Set aspect ratio based on original dimensions (1260x1048)
+            const container = widget.parentElement;
+            const maxWidth = Math.min(container.clientWidth, 1260);
+            const calculatedHeight = (maxWidth * 1048) / 1260;
+            
+            widget.style.maxWidth = maxWidth + 'px';
+            widget.style.height = calculatedHeight + 'px';
+        }
+    }
+
     // Load everything when page is ready
     document.addEventListener('DOMContentLoaded', function() {
         loadAndApplyImages();
         loadHomeTournamentCard();
+        
+        // Make widget responsive
+        makeWidgetResponsive();
+        
+        // Update on window resize
+        window.addEventListener('resize', makeWidgetResponsive);
     });
 </script>
 
