@@ -102,7 +102,7 @@
                     gridContainer.innerHTML = `
                         <div class="tournament-products-grid">
                             <!-- Membership Renewal Card -->
-                            <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
+                            <a href="/tournament-entry/membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
                                         src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
@@ -119,7 +119,7 @@
                             </a>
 
                             <!-- New Membership Card -->
-                            <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
+                            <a href="/tournament-entry/new-membership/" class="tournament-product-card" aria-label="New Membership">
                                 <div class="tournament-product-image-wrapper">
                                     <img 
                                         src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
@@ -149,7 +149,7 @@
                     // Membership cards
                     membershipHTML = `
                         <!-- Membership Renewal Card -->
-                        <a href="membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
+                        <a href="/tournament-entry/membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
                             <div class="tournament-product-image-wrapper">
                                 <img 
                                     src="${getImageUrl('membership-renewal', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG')}" 
@@ -166,7 +166,7 @@
                         </a>
 
                         <!-- New Membership Card -->
-                        <a href="new-membership/" class="tournament-product-card" aria-label="New Membership">
+                        <a href="/tournament-entry/new-membership/" class="tournament-product-card" aria-label="New Membership">
                             <div class="tournament-product-image-wrapper">
                                 <img 
                                     src="${getImageUrl('new-membership', 'https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg')}" 
@@ -206,6 +206,37 @@
                         <div class="error-message">
                             <p>Unable to load tournaments. Please try again later.</p>
                         </div>
+                        
+                        <!-- Fallback membership cards -->
+                        <a href="/tournament-entry/membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
+                            <div class="tournament-product-image-wrapper">
+                                <img 
+                                    src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564180-A6BUTVFM57WRUBYJ8836/P1099410.JPG" 
+                                    alt="Membership Renewal"
+                                    class="tournament-product-image"
+                                    loading="lazy"
+                                />
+                            </div>
+                            <div class="tournament-product-meta">
+                                <h3 class="tournament-product-title">Membership Renewal</h3>
+                                <p class="tournament-product-price">$89.00</p>
+                            </div>
+                        </a>
+
+                        <a href="/tournament-entry/new-membership/" class="tournament-product-card" aria-label="New Membership">
+                            <div class="tournament-product-image-wrapper">
+                                <img 
+                                    src="https://images.squarespace-cdn.com/content/v1/678d4161123ed24a1ff89f0e/1737310564165-5B2JME2T5UIES3LHANX0/P1099387.jpg" 
+                                    alt="New Membership"
+                                    class="tournament-product-image"
+                                    loading="lazy"
+                                />
+                            </div>
+                            <div class="tournament-product-meta">
+                                <h3 class="tournament-product-title">New Membership</h3>
+                                <p class="tournament-product-price">$109.00</p>
+                            </div>
+                        </a>
                     </div>
                 `;
             }
@@ -239,10 +270,37 @@
             `;
         }
 
+        // Debug function to check current URL
+        function debugNavigation() {
+            console.log('Current URL:', window.location.href);
+            console.log('Current path:', window.location.pathname);
+            
+            // Add click listeners for debugging
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link) {
+                    console.log('Link clicked:', {
+                        href: link.getAttribute('href'),
+                        fullUrl: new URL(link.getAttribute('href'), window.location.origin).href,
+                        currentPath: window.location.pathname
+                    });
+                }
+            });
+        }
+
         // Load everything when page is ready
         document.addEventListener('DOMContentLoaded', async function() {
             await loadAllImages();
             await loadTournamentCards();
+            debugNavigation(); // Add debugging
+            
+            // Log when page is fully loaded
+            console.log('Tournament Entry page loaded from:', window.location.pathname);
+            
+            // Check if we're on Vercel
+            if (window.location.hostname.includes('vercel.app')) {
+                console.log('Running on Vercel deployment');
+            }
         });
     </script>
 
@@ -269,6 +327,19 @@
             text-align: center;
             padding: 40px;
             color: #666;
+        }
+        
+        /* Ensure links work correctly */
+        .tournament-product-card {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .tournament-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
     </style>
 
