@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-const DOMAIN = process.env.FRONTEND_DOMAIN || 'https://www.skylinksmensgolf.com';
+const DOMAIN = process.env.FRONTEND_DOMAIN;
 
 // Helper function to format name as "B. Wells"
 function formatShortName(fullName) {
