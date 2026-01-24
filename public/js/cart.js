@@ -352,7 +352,7 @@ function updateCartItem(id, updatedFields) {
 }
 
 /* ============================================================
-   Remove an item - FIXED VERSION
+   Remove an item
    ============================================================ */
 function removeCartItem(itemId) {
     if (!itemId) return;
@@ -369,7 +369,7 @@ function removeCartItem(itemId) {
    ============================================================ */
 async function renderCart() {
     if (!document.getElementById("cart-rows")) return; 
-    
+
     // Load images from Image Manager if not already loaded
     if (!imageManagerImages) {
         imageManagerImages = await fetchImagesFromImageManager();

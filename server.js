@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const Stripe = require('stripe');
 const cors = require('cors');
+const fs = require('fs');
 
 const { connectDB } = require('./db');
 
@@ -20,8 +21,7 @@ console.log('Environment:', {
     isVercel,
     isProduction,
     isLocal,
-    NODE_ENV: process.env.NODE_ENV,
-    VERCEL: process.env.VERCEL
+    NODE_ENV: process.env.NODE_ENV
 });
 
 // --------------------
@@ -48,6 +48,12 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public'), {
+    index: false, // Don't automatically serve index.html
+    redirect: false
+}));
 
 // For file uploads in import endpoint
 app.use((req, res, next) => {
@@ -90,7 +96,7 @@ app.use((req, res, next) => {
 });
 
 // --------------------
-// ROUTES
+// API ROUTES
 // --------------------
 const adminRoutes = require('./server/routes/admin');
 const stripeRoutes = require('./server/routes/stripe');
@@ -177,106 +183,142 @@ app.get('/api/health', async (req, res) => {
 });
 
 // --------------------
-// LOCAL DEVELOPMENT ONLY
+// PAGE ROUTES - FOR BOTH LOCAL AND VERCEL
+// --------------------
+
+// Helper function to serve HTML pages
+function servePage(res, pagePath, fallbackPath = null) {
+    const fullPath = path.join(__dirname, 'public', pagePath);
+    
+    if (fs.existsSync(fullPath)) {
+        res.sendFile(fullPath);
+    } else if (fallbackPath && fs.existsSync(path.join(__dirname, 'public', fallbackPath))) {
+        res.sendFile(path.join(__dirname, 'public', fallbackPath));
+    } else {
+        res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
+    }
+}
+
+// Home page
+app.get('/', (req, res) => {
+    servePage(res, 'index.html');
+});
+
+// Success page
+app.get('/success', (req, res) => {
+    servePage(res, 'success.html');
+});
+
+// Cart page
+app.get('/cart', (req, res) => {
+    servePage(res, 'cart/index.html', 'cart.html');
+});
+
+// Results page
+app.get('/results', (req, res) => {
+    servePage(res, 'results/index.html');
+});
+
+// Schedule page
+app.get('/schedule', (req, res) => {
+    servePage(res, 'schedule/index.html');
+});
+
+// Contact page
+app.get('/contact', (req, res) => {
+    servePage(res, 'contact/index.html');
+});
+
+// About page
+app.get('/about', (req, res) => {
+    servePage(res, 'about/index.html');
+});
+
+// About sub-pages
+app.get('/about/:page', (req, res) => {
+    const page = req.params.page;
+    servePage(res, `about/${page}/index.html`, 'about/index.html');
+});
+
+// Admin page
+app.get('/admin', (req, res) => {
+    servePage(res, 'admin/index.html');
+});
+
+// Admin sub-pages
+app.get('/admin/:page', (req, res) => {
+    const page = req.params.page;
+    servePage(res, `admin/${page}/index.html`, 'admin/index.html');
+});
+
+// Tournament entry
+app.get('/tournament-entry', (req, res) => {
+    servePage(res, 'tournament-entry/index.html');
+});
+
+// Tournament entry sub-pages
+app.get('/tournament-entry/:page', (req, res) => {
+    const page = req.params.page;
+    
+    // Check if it's a tournament ID (numeric) or a page name
+    if (/^\d+$/.test(page)) {
+        // It's a tournament ID - serve tournament-page.html
+        servePage(res, 'tournament-entry/tournament-page.html');
+    } else {
+        // It's a page name like "membership-renewal" or "new-membership"
+        servePage(res, `tournament-entry/${page}/index.html`, 'tournament-entry/index.html');
+    }
+});
+
+// Tournament entry with specific tournament ID
+app.get('/tournament-entry/tournament/:tournamentId', (req, res) => {
+    servePage(res, 'tournament-entry/tournament-page.html');
+});
+
+// --------------------
+// FALLBACK FOR STATIC FILES
+// --------------------
+// This handles any static files that weren't caught by express.static
+app.get('*', (req, res, next) => {
+    // Check if the request is for a file with an extension
+    if (req.path.match(/\.[a-zA-Z0-9]{2,4}$/)) {
+        const filePath = path.join(__dirname, 'public', req.path);
+        
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            next();
+        }
+    } else {
+        next();
+    }
+});
+
+// --------------------
+// FINAL FALLBACK
+// --------------------
+app.use((req, res) => {
+    servePage(res, 'index.html');
+});
+
+// --------------------
+// START SERVER FOR LOCAL DEVELOPMENT
 // --------------------
 if (isLocal) {
-    // Serve static files for local development
-    app.use(express.static(path.join(__dirname, 'public'), {
-        index: 'index.html',
-        redirect: false
-    }));
-    
-    // Handle routes that should serve index.html from subdirectories
-    app.get('/about', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/about/index.html'));
-    });
-    
-    app.get('/results', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/results/index.html'));
-    });
-    
-    app.get('/schedule', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/schedule/index.html'));
-    });
-    
-    app.get('/contact', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/contact/index.html'));
-    });
-    
-    app.get('/cart', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/cart/index.html'));
-    });
-    
-    // Success page
-    app.get('/success', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/success.html'));
-    });
-    
-    // Admin routes
-    app.get('/admin', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/admin/index.html'));
-    });
-    
-    app.get('/admin/:page', (req, res) => {
-        const page = req.params.page;
-        const filePath = path.join(__dirname, 'public/admin', page, 'index.html');
-        const fallbackPath = path.join(__dirname, 'public/admin/index.html');
-        
-        if (require('fs').existsSync(filePath)) {
-            res.sendFile(filePath);
-        } else {
-            res.sendFile(fallbackPath);
-        }
-    });
-    
-    // About sub-routes
-    app.get('/about/:page', (req, res) => {
-        const page = req.params.page;
-        const filePath = path.join(__dirname, 'public/about', page, 'index.html');
-        const fallbackPath = path.join(__dirname, 'public/about/index.html');
-        
-        if (require('fs').existsSync(filePath)) {
-            res.sendFile(filePath);
-        } else {
-            res.sendFile(fallbackPath);
-        }
-    });
-    
-    // Tournament entry routes
-    app.get('/tournament-entry', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/tournament-entry/index.html'));
-    });
-    
-    app.get('/tournament-entry/membership-renewal', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/tournament-entry/membership-renewal/index.html'));
-    });
-    
-    app.get('/tournament-entry/new-membership', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/tournament-entry/new-membership/index.html'));
-    });
-    
-    app.get('/tournament-entry/:tournamentId', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/tournament-entry/tournament-page.html'));
-    });
-    
-    // Fallback for local development
-    app.use((req, res) => {
-        res.sendFile(path.join(__dirname, 'public/index.html'));
-    });
-
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`Server running locally on http://localhost:${PORT}`);
-        console.log(`Main pages:`);
+        console.log(`\nAvailable pages:`);
         console.log(`  Home: http://localhost:${PORT}/`);
         console.log(`  About: http://localhost:${PORT}/about`);
         console.log(`  Results: http://localhost:${PORT}/results`);
         console.log(`  Schedule: http://localhost:${PORT}/schedule`);
         console.log(`  Contact: http://localhost:${PORT}/contact`);
         console.log(`  Cart: http://localhost:${PORT}/cart`);
+        console.log(`  Success: http://localhost:${PORT}/success`);
         console.log(`  Admin: http://localhost:${PORT}/admin`);
         console.log(`  Tournament Entry: http://localhost:${PORT}/tournament-entry`);
-        console.log(`API: http://localhost:${PORT}/api/health`);
+        console.log(`\nAPI: http://localhost:${PORT}/api/health`);
     });
 }
 

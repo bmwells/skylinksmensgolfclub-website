@@ -7,142 +7,85 @@
       "config": {
         "installCommand": "npm ci --legacy-peer-deps"
       }
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "server.js"
     },
-    
-    {
-      "src": "/",
-      "dest": "/public/index.html"
-    },
     {
       "src": "/about",
-      "dest": "/public/about/index.html"
+      "dest": "/server.js"
     },
     {
       "src": "/results",
-      "dest": "/public/results/index.html"
+      "dest": "/server.js"
     },
     {
       "src": "/schedule",
-      "dest": "/public/schedule/index.html"
+      "dest": "/server.js"
     },
     {
       "src": "/contact",
-      "dest": "/public/contact/index.html"
+      "dest": "/server.js"
     },
     {
       "src": "/cart",
-      "dest": "/public/cart/index.html"
+      "dest": "/server.js"
     },
     {
       "src": "/success",
-      "dest": "/public/success.html"
+      "dest": "/server.js"
     },
-
     {
       "src": "/admin",
-      "dest": "/public/admin/index.html"
+      "dest": "/server.js"
     },
     {
-      "src": "/admin/tournament-manager",
-      "dest": "/public/admin/tournament-manager/index.html"
+      "src": "/admin/(.*)",
+      "dest": "/server.js"
     },
     {
-      "src": "/admin/monthly-tournament",
-      "dest": "/public/admin/monthly-tournament/index.html"
+      "src": "/about/(.*)",
+      "dest": "/server.js"
     },
-    {
-      "src": "/admin/presidents-letter",
-      "dest": "/public/admin/presidents-letter/index.html"
-    },
-    {
-      "src": "/admin/who-we-are",
-      "dest": "/public/admin/who-we-are/index.html"
-    },
-    {
-      "src": "/admin/meeting-minutes",
-      "dest": "/public/admin/meeting-minutes/index.html"
-    },
-    {
-      "src": "/admin/members",
-      "dest": "/public/admin/members/index.html"
-    },
-    
-    {
-      "src": "/about/meeting-minutes",
-      "dest": "/public/about/meeting-minutes/index.html"
-    },
-    {
-      "src": "/about/presidents-letter",
-      "dest": "/public/about/presidents-letter/index.html"
-    },
-    {
-      "src": "/about/who-we-are",
-      "dest": "/public/about/who-we-are/index.html"
-    },
-    
     {
       "src": "/tournament-entry",
-      "dest": "/public/tournament-entry/index.html"
+      "dest": "/server.js"
     },
     {
-      "src": "/tournament-entry/membership-renewal",
-      "dest": "/public/tournament-entry/membership-renewal/index.html"
+      "src": "/tournament-entry/(.*)",
+      "dest": "/server.js"
     },
-    {
-      "src": "/tournament-entry/new-membership",
-      "dest": "/public/tournament-entry/new-membership/index.html"
-    },
-    {
-      "src": "/tournament-entry/:tournamentId",
-      "dest": "/public/tournament-entry/tournament-page.html"
-    },
-    
-   {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|json|txt|xml))",
-      "dest": "/public/$1"
-    },
-    
-    {
-      "src": "/(.*\\.(html|htm))",
-      "dest": "/public/$1"
-    },
-    
     {
       "src": "/(.*)",
-      "dest": "/public/$1/index.html",
-      "status": 200,
-      "continue": true
-    },
-    
-    {
-      "src": "/(.*)",
-      "dest": "/public/index.html"
+      "dest": "/server.js"
     }
   ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
+        }
       ]
     }
   ]
