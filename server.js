@@ -251,30 +251,44 @@ app.get('/admin/:page', (req, res) => {
     servePage(res, `admin/${page}/index.html`, 'admin/index.html');
 });
 
-// Tournament entry
+// Tournament entry main page
 app.get('/tournament-entry', (req, res) => {
     servePage(res, 'tournament-entry/index.html');
 });
 
-// 1. Specific tournament ID route FIRST (more specific)
-app.get('/tournament-entry/tournament/:tournamentId', (req, res) => {
+// Dynamic tournament detail pages
+app.get('/tournament-entry/:tournamentId', (req, res, next) => {
     const tournamentId = req.params.tournamentId;
-    // You might want to pass tournamentId to the page
-    servePage(res, 'tournament-entry/tournament-page.html');
+    // Check if this is a tournament ID (not one of the fixed pages)
+    if (tournamentId !== 'membership-renewal' && 
+        tournamentId !== 'new-membership' && 
+        tournamentId !== 'checkout') {
+        servePage(res, 'tournament-entry/tournament-page.html');
+    } else {
+        // Let the fixed route handlers below handle these
+        next();
+    }
 });
 
-// 2. Generic page route SECOND (less specific)
-app.get('/tournament-entry/:page', (req, res) => {
-    const page = req.params.page;
-    
-    // Check for specific page names
-    const validPages = ['membership-renewal', 'new-membership', 'checkout'];
-    if (validPages.includes(page)) {
-        servePage(res, `tournament-entry/${page}/index.html`, 'tournament-entry/index.html');
-    } else {
-        // Default to main tournament entry page
-        servePage(res, 'tournament-entry/index.html');
-    }
+// Membership renewal page - EXACT match
+app.get('/tournament-entry/membership-renewal', (req, res) => {
+    servePage(res, 'tournament-entry/membership-renewal/index.html', 'tournament-entry/index.html');
+});
+
+// New membership page - EXACT match  
+app.get('/tournament-entry/new-membership', (req, res) => {
+    servePage(res, 'tournament-entry/new-membership/index.html', 'tournament-entry/index.html');
+});
+
+// Checkout page - EXACT match
+app.get('/tournament-entry/checkout', (req, res) => {
+    servePage(res, 'tournament-entry/checkout/index.html', 'tournament-entry/index.html');
+});
+
+// Tournament entry catch-all route - PLACED AFTER ALL SPECIFIC ROUTES
+app.get('/tournament-entry/*', (req, res) => {
+    // Serve the main tournament entry page for any other URLs
+    servePage(res, 'tournament-entry/index.html');
 });
 
 // --------------------
@@ -320,6 +334,9 @@ if (isLocal) {
         console.log(`  Success: http://localhost:${PORT}/success`);
         console.log(`  Admin: http://localhost:${PORT}/admin`);
         console.log(`  Tournament Entry: http://localhost:${PORT}/tournament-entry`);
+        console.log(`  Membership Renewal: http://localhost:${PORT}/tournament-entry/membership-renewal`);
+        console.log(`  New Membership: http://localhost:${PORT}/tournament-entry/new-membership`);
+        console.log(`  Tournament Details (example): http://localhost:${PORT}/tournament-entry/tournament123`);
         console.log(`\nAPI: http://localhost:${PORT}/api/health`);
     });
 }
