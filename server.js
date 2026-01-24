@@ -4,7 +4,6 @@ const express = require('express');
 const path = require('path');
 const Stripe = require('stripe');
 const cors = require('cors');
-const fs = require('fs');
 
 const { connectDB } = require('./db');
 
@@ -38,22 +37,17 @@ app.use(cors({
     origin: [
         'https://skylinksmensgolfclub-website.vercel.app',
         'http://localhost:3000',
+        'https://www.skylinksmensgolf.com',
+        'https://skylinksmensgolf.com'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Handle preflight OPTIONS requests
 app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public'), {
-    // Don't redirect missing files to index.html
-    redirect: false
-}));
 
 // For file uploads in import endpoint
 app.use((req, res, next) => {
@@ -139,12 +133,10 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Handle the event
     switch (event.type) {
         case 'checkout.session.completed':
             const session = event.data.object;
             console.log('Payment completed for session:', session.id);
-            console.log('Session metadata:', session.metadata);
             
             try {
                 await handleCompletedPayment(session);
@@ -152,11 +144,9 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
             } catch (error) {
                 console.error('Error handling completed payment:', error);
             }
-            
             break;
         case 'checkout.session.async_payment_failed':
-            const failedSession = event.data.object;
-            console.log('Payment failed for session:', failedSession.id);
+            console.log('Payment failed for session:', event.data.object.id);
             break;
         default:
             console.log(`Unhandled event type ${event.type}`);
@@ -187,93 +177,106 @@ app.get('/api/health', async (req, res) => {
 });
 
 // --------------------
-// SUCCESS PAGE ROUTE - UPDATED
-// --------------------
-app.get('/success', (req, res) => {
-    const successPath = path.join(__dirname, 'public', 'success.html');
-    
-    // Check if success.html exists
-    if (fs.existsSync(successPath)) {
-        res.sendFile(successPath);
-    } else {
-        // Fallback if success.html doesn't exist
-        res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Payment Successful</title>
-                <style>
-                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                    .success { color: green; font-size: 24px; }
-                </style>
-            </head>
-            <body>
-                <div class="success">✓ Payment Successful!</div>
-                <p>Thank you for your purchase. Session ID: ${req.query.session_id || 'N/A'}</p>
-                <a href="/">Return to Home</a>
-            </body>
-            </html>
-        `);
-    }
-});
-
-// --------------------
-// CART PAGE ROUTE
-// --------------------
-app.get('/cart', (req, res) => {
-    const cartPath = path.join(__dirname, 'public', 'cart.html');
-    if (fs.existsSync(cartPath)) {
-        res.sendFile(cartPath);
-    } else {
-        // Serve the fallback if cart.html doesn't exist
-        next();
-    }
-});
-
-// --------------------
-// ADMIN ROUTES
-// --------------------
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
-});
-
-app.get('/admin/:page', (req, res) => {
-    const filePath = path.join(__dirname, 'public', 'admin', `${req.params.page}.html`);
-    res.sendFile(
-        fs.existsSync(filePath)
-            ? filePath
-            : path.join(__dirname, 'public', 'admin', 'index.html')
-    );
-});
-
-// --------------------
-// DYNAMIC TOURNAMENT PAGES
-// --------------------
-app.get('/tournament-entry/:tournamentId', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'tournament-entry', 'tournament-page.html'));
-});
-
-// --------------------
-// FALLBACK - MUST BE LAST
-// --------------------
-app.use((req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// --------------------
-// START SERVER FOR LOCAL DEVELOPMENT
+// LOCAL DEVELOPMENT ONLY
 // --------------------
 if (isLocal) {
+    // Serve static files for local development
+    app.use(express.static(path.join(__dirname, 'public'), {
+        index: 'index.html',
+        redirect: false
+    }));
+    
+    // Handle routes that should serve index.html from subdirectories
+    app.get('/about', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/about/index.html'));
+    });
+    
+    app.get('/results', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/results/index.html'));
+    });
+    
+    app.get('/schedule', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/schedule/index.html'));
+    });
+    
+    app.get('/contact', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/contact/index.html'));
+    });
+    
+    app.get('/cart', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/cart/index.html'));
+    });
+    
+    // Success page
+    app.get('/success', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/success.html'));
+    });
+    
+    // Admin routes
+    app.get('/admin', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/admin/index.html'));
+    });
+    
+    app.get('/admin/:page', (req, res) => {
+        const page = req.params.page;
+        const filePath = path.join(__dirname, 'public/admin', page, 'index.html');
+        const fallbackPath = path.join(__dirname, 'public/admin/index.html');
+        
+        if (require('fs').existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.sendFile(fallbackPath);
+        }
+    });
+    
+    // About sub-routes
+    app.get('/about/:page', (req, res) => {
+        const page = req.params.page;
+        const filePath = path.join(__dirname, 'public/about', page, 'index.html');
+        const fallbackPath = path.join(__dirname, 'public/about/index.html');
+        
+        if (require('fs').existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.sendFile(fallbackPath);
+        }
+    });
+    
+    // Tournament entry routes
+    app.get('/tournament-entry', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/tournament-entry/index.html'));
+    });
+    
+    app.get('/tournament-entry/membership-renewal', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/tournament-entry/membership-renewal/index.html'));
+    });
+    
+    app.get('/tournament-entry/new-membership', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/tournament-entry/new-membership/index.html'));
+    });
+    
+    app.get('/tournament-entry/:tournamentId', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public/tournament-entry/tournament-page.html'));
+    });
+    
+    // Fallback for local development
+    app.use((req, res) => {
+        res.sendFile(path.join(__dirname, 'public/index.html'));
+    });
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`Server running locally on http://localhost:${PORT}`);
+        console.log(`Main pages:`);
+        console.log(`  Home: http://localhost:${PORT}/`);
+        console.log(`  About: http://localhost:${PORT}/about`);
+        console.log(`  Results: http://localhost:${PORT}/results`);
+        console.log(`  Schedule: http://localhost:${PORT}/schedule`);
+        console.log(`  Contact: http://localhost:${PORT}/contact`);
+        console.log(`  Cart: http://localhost:${PORT}/cart`);
+        console.log(`  Admin: http://localhost:${PORT}/admin`);
+        console.log(`  Tournament Entry: http://localhost:${PORT}/tournament-entry`);
         console.log(`API: http://localhost:${PORT}/api/health`);
-        console.log(`Admin: http://localhost:${PORT}/admin`);
-        console.log(`Success Page: http://localhost:${PORT}/success`);
-        console.log(`Cart: http://localhost:${PORT}/cart`);
-        console.log(`Tournament Entry: http://localhost:${PORT}/tournament-entry`);
-        console.log(`Stripe Checkout enabled: ${!!process.env.STRIPE_SECRET_KEY}`);
-        console.log(`Stripe Webhook enabled: ${!!process.env.STRIPE_WEBHOOK_SECRET}`);
     });
 }
 
