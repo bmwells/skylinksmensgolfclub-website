@@ -4,15 +4,6 @@ const router = express.Router();
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Validate FRONTEND_DOMAIN is set
-const DOMAIN = process.env.FRONTEND_DOMAIN;
-console.log('DOMAIN env variable:', DOMAIN); // Add this for debugging
-
-if (!DOMAIN) {
-    console.error('ERROR: FRONTEND_DOMAIN environment variable is not set!');
-    // Don't throw here, but handle it in the route
-}
-
 // Helper function to format name as "N. Name"
 function formatShortName(fullName) {
     if (!fullName) return '';
@@ -37,7 +28,11 @@ router.post('/create-checkout-session', async (req, res) => {
     try {
         const { cartItems, customerEmail, customerName } = req.body;
         
-        // ADD THIS VALIDATION
+        // Get DOMAIN from env and ensure it has a protocol
+        let DOMAIN = process.env.FRONTEND_DOMAIN;
+        
+        console.log('Raw DOMAIN from env:', DOMAIN); // Debug logging
+        
         if (!DOMAIN) {
             return res.status(500).json({ 
                 error: 'Server configuration error: FRONTEND_DOMAIN is not set',
@@ -45,16 +40,19 @@ router.post('/create-checkout-session', async (req, res) => {
             });
         }
         
-        // Validate DOMAIN format
-        const cleanDomain = DOMAIN.replace(/\/$/, ''); // Remove trailing slash
-        if (!cleanDomain.startsWith('http://') && !cleanDomain.startsWith('https://')) {
-            return res.status(500).json({ 
-                error: 'Invalid FRONTEND_DOMAIN format',
-                message: 'FRONTEND_DOMAIN must start with http:// or https://'
-            });
+        // Clean and ensure proper protocol
+        DOMAIN = DOMAIN.trim().replace(/\/$/, ''); // Remove trailing slash
+        
+        // Add protocol if missing
+        if (!DOMAIN.startsWith('http://') && !DOMAIN.startsWith('https://')) {
+            // For production, default to https
+            const isProduction = process.env.NODE_ENV === 'production';
+            const protocol = isProduction ? 'https://' : 'http://';
+            DOMAIN = protocol + DOMAIN;
+            console.log('Added protocol to DOMAIN:', DOMAIN);
         }
         
-        console.log('Using domain for checkout:', cleanDomain); // Add logging
+        console.log('Final DOMAIN for checkout:', DOMAIN);
         
         if (!cartItems || cartItems.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
@@ -215,8 +213,8 @@ router.post('/create-checkout-session', async (req, res) => {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: `${cleanDomain}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${cleanDomain}/cart`,
+            success_url: `${DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${DOMAIN}/cart`,
             customer_email: customerEmail || undefined,
             metadata: metadata,
             billing_address_collection: 'required',
