@@ -3,9 +3,17 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-const DOMAIN = process.env.FRONTEND_DOMAIN;
 
-// Helper function to format name as "B. Wells"
+// Validate FRONTEND_DOMAIN is set
+const DOMAIN = process.env.FRONTEND_DOMAIN;
+console.log('DOMAIN env variable:', DOMAIN); // Add this for debugging
+
+if (!DOMAIN) {
+    console.error('ERROR: FRONTEND_DOMAIN environment variable is not set!');
+    // Don't throw here, but handle it in the route
+}
+
+// Helper function to format name as "N. Name"
 function formatShortName(fullName) {
     if (!fullName) return '';
     
@@ -28,6 +36,25 @@ function formatShortName(fullName) {
 router.post('/create-checkout-session', async (req, res) => {
     try {
         const { cartItems, customerEmail, customerName } = req.body;
+        
+        // ADD THIS VALIDATION
+        if (!DOMAIN) {
+            return res.status(500).json({ 
+                error: 'Server configuration error: FRONTEND_DOMAIN is not set',
+                message: 'Please set the FRONTEND_DOMAIN environment variable'
+            });
+        }
+        
+        // Validate DOMAIN format
+        const cleanDomain = DOMAIN.replace(/\/$/, ''); // Remove trailing slash
+        if (!cleanDomain.startsWith('http://') && !cleanDomain.startsWith('https://')) {
+            return res.status(500).json({ 
+                error: 'Invalid FRONTEND_DOMAIN format',
+                message: 'FRONTEND_DOMAIN must start with http:// or https://'
+            });
+        }
+        
+        console.log('Using domain for checkout:', cleanDomain); // Add logging
         
         if (!cartItems || cartItems.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
@@ -188,8 +215,8 @@ router.post('/create-checkout-session', async (req, res) => {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: `${DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${DOMAIN}/cart`,
+            success_url: `${cleanDomain}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${cleanDomain}/cart`,
             customer_email: customerEmail || undefined,
             metadata: metadata,
             billing_address_collection: 'required',
