@@ -3,14 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-
-// Validate FRONTEND_DOMAIN is set
 const DOMAIN = process.env.FRONTEND_DOMAIN;
-
-if (!DOMAIN) {
-    console.error('ERROR: FRONTEND_DOMAIN environment variable is not set!');
-    // Don't throw here, but handle it in the route
-}
 
 // Helper function to format name as "N. Name"
 function formatShortName(fullName) {
