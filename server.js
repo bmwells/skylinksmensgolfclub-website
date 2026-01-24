@@ -256,23 +256,25 @@ app.get('/tournament-entry', (req, res) => {
     servePage(res, 'tournament-entry/index.html');
 });
 
-// Tournament entry sub-pages
+// 1. Specific tournament ID route FIRST (more specific)
+app.get('/tournament-entry/tournament/:tournamentId', (req, res) => {
+    const tournamentId = req.params.tournamentId;
+    // You might want to pass tournamentId to the page
+    servePage(res, 'tournament-entry/tournament-page.html');
+});
+
+// 2. Generic page route SECOND (less specific)
 app.get('/tournament-entry/:page', (req, res) => {
     const page = req.params.page;
     
-    // Check if it's a tournament ID (numeric) or a page name
-    if (/^\d+$/.test(page)) {
-        // It's a tournament ID - serve tournament-page.html
-        servePage(res, 'tournament-entry/tournament-page.html');
-    } else {
-        // It's a page name like "membership-renewal" or "new-membership"
+    // Check for specific page names
+    const validPages = ['membership-renewal', 'new-membership', 'checkout'];
+    if (validPages.includes(page)) {
         servePage(res, `tournament-entry/${page}/index.html`, 'tournament-entry/index.html');
+    } else {
+        // Default to main tournament entry page
+        servePage(res, 'tournament-entry/index.html');
     }
-});
-
-// Tournament entry with specific tournament ID
-app.get('/tournament-entry/tournament/:tournamentId', (req, res) => {
-    servePage(res, 'tournament-entry/tournament-page.html');
 });
 
 // --------------------
