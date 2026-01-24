@@ -5,6 +5,25 @@ const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const DOMAIN = process.env.FRONTEND_DOMAIN || 'https://www.skylinksmensgolf.com/';
 
+// Helper function to format name as "B. Wells"
+function formatShortName(fullName) {
+    if (!fullName) return '';
+    
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 0) return '';
+    
+    if (nameParts.length === 1) {
+        // Single name, return as-is
+        return nameParts[0];
+    }
+    
+    // Get first initial and last name
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' '); // Handle multi-word last names
+    
+    return `${firstName.charAt(0)}. ${lastName}`;
+}
+
 // Create checkout session
 router.post('/create-checkout-session', async (req, res) => {
     try {
@@ -30,18 +49,10 @@ router.post('/create-checkout-session', async (req, res) => {
                 
                 // Main player (Player 1)
                 if (form.name) {
-                    const firstName = form.name.split(' ')[0] || '';
-                    const lastName = form.name.split(' ').slice(1).join(' ') || '';
-                    let mainPlayerText = `1: ${firstName} ${lastName}`;
+                    const shortName = formatShortName(form.name);
+                    let mainPlayerText = `1: ${shortName}`;
+                    
                     if (form.ghin) mainPlayerText += `, ${form.ghin}`;
-                    
-                    if (form.entryNum && form.entryNum.trim() !== '') {
-                        mainPlayerText += `, #${form.entryNum}`;
-                    }
-                    
-                    if (form.index && form.index.trim() !== '') {
-                        mainPlayerText += `, ${form.index}`;
-                    }
                     
                     if (form.startingTime) mainPlayerText += `, ${form.startingTime}`;
                     if (form.cartOption) mainPlayerText += `, ${form.cartOption}`;
@@ -61,16 +72,10 @@ router.post('/create-checkout-session', async (req, res) => {
                     form.additionalPlayers.forEach((player, idx) => {
                         const playerName = player.name || '';
                         if (playerName) {
-                            let formattedName = `${idx + 2}: ${playerName}`;
+                            const shortPlayerName = formatShortName(playerName);
+                            let formattedName = `${idx + 2}: ${shortPlayerName}`;
+                            
                             if (player.ghin) formattedName += `, ${player.ghin}`;
-                            
-                            if (player.entryNum && player.entryNum.trim() !== '') {
-                                formattedName += `, #${player.entryNum}`;
-                            }
-                            
-                            if (player.index && player.index.trim() !== '') {
-                                formattedName += `, ${player.index}`;
-                            }
                             
                             playerList.push(formattedName);
                         }
@@ -84,10 +89,8 @@ router.post('/create-checkout-session', async (req, res) => {
             } else if (item.type === 'membership') {
                 const form = item.form || {};
                 if (form.name) {
-                    const firstName = form.name.split(' ')[0] || '';
-                    const lastName = form.name.split(' ').slice(1).join(' ') || '';
-                    
-                    description = `${firstName} ${lastName}`;
+                    const shortName = formatShortName(form.name);
+                    description = shortName;
                     
                     if (form.email) description += `, ${form.email}`;
                     if (form.phone) description += `, ${form.phone}`;
@@ -116,71 +119,58 @@ router.post('/create-checkout-session', async (req, res) => {
             timestamp: new Date().toISOString(),
         };
 
-        // Store item data
+        // Store item data - MINIMAL VERSION to stay under 500 chars
         cartItems.forEach((item, index) => {
             if (item.type === 'tournament') {
                 const form = item.form || {};
                 
-                const nameParts = form.name ? form.name.split(' ') : [];
-                const firstName = nameParts[0] || '';
-                const lastName = nameParts.slice(1).join(' ') || '';
-                
+                // Create minimal main player object
                 const mainPlayer = {
-                    firstName: firstName,
-                    lastName: lastName,
-                    fullName: form.name || '',
+                    name: form.name || '',
                     email: form.email || '',
                     phone: form.phone || '',
                     ghin: form.ghin || '',
-                    index: (form.index || '').toString(),
-                    entryNum: (form.entryNum || '').toString(),
                     startingTime: form.startingTime || '',
                     cartOption: form.cartOption || '',
                     sidePots: (form.sidePots || false).toString(),
-                    roulette: (form.roulette || false).toString(),
-                    sidePotsPrice: (item.sidePotPrice || 25).toString(),
-                    roulettePrice: (item.roulettePrice || 30).toString(),
-                    cartOptionPrice: (form.cartOptionAddedPrice || 0).toString()
+                    roulette: (form.roulette || false).toString()
                 };
                 
+                // Create minimal additional players array
                 const additionalPlayers = [];
                 if (form.additionalPlayers && form.additionalPlayers.length > 0) {
-                    form.additionalPlayers.forEach((player, playerIndex) => {
-                        const playerNameParts = player.name ? player.name.split(' ') : [];
-                        const playerFirstName = playerNameParts[0] || '';
-                        const playerLastName = playerNameParts.slice(1).join(' ') || '';
-                        
+                    form.additionalPlayers.forEach((player) => {
+                        // Minimal player data
                         additionalPlayers.push({
-                            firstName: playerFirstName,
-                            lastName: playerLastName,
-                            fullName: player.name || '',
+                            name: player.name || '',
                             email: player.email || '',
                             phone: player.phone || '',
-                            ghin: player.ghin || '',
-                            index: (player.index || '').toString(),
-                            entryNum: (player.entryNum || '').toString()
+                            ghin: player.ghin || ''
                         });
                     });
                 }
                 
+                // Store only essential data
                 metadata[`item_${index}_type`] = 'tournament';
                 metadata[`item_${index}_name`] = item.name;
                 metadata[`item_${index}_price`] = item.price.toString();
                 metadata[`item_${index}_basePrice`] = (item.basePrice || 0).toString();
-                metadata[`item_${index}_tournamentId`] = item.tournamentId || ''; // NEW: Store tournamentId
-                metadata[`item_${index}_mainPlayer`] = JSON.stringify(mainPlayer);
-                metadata[`item_${index}_additionalPlayers`] = JSON.stringify(additionalPlayers);
+                metadata[`item_${index}_tournamentId`] = item.tournamentId || '';
+                
+                // Store minimal main player as string
+                metadata[`item_${index}_mp`] = JSON.stringify(mainPlayer);
+                
+                // Store additional players only if they exist
+                if (additionalPlayers.length > 0) {
+                    metadata[`item_${index}_ap`] = JSON.stringify(additionalPlayers);
+                }
                 
             } else if (item.type === 'membership') {
                 const form = item.form || {};
-                const nameParts = form.name ? form.name.split(' ') : [];
-                const firstName = nameParts[0] || '';
-                const lastName = nameParts.slice(1).join(' ') || '';
                 
+                // Minimal member data
                 const member = {
-                    firstName: firstName,
-                    lastName: lastName,
-                    fullName: form.name || '',
+                    name: form.name || '',
                     email: form.email || '',
                     phone: form.phone || '',
                     ghin: form.ghin || ''
@@ -189,7 +179,7 @@ router.post('/create-checkout-session', async (req, res) => {
                 metadata[`item_${index}_type`] = 'membership';
                 metadata[`item_${index}_name`] = item.name;
                 metadata[`item_${index}_price`] = item.price.toString();
-                metadata[`item_${index}_member`] = JSON.stringify(member);
+                metadata[`item_${index}_m`] = JSON.stringify(member);
             }
         });
 
@@ -244,25 +234,25 @@ router.get('/checkout-session/:sessionId', async (req, res) => {
                     name: session.metadata[`item_${i}_name`] || '',
                     price: session.metadata[`item_${i}_price`] || '0',
                     basePrice: session.metadata[`item_${i}_basePrice`] || '0',
-                    tournamentId: session.metadata[`item_${i}_tournamentId`] || '' // NEW: Get tournamentId
+                    tournamentId: session.metadata[`item_${i}_tournamentId`] || ''
                 };
                 
                 // Parse JSON strings for player/member data
                 if (item.type === 'tournament') {
                     try {
-                        if (session.metadata[`item_${i}_mainPlayer`]) {
-                            item.mainPlayer = JSON.parse(session.metadata[`item_${i}_mainPlayer`]);
+                        if (session.metadata[`item_${i}_mp`]) {
+                            item.mainPlayer = JSON.parse(session.metadata[`item_${i}_mp`]);
                         }
-                        if (session.metadata[`item_${i}_additionalPlayers`]) {
-                            item.additionalPlayers = JSON.parse(session.metadata[`item_${i}_additionalPlayers`]);
+                        if (session.metadata[`item_${i}_ap`]) {
+                            item.additionalPlayers = JSON.parse(session.metadata[`item_${i}_ap`]);
                         }
                     } catch (e) {
                         console.error('Error parsing player data:', e);
                     }
                 } else if (item.type === 'membership') {
                     try {
-                        if (session.metadata[`item_${i}_member`]) {
-                            item.member = JSON.parse(session.metadata[`item_${i}_member`]);
+                        if (session.metadata[`item_${i}_m`]) {
+                            item.member = JSON.parse(session.metadata[`item_${i}_m`]);
                         }
                     } catch (e) {
                         console.error('Error parsing member data:', e);

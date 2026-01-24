@@ -29,7 +29,7 @@ console.log('Environment:', {
 // STRIPE INITIALIZATION
 // --------------------
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-const DOMAIN = process.env.FRONTEND_DOMAIN || (isLocal ? 'http://localhost:3000' : 'https://www.skylinksmensgolf.com/');
+const DOMAIN = process.env.FRONTEND_DOMAIN || (isLocal ? 'http://localhost:3000' : 'https://www.skylinksmensgolf.com');
 
 // --------------------
 // MIDDLEWARE
@@ -48,7 +48,12 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public'), {
+    // Don't redirect missing files to index.html
+    redirect: false
+}));
 
 // For file uploads in import endpoint
 app.use((req, res, next) => {
@@ -128,6 +133,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        console.log('Webhook received:', event.type);
     } catch (err) {
         console.error('Webhook signature verification failed:', err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -138,9 +144,11 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         case 'checkout.session.completed':
             const session = event.data.object;
             console.log('Payment completed for session:', session.id);
+            console.log('Session metadata:', session.metadata);
             
             try {
                 await handleCompletedPayment(session);
+                console.log('Payment processed successfully');
             } catch (error) {
                 console.error('Error handling completed payment:', error);
             }
@@ -179,6 +187,50 @@ app.get('/api/health', async (req, res) => {
 });
 
 // --------------------
+// SUCCESS PAGE ROUTE - UPDATED
+// --------------------
+app.get('/success', (req, res) => {
+    const successPath = path.join(__dirname, 'public', 'success.html');
+    
+    // Check if success.html exists
+    if (fs.existsSync(successPath)) {
+        res.sendFile(successPath);
+    } else {
+        // Fallback if success.html doesn't exist
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Payment Successful</title>
+                <style>
+                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                    .success { color: green; font-size: 24px; }
+                </style>
+            </head>
+            <body>
+                <div class="success">✓ Payment Successful!</div>
+                <p>Thank you for your purchase. Session ID: ${req.query.session_id || 'N/A'}</p>
+                <a href="/">Return to Home</a>
+            </body>
+            </html>
+        `);
+    }
+});
+
+// --------------------
+// CART PAGE ROUTE
+// --------------------
+app.get('/cart', (req, res) => {
+    const cartPath = path.join(__dirname, 'public', 'cart.html');
+    if (fs.existsSync(cartPath)) {
+        res.sendFile(cartPath);
+    } else {
+        // Serve the fallback if cart.html doesn't exist
+        next();
+    }
+});
+
+// --------------------
 // ADMIN ROUTES
 // --------------------
 app.get('/admin', (req, res) => {
@@ -202,7 +254,7 @@ app.get('/tournament-entry/:tournamentId', (req, res) => {
 });
 
 // --------------------
-// FALLBACK
+// FALLBACK - MUST BE LAST
 // --------------------
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -217,6 +269,8 @@ if (isLocal) {
         console.log(`Server running locally on http://localhost:${PORT}`);
         console.log(`API: http://localhost:${PORT}/api/health`);
         console.log(`Admin: http://localhost:${PORT}/admin`);
+        console.log(`Success Page: http://localhost:${PORT}/success`);
+        console.log(`Cart: http://localhost:${PORT}/cart`);
         console.log(`Tournament Entry: http://localhost:${PORT}/tournament-entry`);
         console.log(`Stripe Checkout enabled: ${!!process.env.STRIPE_SECRET_KEY}`);
         console.log(`Stripe Webhook enabled: ${!!process.env.STRIPE_WEBHOOK_SECRET}`);

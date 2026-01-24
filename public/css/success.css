@@ -1,0 +1,368 @@
+body {
+            background: #f5f5f5;
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        .success-page-section {
+            padding: 40px 20px;
+            min-height: calc(100vh - 160px);
+        }
+        
+        .success-container {
+            max-width: 800px;
+            margin: 0 auto;
+            margin-top: 20px;
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 0px;
+        }
+        
+        .success-title {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+        
+        .success-message {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        
+        .order-details {
+            text-align: left;
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .order-summary h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .order-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .order-info-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .order-info-item strong {
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .order-id-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .order-id-truncated {
+            font-family: monospace;
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .order-id-full {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            word-break: break-all;
+            display: none;
+        }
+        
+        .copy-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+        
+        .copy-btn:hover {
+            background: #45a049;
+        }
+        
+        .copy-btn.copied {
+            background: #2e7d32;
+        }
+        
+        .copy-btn svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        
+        .order-info-item span {
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .order-items {
+            margin-top: 25px;
+        }
+        
+        .order-items h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .order-item {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .item-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .item-price {
+            font-size: 16px;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .player-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        
+        .player-header {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .player-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .player-field {
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .player-field strong {
+            color: #666;
+            display: block;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        
+        .add-ons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .add-on-tag {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .cart-option-tag {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid #bbdefb;
+        }
+        
+        .success-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        
+        .btn-primary {
+            background: green;
+            color: white;
+            border: 2px solid green;
+        }
+        
+        .btn-primary:hover {
+            background: #333;
+            border-color: #333;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            border-color: #ccc;
+        }
+        
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .no-items {
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        /* Tooltip for copy button */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+        
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 20px;
+                max-width: 95%;
+            }
+            
+            .order-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .player-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .success-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                text-align: center;
+            }
+            
+            .order-id-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .copy-btn {
+                align-self: flex-start;
+            }
+        }
