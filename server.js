@@ -256,33 +256,27 @@ app.get('/tournament-entry', (req, res) => {
     servePage(res, 'tournament-entry/index.html');
 });
 
-// Dynamic tournament detail pages
-app.get('/tournament-entry/:tournamentId', (req, res, next) => {
-    const tournamentId = req.params.tournamentId;
-    // Check if this is a tournament ID (not one of the fixed pages)
-    if (tournamentId !== 'membership-renewal' && 
-        tournamentId !== 'new-membership' && 
-        tournamentId !== 'checkout') {
-        servePage(res, 'tournament-entry/tournament-page.html');
-    } else {
-        // Let the fixed route handlers below handle these
-        next();
-    }
-});
-
-// Membership renewal page - EXACT match
+// Membership renewal page - EXACT match - MOVED BEFORE DYNAMIC ROUTE
 app.get('/tournament-entry/membership-renewal', (req, res) => {
     servePage(res, 'tournament-entry/membership-renewal/index.html', 'tournament-entry/index.html');
 });
 
-// New membership page - EXACT match  
+// New membership page - EXACT match - MOVED BEFORE DYNAMIC ROUTE
 app.get('/tournament-entry/new-membership', (req, res) => {
     servePage(res, 'tournament-entry/new-membership/index.html', 'tournament-entry/index.html');
 });
 
-// Checkout page - EXACT match
+// Checkout page - EXACT match - MOVED BEFORE DYNAMIC ROUTE
 app.get('/tournament-entry/checkout', (req, res) => {
     servePage(res, 'tournament-entry/checkout/index.html', 'tournament-entry/index.html');
+});
+
+// Dynamic tournament detail pages - MOVED AFTER SPECIFIC ROUTES
+app.get('/tournament-entry/:tournamentId', (req, res, next) => {
+    const tournamentId = req.params.tournamentId;
+    // Check if this is a tournament ID (not one of the fixed pages)
+    // Note: This check is now less critical since specific routes are matched first
+    servePage(res, 'tournament-entry/tournament-page.html');
 });
 
 // Tournament entry catch-all route - PLACED AFTER ALL SPECIFIC ROUTES
