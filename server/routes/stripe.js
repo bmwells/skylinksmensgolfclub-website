@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-const DOMAIN = process.env.FRONTEND_DOMAIN;
 
 // Helper function to format name as "N. Name"
 function formatShortName(fullName) {
