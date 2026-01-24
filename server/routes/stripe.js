@@ -1,4 +1,4 @@
-// server/routes/stripe.js - UPDATED FOR DYNAMIC TOURNAMENTS
+// server/routes/stripe.js
 const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');

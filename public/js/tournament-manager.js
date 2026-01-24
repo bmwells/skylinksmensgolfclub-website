@@ -1033,7 +1033,7 @@ function editFoursome(tournamentId, foursomeId, originalIndex) {
     document.getElementById('editFoursomeModal').style.display = 'flex';
 }
 
-// Fill edit modal with existing data - UPDATED for proper dropdown setting
+// Fill edit modal with existing data
 function fillEditFoursomeModal(foursome) {
     console.log('Filling modal with foursome:', foursome);
     
@@ -1187,7 +1187,7 @@ function closeEditFoursomeModal() {
     currentFoursomeId = null;
 }
 
-// Save foursome changes - UPDATED to properly get form values
+// Save foursome changes
 async function saveFoursomeChanges() {
     const tournamentId = currentTournament;
     const foursomeId = currentFoursomeId;
@@ -1199,7 +1199,7 @@ async function saveFoursomeChanges() {
         return;
     }
     
-    // Get form values - FIXED: using correct element IDs
+    // Get form values
     const startTimeSelect = document.getElementById('editStartTime');
     const cartOptionSelect = document.getElementById('editCartOption');
     const sidePotCheckbox = document.getElementById('editSidePot');

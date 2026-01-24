@@ -1,4 +1,4 @@
-// server/routes/tournamentManager.js - UPDATED FOR DYNAMIC TOURNAMENTS
+// server/routes/tournamentManager.js
 const express = require('express');
 const router = express.Router();
 const { ObjectId } = require('mongodb');

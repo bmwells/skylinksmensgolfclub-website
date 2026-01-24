@@ -1,4 +1,4 @@
-// public/js/contact.js - Updated to work with both homepage and contact page
+// public/js/contact.js
 document.addEventListener('DOMContentLoaded', function() {
     // Try to find contact form in multiple locations
     const contactForm = document.querySelector('.contact-page-form form') || 

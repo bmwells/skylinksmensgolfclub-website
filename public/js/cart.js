@@ -1,5 +1,5 @@
 /* ============================================================
-   Skylinks Custom Cart - Updated for dynamic tournaments
+   Skylinks Cart JS
    ============================================================ */
 
 const CART_KEY = "skylinks_cart_v1";
@@ -324,7 +324,7 @@ function addToCart(item) {
 }
 
 /* ============================================================
-   Update an item - UPDATED to handle dynamic add-on prices
+   Update an item
    ============================================================ */
 function updateCartItem(id, updatedFields) {
     const cart = loadCart();
@@ -365,11 +365,11 @@ function removeCartItem(itemId) {
 }
 
 /* ============================================================
-   Render Cart Page - UPDATED for dynamic tournaments
+   Render Cart Page
    ============================================================ */
 async function renderCart() {
-    if (!document.getElementById("cart-rows")) return; // not on cart page
-
+    if (!document.getElementById("cart-rows")) return; 
+    
     // Load images from Image Manager if not already loaded
     if (!imageManagerImages) {
         imageManagerImages = await fetchImagesFromImageManager();
@@ -531,7 +531,7 @@ async function renderCart() {
         rows.appendChild(row);
 
         /* ======================================================
-           Remove Handler - FIXED VERSION
+           Remove Handler
            ====================================================== */
         removeBtn.addEventListener("click", (e) => {
             const itemId = e.currentTarget.dataset.itemId;
@@ -550,7 +550,7 @@ async function renderCart() {
 }
 
 /* ============================================================
-   Modal Editing - UPDATED for dynamic tournaments
+   Modal Editing
    ============================================================ */
 
 let editingItemId = null;

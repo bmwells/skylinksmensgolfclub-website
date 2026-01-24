@@ -103,7 +103,7 @@
         </div>
     </section>
 
-    <!-- Instagram Section - UPDATED WITH WIDGET -->
+    <!-- Instagram Section -->
     <section class="instagram-section">
         <div class="container">
             <h2 class="section-title">Follow us on Instagram <a href="https://instagram.com/skylinksmensgolf" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">@skylinksmensgolf</a></h2>
@@ -304,15 +304,12 @@
     function makeWidgetResponsive() {
         const widget = document.querySelector('.snapwidget-widget');
         if (widget) {
-            // Remove fixed width/height and make responsive
             widget.style.width = '100%';
             widget.style.height = 'auto';
-            
             // Set aspect ratio based on original dimensions (1260x1048)
             const container = widget.parentElement;
             const maxWidth = Math.min(container.clientWidth, 1260);
             const calculatedHeight = (maxWidth * 1048) / 1260;
-            
             widget.style.maxWidth = maxWidth + 'px';
             widget.style.height = calculatedHeight + 'px';
         }

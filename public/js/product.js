@@ -1,4 +1,4 @@
-// public/js/product.js - Updated for dynamic tournaments
+// public/js/product.js
 (function () {
     'use strict';
 
