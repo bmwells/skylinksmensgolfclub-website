@@ -183,21 +183,72 @@ app.get('/api/health', async (req, res) => {
 });
 
 // --------------------
-// PAGE ROUTES - FOR BOTH LOCAL AND VERCEL
+// DEBUG ENDPOINTS
 // --------------------
+app.get('/api/debug/files', (req, res) => {
+    try {
+        const publicDir = path.join(__dirname, 'public');
+        
+        // Check if membership directories exist
+        const membershipRenewalPath = path.join(publicDir, 'tournament-entry', 'membership-renewal', 'index.html');
+        const newMembershipPath = path.join(publicDir, 'tournament-entry', 'new-membership', 'index.html');
+        const mainEntryPath = path.join(publicDir, 'tournament-entry', 'index.html');
+        
+        const files = {
+            membershipRenewal: {
+                path: 'tournament-entry/membership-renewal/index.html',
+                exists: fs.existsSync(membershipRenewalPath),
+                fullPath: membershipRenewalPath
+            },
+            newMembership: {
+                path: 'tournament-entry/new-membership/index.html',
+                exists: fs.existsSync(newMembershipPath),
+                fullPath: newMembershipPath
+            },
+            mainEntry: {
+                path: 'tournament-entry/index.html',
+                exists: fs.existsSync(mainEntryPath),
+                fullPath: mainEntryPath
+            }
+        };
+        
+        res.json({
+            currentDir: __dirname,
+            publicDir: publicDir,
+            files: files,
+            requestPath: req.path
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
-// Helper function to serve HTML pages
+// --------------------
+// HELPER FUNCTION TO SERVE HTML PAGES
+// --------------------
 function servePage(res, pagePath, fallbackPath = null) {
     const fullPath = path.join(__dirname, 'public', pagePath);
+    const fullFallbackPath = fallbackPath ? path.join(__dirname, 'public', fallbackPath) : null;
+    
+    console.log(`📁 Attempting to serve: ${pagePath}`);
+    console.log(`📁 Full path: ${fullPath}`);
+    console.log(`📁 File exists: ${fs.existsSync(fullPath)}`);
     
     if (fs.existsSync(fullPath)) {
+        console.log(`✅ Serving: ${pagePath}`);
         res.sendFile(fullPath);
-    } else if (fallbackPath && fs.existsSync(path.join(__dirname, 'public', fallbackPath))) {
-        res.sendFile(path.join(__dirname, 'public', fallbackPath));
+    } else if (fallbackPath && fs.existsSync(fullFallbackPath)) {
+        console.log(`⚠️ Serving fallback: ${fallbackPath}`);
+        res.sendFile(fullFallbackPath);
     } else {
+        console.log(`❌ No file found, falling back to index.html`);
         res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
     }
 }
+
+// --------------------
+// PAGE ROUTES - FIXED ORDER (MOST SPECIFIC FIRST)
+// --------------------
 
 // Home page
 app.get('/', (req, res) => {
@@ -251,36 +302,98 @@ app.get('/admin/:page', (req, res) => {
     servePage(res, `admin/${page}/index.html`, 'admin/index.html');
 });
 
+// --------------------
+// TOURNAMENT ENTRY ROUTES - FIXED ORDER (MOST SPECIFIC FIRST)
+// --------------------
+
+// Explicit routes for membership pages - FIRST (most specific)
+app.get('/tournament-entry/membership-renewal', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/membership-renewal (exact)');
+    servePage(res, 'tournament-entry/membership-renewal/index.html');
+});
+
+app.get('/tournament-entry/new-membership', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/new-membership (exact)');
+    servePage(res, 'tournament-entry/new-membership/index.html');
+});
+
+app.get('/tournament-entry/checkout', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/checkout (exact)');
+    servePage(res, 'tournament-entry/checkout/index.html');
+});
+
+// Also handle with trailing slash
+app.get('/tournament-entry/membership-renewal/', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/membership-renewal/ (with slash)');
+    servePage(res, 'tournament-entry/membership-renewal/index.html');
+});
+
+app.get('/tournament-entry/new-membership/', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/new-membership/ (with slash)');
+    servePage(res, 'tournament-entry/new-membership/index.html');
+});
+
+app.get('/tournament-entry/checkout/', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/checkout/ (with slash)');
+    servePage(res, 'tournament-entry/checkout/index.html');
+});
+
+// Explicit routes for the HTML files themselves (in case browser requests them)
+app.get('/tournament-entry/membership-renewal/index.html', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/membership-renewal/index.html');
+    res.sendFile(path.join(__dirname, 'public/tournament-entry/membership-renewal/index.html'));
+});
+
+app.get('/tournament-entry/new-membership/index.html', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/new-membership/index.html');
+    res.sendFile(path.join(__dirname, 'public/tournament-entry/new-membership/index.html'));
+});
+
 // Tournament entry main page
 app.get('/tournament-entry', (req, res) => {
+    console.log('✅ HIT: /tournament-entry (main)');
     servePage(res, 'tournament-entry/index.html');
 });
 
-// Membership renewal page - EXACT match - MOVED BEFORE DYNAMIC ROUTE
-app.get('/tournament-entry/membership-renewal', (req, res) => {
-    servePage(res, 'tournament-entry/membership-renewal/index.html', 'tournament-entry/index.html');
+// Also handle with trailing slash
+app.get('/tournament-entry/', (req, res) => {
+    console.log('✅ HIT: /tournament-entry/ (main with slash)');
+    servePage(res, 'tournament-entry/index.html');
 });
 
-// New membership page - EXACT match - MOVED BEFORE DYNAMIC ROUTE
-app.get('/tournament-entry/new-membership', (req, res) => {
-    servePage(res, 'tournament-entry/new-membership/index.html', 'tournament-entry/index.html');
-});
-
-// Checkout page - EXACT match - MOVED BEFORE DYNAMIC ROUTE
-app.get('/tournament-entry/checkout', (req, res) => {
-    servePage(res, 'tournament-entry/checkout/index.html', 'tournament-entry/index.html');
-});
-
-// Dynamic tournament detail pages - MOVED AFTER SPECIFIC ROUTES
-app.get('/tournament-entry/:tournamentId', (req, res, next) => {
+// Dynamic tournament detail pages - AFTER specific routes
+app.get('/tournament-entry/:tournamentId', (req, res) => {
     const tournamentId = req.params.tournamentId;
-    // Check if this is a tournament ID (not one of the fixed pages)
-    // Note: This check is now less critical since specific routes are matched first
+    console.log(`✅ HIT: /tournament-entry/${tournamentId} (dynamic)`);
+    
+    // These should never be hit if the specific routes above work
+    const reservedPaths = ['membership-renewal', 'new-membership', 'checkout'];
+    if (reservedPaths.includes(tournamentId)) {
+        console.log(`⚠️ WARNING: Reserved path ${tournamentId} hit dynamic route - routing issue!`);
+        // For safety, redirect to the correct specific route
+        return res.redirect(`/tournament-entry/${tournamentId}/`);
+    }
+    
     servePage(res, 'tournament-entry/tournament-page.html');
 });
 
-// Tournament entry catch-all route - PLACED AFTER ALL SPECIFIC ROUTES
+// Also handle dynamic routes with trailing slash
+app.get('/tournament-entry/:tournamentId/', (req, res) => {
+    const tournamentId = req.params.tournamentId;
+    console.log(`✅ HIT: /tournament-entry/${tournamentId}/ (dynamic with slash)`);
+    
+    const reservedPaths = ['membership-renewal', 'new-membership', 'checkout'];
+    if (reservedPaths.includes(tournamentId)) {
+        console.log(`⚠️ WARNING: Reserved path ${tournamentId} hit dynamic route - routing issue!`);
+        return;
+    }
+    
+    servePage(res, 'tournament-entry/tournament-page.html');
+});
+
+// Tournament entry catch-all route - LAST (least specific)
 app.get('/tournament-entry/*', (req, res) => {
+    console.log(`⚠️ HIT: /tournament-entry/* (catch-all) for ${req.path}`);
     // Serve the main tournament entry page for any other URLs
     servePage(res, 'tournament-entry/index.html');
 });
@@ -308,6 +421,7 @@ app.get('*', (req, res, next) => {
 // FINAL FALLBACK
 // --------------------
 app.use((req, res) => {
+    console.log(`❌ Final fallback for: ${req.path}`);
     servePage(res, 'index.html');
 });
 
@@ -332,6 +446,7 @@ if (isLocal) {
         console.log(`  New Membership: http://localhost:${PORT}/tournament-entry/new-membership`);
         console.log(`  Tournament Details (example): http://localhost:${PORT}/tournament-entry/tournament123`);
         console.log(`\nAPI: http://localhost:${PORT}/api/health`);
+        console.log(`Debug: http://localhost:${PORT}/api/debug/files`);
     });
 }
 
