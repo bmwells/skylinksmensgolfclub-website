@@ -46,50 +46,102 @@ app.use(cors({
 }));
 
 app.options('*', cors());
+
+// --------------------
+// WEBHOOK HANDLER - MUST BE BEFORE ALL OTHER MIDDLEWARE!
+// --------------------
+app.post('/api/webhook', (req, res, next) => {
+    console.log('🔵 WEBHOOK HIT - raw handler');
+    
+    // Manually handle raw body
+    let data = '';
+    req.on('data', chunk => {
+        data += chunk;
+    });
+    
+    req.on('end', async () => {
+        try {
+            const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+            const sig = req.headers['stripe-signature'];
+            
+            console.log('🔵 Webhook signature present:', !!sig);
+            console.log('🔵 Body length:', data.length);
+            console.log('🔵 STRIPE_WEBHOOK_SECRET exists:', !!process.env.STRIPE_WEBHOOK_SECRET);
+            
+            let event;
+            try {
+                event = stripe.webhooks.constructEvent(data, sig, process.env.STRIPE_WEBHOOK_SECRET);
+                console.log('✅ Webhook verified:', event.type);
+            } catch (err) {
+                console.error('❌ Webhook verification failed:', err.message);
+                return res.status(400).send(`Webhook Error: ${err.message}`);
+            }
+
+            switch (event.type) {
+                case 'checkout.session.completed':
+                    const session = event.data.object;
+                    console.log('💰 Payment completed for session:', session.id);
+                    
+                    try {
+                        const { handleCompletedPayment } = require('./server/stripeWebhook');
+                        await handleCompletedPayment(session);
+                        console.log('✅ Payment processed successfully');
+                    } catch (error) {
+                        console.error('❌ Error handling payment:', error);
+                    }
+                    break;
+                case 'checkout.session.async_payment_failed':
+                    console.log('❌ Payment failed for session:', event.data.object.id);
+                    break;
+                default:
+                    console.log(`ℹ️ Unhandled event type ${event.type}`);
+            }
+
+            res.json({ received: true, verified: true });
+        } catch (error) {
+            console.error('❌ Webhook processing error:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+});
+
+// GET handler for /api/webhook (should return 405)
+app.get('/api/webhook', (req, res) => {
+    console.log('❌ GET request to /api/webhook - returning 405');
+    res.setHeader('Allow', 'POST');
+    res.status(405).json({ 
+        error: 'Method Not Allowed',
+        allowed: ['POST'],
+        message: 'This endpoint only accepts POST requests from Stripe'
+    });
+});
+
+// Test endpoint to verify routing is working
+app.get('/api/webhook-test', (req, res) => {
+    console.log('✅ GET /api/webhook-test hit');
+    res.json({ 
+        message: 'Webhook test endpoint working',
+        timestamp: new Date().toISOString(),
+        path: '/api/webhook-test'
+    });
+});
+
+app.post('/api/webhook-test', (req, res) => {
+    console.log('✅ POST /api/webhook-test hit');
+    res.json({ 
+        message: 'POST webhook test working',
+        timestamp: new Date().toISOString(),
+        method: 'POST'
+    });
+});
+
+// Now add other middleware AFTER webhook
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --------------------
-// WEBHOOK HANDLER FOR STRIPE PAYMENTS - MOVED BEFORE STATIC FILES!
-// --------------------
-app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    let event;
-
-    try {
-        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-        console.log('Webhook received:', event.type);
-    } catch (err) {
-        console.error('Webhook signature verification failed:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    switch (event.type) {
-        case 'checkout.session.completed':
-            const session = event.data.object;
-            console.log('Payment completed for session:', session.id);
-            
-            try {
-                const { handleCompletedPayment } = require('./server/stripeWebhook');
-                await handleCompletedPayment(session);
-                console.log('Payment processed successfully');
-            } catch (error) {
-                console.error('Error handling completed payment:', error);
-            }
-            break;
-        case 'checkout.session.async_payment_failed':
-            console.log('Payment failed for session:', event.data.object.id);
-            break;
-        default:
-            console.log(`Unhandled event type ${event.type}`);
-    }
-
-    res.json({ received: true });
-});
-
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public'), {
-    index: false, // Don't automatically serve index.html
+    index: false,
     redirect: false
 }));
 
@@ -461,6 +513,7 @@ if (isLocal) {
         console.log(`\nAPI: http://localhost:${PORT}/api/health`);
         console.log(`Debug: http://localhost:${PORT}/api/debug/files`);
         console.log(`Env Check: http://localhost:${PORT}/api/check-env`);
+        console.log(`Webhook Test: http://localhost:${PORT}/api/webhook-test`);
     });
 }
 
