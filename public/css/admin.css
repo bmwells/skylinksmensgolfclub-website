@@ -1455,20 +1455,26 @@ label {
         color: #e0e0e0;
     }
 
-    #selectedMemberInfo,
+   #selectedMemberInfo,
     #editSelectedMemberInfo {
-        background: #2d2d2d;
-        border-left-color: #28a745;
+        background: #2d2d2d !important;
+        border-left-color: #4caf50 !important;
     }
-
+    
     #selectedMemberInfo h4,
     #editSelectedMemberInfo h4 {
-        color: #4caf50;
+        color: #4caf50 !important;
     }
-
+    
+    /* Fix member details text colors */
+    #memberDetails div,
+    #editMemberDetails div {
+        color: #e0e0e0 !important;
+    }
+    
     #memberDetails strong,
     #editMemberDetails strong {
-        color: #cccccc;
+        color: #cccccc !important;
     }
 
     .search-results {
