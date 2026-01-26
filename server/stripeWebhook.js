@@ -1,4 +1,4 @@
-// server/stripeWebhook.js - UPDATED WITH EMAIL MATCHING
+// server/stripeWebhook.js - FIXED WITH CORRECT METADATA KEYS
 const { connectDB } = require('../db');
 const { ObjectId } = require('mongodb');
 
@@ -7,8 +7,8 @@ async function handleCompletedPayment(session) {
         console.log('=== STARTING PAYMENT PROCESSING ===');
         console.log('Session ID:', session.id);
         console.log('Payment Status:', session.payment_status);
-        console.log('Metadata keys:', Object.keys(session.metadata || {}));
-        console.log('Full metadata:', JSON.stringify(session.metadata, null, 2));
+        console.log('=== ALL METADATA ===');
+        console.log(JSON.stringify(session.metadata, null, 2));
         
         const db = await connectDB();
         const registrationsCollection = db.collection('tournament-registrations');
@@ -18,9 +18,15 @@ async function handleCompletedPayment(session) {
         const itemCount = parseInt(metadata.itemsCount || '0');
         console.log('Item count:', itemCount);
         
+        // Debug: List all metadata keys
+        console.log('=== ALL METADATA KEYS ===');
+        Object.keys(metadata).forEach(key => {
+            console.log(`${key}: ${metadata[key]}`);
+        });
+        
         for (let i = 0; i < itemCount; i++) {
             const itemType = metadata[`item_${i}_type`];
-            console.log(`Processing item ${i} of type: ${itemType}`);
+            console.log(`\n=== Processing item ${i} of type: ${itemType} ===`);
             
             if (itemType === 'tournament') {
                 try {
@@ -30,46 +36,64 @@ async function handleCompletedPayment(session) {
                     
                     if (!tournamentId) {
                         console.error('ERROR: Missing tournamentId in metadata for item', i);
-                        console.log('Available metadata for this item:');
-                        Object.keys(metadata).forEach(key => {
-                            if (key.includes(`item_${i}_`)) {
-                                console.log(`${key}: ${metadata[key]}`);
-                            }
-                        });
                         continue;
                     }
                     
-                    // Parse player data
+                    // Debug: Show all item-specific metadata
+                    console.log(`=== Item ${i} Metadata ===`);
+                    Object.keys(metadata).forEach(key => {
+                        if (key.startsWith(`item_${i}_`)) {
+                            console.log(`${key}: ${metadata[key]}`);
+                        }
+                    });
+                    
+                    // Parse player data - USING CORRECT METADATA KEYS
                     let mainPlayer = {};
                     let additionalPlayers = [];
                     
-                    try {
-                        if (metadata[`item_${i}_mainPlayer`]) {
-                            const mainPlayerStr = metadata[`item_${i}_mainPlayer`];
-                            console.log('Main player raw string:', mainPlayerStr);
-                            
-                            if (typeof mainPlayerStr === 'string') {
-                                mainPlayer = JSON.parse(mainPlayerStr);
-                            } else {
-                                mainPlayer = mainPlayerStr;
+                    // Get the data using the correct keys from stripe.js
+                    // mp = main player, ap = additional players
+                    const mainPlayerData = metadata[`item_${i}_mp`];
+                    const additionalPlayersData = metadata[`item_${i}_ap`];
+                    
+                    console.log(`Main player data (item_${i}_mp) present: ${!!mainPlayerData}`);
+                    console.log(`Additional players data (item_${i}_ap) present: ${!!additionalPlayersData}`);
+                    
+                    // Parse main player (mp)
+                    if (mainPlayerData) {
+                        try {
+                            if (typeof mainPlayerData === 'string') {
+                                mainPlayer = JSON.parse(mainPlayerData);
+                            } else if (typeof mainPlayerData === 'object') {
+                                mainPlayer = mainPlayerData;
                             }
-                            console.log('Main player parsed:', mainPlayer);
+                            console.log('✅ Main player parsed successfully:', mainPlayer);
+                        } catch (parseError) {
+                            console.error('❌ Error parsing mainPlayer JSON:', parseError);
+                            console.error('Raw mainPlayer string:', mainPlayerData);
                         }
-                        if (metadata[`item_${i}_additionalPlayers`]) {
-                            const additionalPlayersStr = metadata[`item_${i}_additionalPlayers`];
-                            console.log('Additional players raw string:', additionalPlayersStr);
-                            
-                            if (typeof additionalPlayersStr === 'string') {
-                                additionalPlayers = JSON.parse(additionalPlayersStr);
-                            } else {
-                                additionalPlayers = additionalPlayersStr;
+                    } else {
+                        console.log('⚠️ No mainPlayer data found (item_${i}_mp missing)');
+                    }
+                    
+                    // Parse additional players (ap)
+                    if (additionalPlayersData) {
+                        try {
+                            if (typeof additionalPlayersData === 'string') {
+                                additionalPlayers = JSON.parse(additionalPlayersData);
+                            } else if (typeof additionalPlayersData === 'object') {
+                                additionalPlayers = additionalPlayersData;
                             }
-                            console.log('Additional players count:', additionalPlayers.length);
+                            console.log(`✅ Additional players parsed successfully: ${additionalPlayers.length} players`);
+                            additionalPlayers.forEach((player, idx) => {
+                                console.log(`  Player ${idx + 2}:`, player);
+                            });
+                        } catch (parseError) {
+                            console.error('❌ Error parsing additionalPlayers JSON:', parseError);
+                            console.error('Raw additionalPlayers string:', additionalPlayersData);
                         }
-                    } catch (parseError) {
-                        console.error('Error parsing JSON data:', parseError);
-                        console.error('Raw mainPlayer:', metadata[`item_${i}_mainPlayer`]);
-                        console.error('Raw additionalPlayers:', metadata[`item_${i}_additionalPlayers`]);
+                    } else {
+                        console.log('⚠️ No additionalPlayers data found (item_${i}_ap missing)');
                     }
                     
                     // Create registration object
@@ -92,58 +116,65 @@ async function handleCompletedPayment(session) {
                         player4: null
                     };
                     
+                    console.log('\n=== Creating Player Objects ===');
+                    
                     // Add player1
-                    if (mainPlayer.fullName || mainPlayer.name) {
+                    if (mainPlayer && (mainPlayer.name || mainPlayer.fullName)) {
                         registration.player1 = {
-                            name: mainPlayer.fullName || mainPlayer.name || '',
+                            name: mainPlayer.name || mainPlayer.fullName || '',
                             email: mainPlayer.email || '',
                             phoneNum: mainPlayer.phone || mainPlayer.phoneNum || '',
                             ghin: mainPlayer.ghin ? parseInt(mainPlayer.ghin) : null,
-                            entryNum: mainPlayer.entryNum ? parseInt(mainPlayer.entryNum) : null,
-                            index: mainPlayer.index || '',
+                            entryNum: null, // Not in metadata from stripe.js
+                            index: '', // Not in metadata from stripe.js
                             sidePot: mainPlayer.sidePots === 'true' || mainPlayer.sidePot === true,
                             roulette: mainPlayer.roulette === 'true' || mainPlayer.roulette === true,
                             memberId: null
                         };
-                        console.log('Added player1:', registration.player1.name);
+                        console.log('✅ Added player1:', registration.player1.name);
+                    } else {
+                        console.log('⚠️ Could not create player1 - missing data in mainPlayer object');
+                        console.log('Main player object:', mainPlayer);
                     }
                     
-                    // Add additional players (always ensure player2, player3, player4 exist)
+                    // Add additional players
                     if (additionalPlayers && additionalPlayers.length > 0) {
-                        // Process up to 3 additional players
-                        const maxAdditionalPlayers = Math.min(additionalPlayers.length, 3);
+                        console.log(`Processing ${additionalPlayers.length} additional players`);
                         
-                        for (let j = 0; j < maxAdditionalPlayers; j++) {
+                        for (let j = 0; j < Math.min(additionalPlayers.length, 3); j++) {
                             const playerKey = `player${j + 2}`;
                             const player = additionalPlayers[j];
                             
-                            if (player && (player.fullName || player.name)) {
+                            if (player && (player.name || player.fullName)) {
                                 registration[playerKey] = {
-                                    name: player.fullName || player.name || '',
+                                    name: player.name || player.fullName || '',
                                     email: player.email || '',
                                     phoneNum: player.phone || player.phoneNum || '',
                                     ghin: player.ghin ? parseInt(player.ghin) : null,
-                                    entryNum: player.entryNum ? parseInt(player.entryNum) : null,
-                                    index: player.index || '',
+                                    entryNum: null, // Not in metadata from stripe.js
+                                    index: '', // Not in metadata from stripe.js
                                     sidePot: player.sidePots === 'true' || player.sidePot === true,
                                     roulette: player.roulette === 'true' || player.roulette === true,
                                     memberId: null
                                 };
-                                console.log(`Added ${playerKey}:`, registration[playerKey].name);
+                                console.log(`✅ Added ${playerKey}:`, registration[playerKey].name);
                             } else if (player) {
-                                // Player exists but has no name - create null entry
+                                console.log(`⚠️ Player ${j + 2} has no name data:`, player);
                                 registration[playerKey] = null;
-                                console.log(`Added ${playerKey}: null (no player data)`);
+                            } else {
+                                console.log(`⚠️ Player ${j + 2} is undefined or null`);
+                                registration[playerKey] = null;
                             }
                         }
                         
-                        // Set any remaining player slots to null
-                        for (let j = maxAdditionalPlayers; j < 3; j++) {
+                        // Ensure remaining slots are null
+                        for (let j = additionalPlayers.length; j < 3; j++) {
                             const playerKey = `player${j + 2}`;
                             registration[playerKey] = null;
+                            console.log(`➡️ Set ${playerKey} to null (no player data)`);
                         }
                     } else {
-                        // No additional players - ensure all are null
+                        console.log('No additional players to process');
                         registration.player2 = null;
                         registration.player3 = null;
                         registration.player4 = null;
@@ -157,7 +188,14 @@ async function handleCompletedPayment(session) {
                         const member = await findMember(membersCollection, registration.player1);
                         if (member) {
                             registration.player1.memberId = member._id;
-                            console.log('Matched player1 with member:', member._id);
+                            // Update entryNum and index from member data
+                            registration.player1.entryNum = member.entryNum || null;
+                            registration.player1.index = member.index || '';
+                            console.log('✅ Matched player1 with member:', member._id);
+                            console.log('  Updated entryNum:', member.entryNum);
+                            console.log('  Updated index:', member.index);
+                        } else {
+                            console.log('❌ No member found for player1');
                         }
                     }
                     
@@ -168,19 +206,28 @@ async function handleCompletedPayment(session) {
                             const member = await findMember(membersCollection, registration[playerKey]);
                             if (member) {
                                 registration[playerKey].memberId = member._id;
-                                console.log(`Matched ${playerKey} with member:`, member._id);
+                                // Update entryNum and index from member data
+                                registration[playerKey].entryNum = member.entryNum || null;
+                                registration[playerKey].index = member.index || '';
+                                console.log(`✅ Matched ${playerKey} with member:`, member._id);
+                                console.log(`  Updated ${playerKey} entryNum:`, member.entryNum);
+                                console.log(`  Updated ${playerKey} index:`, member.index);
+                            } else {
+                                console.log(`❌ No member found for ${playerKey}`);
                             }
                         }
                     }
                     
                     // Save registration to database
+                    console.log('\n=== Saving Registration ===');
+                    console.log('Final registration object:', JSON.stringify(registration, null, 2));
+                    
                     const result = await registrationsCollection.insertOne(registration);
-                    console.log(`Registration saved with ID: ${result.insertedId}`);
-                    console.log('Final registration:', JSON.stringify(registration, null, 2));
+                    console.log(`✅ Registration saved with ID: ${result.insertedId}`);
                     console.log(`=== COMPLETED PROCESSING FOR TOURNAMENT ${tournamentId} ===\n`);
                     
                 } catch (error) {
-                    console.error('ERROR processing tournament registration:', error);
+                    console.error('❌ ERROR processing tournament registration:', error);
                     console.error(error.stack);
                 }
             } else {
@@ -191,17 +238,17 @@ async function handleCompletedPayment(session) {
         console.log('=== PAYMENT PROCESSING COMPLETE ===');
         
     } catch (error) {
-        console.error('CRITICAL ERROR handling completed payment:', error);
+        console.error('❌ CRITICAL ERROR handling completed payment:', error);
         console.error(error.stack);
     }
 }
 
-// UPDATED Helper function to find member with email matching
+// Helper function to find member with email matching
 async function findMember(membersCollection, player) {
     try {
         let member = null;
         
-        // 1. Try by email (NEW - most reliable if email is provided)
+        // 1. Try by email (most reliable if email is provided)
         if (player.email && player.email.trim() !== '') {
             member = await membersCollection.findOne({ 
                 email: { $regex: new RegExp(`^${player.email.trim()}$`, 'i') }
@@ -256,31 +303,9 @@ async function findMember(membersCollection, player) {
                     return member;
                 }
             }
-            
-            // Try just first name match (as fallback)
-            if (nameParts.length >= 1) {
-                const firstName = nameParts[0];
-                member = await membersCollection.findOne({
-                    firstName: { $regex: new RegExp(`^${firstName}$`, 'i') }
-                });
-                
-                if (member) {
-                    console.log(`Found member by first name only: ${firstName}`);
-                    return member;
-                }
-            }
         }
         
-        // 4. Try by entry number
-        if (player.entryNum) {
-            member = await membersCollection.findOne({ entryNum: player.entryNum });
-            if (member) {
-                console.log(`Found member by entry number: ${player.entryNum}`);
-                return member;
-            }
-        }
-        
-        // 5. Try by phone number (remove formatting for comparison)
+        // 4. Try by phone number (remove formatting for comparison)
         if (player.phoneNum && player.phoneNum.trim() !== '') {
             const cleanPhone = player.phoneNum.replace(/\D/g, ''); // Remove non-digits
             if (cleanPhone.length >= 10) {
