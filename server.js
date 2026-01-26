@@ -49,6 +49,44 @@ app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// --------------------
+// WEBHOOK HANDLER FOR STRIPE PAYMENTS - MOVED BEFORE STATIC FILES!
+// --------------------
+app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        console.log('Webhook received:', event.type);
+    } catch (err) {
+        console.error('Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    switch (event.type) {
+        case 'checkout.session.completed':
+            const session = event.data.object;
+            console.log('Payment completed for session:', session.id);
+            
+            try {
+                const { handleCompletedPayment } = require('./server/stripeWebhook');
+                await handleCompletedPayment(session);
+                console.log('Payment processed successfully');
+            } catch (error) {
+                console.error('Error handling completed payment:', error);
+            }
+            break;
+        case 'checkout.session.async_payment_failed':
+            console.log('Payment failed for session:', event.data.object.id);
+            break;
+        default:
+            console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({ received: true });
+});
+
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public'), {
     index: false, // Don't automatically serve index.html
@@ -104,7 +142,6 @@ const tournamentManagerRoutes = require('./server/routes/tournamentManager');
 const tournamentRoutes = require('./server/routes/tournaments');
 const genericRoutes = require('./server/routes/generic');
 const contactRoutes = require('./server/routes/contact');
-const { handleCompletedPayment } = require('./server/stripeWebhook');
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
@@ -123,43 +160,6 @@ app.use('/api', genericRoutes);
 
 // Contact routes
 app.use('/api', contactRoutes);
-
-// --------------------
-// WEBHOOK HANDLER FOR STRIPE PAYMENTS
-// --------------------
-app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    let event;
-
-    try {
-        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-        console.log('Webhook received:', event.type);
-    } catch (err) {
-        console.error('Webhook signature verification failed:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    switch (event.type) {
-        case 'checkout.session.completed':
-            const session = event.data.object;
-            console.log('Payment completed for session:', session.id);
-            
-            try {
-                await handleCompletedPayment(session);
-                console.log('Payment processed successfully');
-            } catch (error) {
-                console.error('Error handling completed payment:', error);
-            }
-            break;
-        case 'checkout.session.async_payment_failed':
-            console.log('Payment failed for session:', event.data.object.id);
-            break;
-        default:
-            console.log(`Unhandled event type ${event.type}`);
-    }
-
-    res.json({ received: true });
-});
 
 // --------------------
 // HEALTH CHECK ENDPOINT
@@ -221,6 +221,19 @@ app.get('/api/debug/files', (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// Add debug endpoint for checking environment
+app.get('/api/check-env', (req, res) => {
+    res.json({
+        hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+        hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+        webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
+        stripeKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8),
+        environment: process.env.NODE_ENV,
+        vercel: process.env.VERCEL,
+        nodeVersion: process.version
+    });
 });
 
 // --------------------
@@ -447,6 +460,7 @@ if (isLocal) {
         console.log(`  Tournament Details (example): http://localhost:${PORT}/tournament-entry/tournament123`);
         console.log(`\nAPI: http://localhost:${PORT}/api/health`);
         console.log(`Debug: http://localhost:${PORT}/api/debug/files`);
+        console.log(`Env Check: http://localhost:${PORT}/api/check-env`);
     });
 }
 
