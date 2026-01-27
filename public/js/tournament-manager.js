@@ -302,6 +302,28 @@ function sortRegistrationsByTime(registrations) {
     });
 }
 
+// Helper function to calculate foursome-level side pot and roulette
+function calculateFoursomeOptions(foursome) {
+    let sidePot = false;
+    let roulette = false;
+    
+    // Check all players
+    for (let i = 1; i <= 4; i++) {
+        const playerKey = `player${i}`;
+        const player = foursome[playerKey];
+        
+        if (player) {
+            if (player.sidePot === true) sidePot = true;
+            if (player.roulette === true) roulette = true;
+            
+            // If both are true, we can break early
+            if (sidePot && roulette) break;
+        }
+    }
+    
+    return { sidePot, roulette };
+}
+
 // Render tournament data with proper display of all fields
 function renderTournamentData(tournamentId, sortedData) {
     const container = document.getElementById('tournament-container');
@@ -385,15 +407,18 @@ function renderFoursome(foursome, tournamentId, originalIndex, sortedIndex) {
     const player3 = foursome.player3 || {};
     const player4 = foursome.player4 || {};
     
+    // Calculate foursome-level side pot and roulette
+    const foursomeOptions = calculateFoursomeOptions(foursome);
+    
     // Format start time
     const startTime = foursome.startTime ? foursome.startTime : 'Not specified';
     
     // Format cart option - handle empty string
     const cartOption = foursome.cartOption ? foursome.cartOption : 'None';
     
-    // Format side pot and roulette
-    const sidePot = foursome.sidePot ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>';
-    const roulette = foursome.roulette ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>';
+    // Format side pot and roulette at foursome level
+    const sidePot = foursomeOptions.sidePot ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>';
+    const roulette = foursomeOptions.roulette ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>';
     
     // Build player name list for title
     const playerNames = [];
@@ -449,10 +474,10 @@ function renderFoursome(foursome, tournamentId, originalIndex, sortedIndex) {
             </div>
             
             <div class="player-grid">
-                ${renderPlayerRow(1, player1, tournamentId, foursomeId)}
-                ${renderPlayerRow(2, player2, tournamentId, foursomeId)}
-                ${renderPlayerRow(3, player3, tournamentId, foursomeId)}
-                ${renderPlayerRow(4, player4, tournamentId, foursomeId)}
+                ${renderPlayerRow(1, player1, tournamentId, foursomeId, originalIndex)}
+                ${renderPlayerRow(2, player2, tournamentId, foursomeId, originalIndex)}
+                ${renderPlayerRow(3, player3, tournamentId, foursomeId, originalIndex)}
+                ${renderPlayerRow(4, player4, tournamentId, foursomeId, originalIndex)}
             </div>
         </div>
     `;
@@ -474,7 +499,7 @@ function formatPlayerNameForTitle(player) {
 }
 
 // Render a player row 
-function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId) {
+function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId, originalIndex) {
     const isPlayer1 = playerNumber === 1;
     const isEmpty = !playerData || !playerData.name;
     
@@ -496,7 +521,7 @@ function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId) {
                 <div><strong>GHIN:</strong> ${displayData.ghin || 'Not provided'}</div>
                 <div><strong>Entry #:</strong> ${displayData.entryNum || 'Not provided'}</div>
                 <div><strong>Index:</strong> ${displayData.index || 'Not provided'}</div>
-                ${isPlayer1 ? `
+                ${!isPlayer1 ? `
                     <div><strong>Side Pot:</strong> ${playerData.sidePot ? 'Yes' : 'No'}</div>
                     <div><strong>Roulette:</strong> ${playerData.roulette ? 'Yes' : 'No'}</div>
                 ` : ''}
@@ -504,7 +529,11 @@ function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId) {
         `;
         
         if (!isPlayer1) {
-            actionButton = `<button class="action-btn edit-btn" onclick="showPlayerActions('${tournamentId}', '${foursomeId}', ${playerNumber})">Edit</button>`;
+            // Store player data in data attributes for the button
+            const playerDataJson = JSON.stringify(playerData).replace(/"/g, '&quot;');
+            actionButton = `<button class="action-btn edit-btn" 
+                onclick="showPlayerOptions('${tournamentId}', '${foursomeId}', ${playerNumber}, ${originalIndex})"
+                data-player-data='${playerDataJson}'>Edit</button>`;
         }
     }
     
@@ -517,6 +546,208 @@ function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId) {
             ${actionButton ? `<div class="player-actions">${actionButton}</div>` : ''}
         </div>
     `;
+}
+
+// Show player options modal (Edit Entry, Replace Player, Delete Player)
+function showPlayerOptions(tournamentId, foursomeId, playerNumber, originalIndex) {
+    console.log('showPlayerOptions called:', { tournamentId, foursomeId, playerNumber, originalIndex });
+    
+    // Store values in global state
+    currentTournament = tournamentId;
+    currentFoursomeId = foursomeId;
+    currentPlayerNumber = playerNumber;
+    
+    // Find the player data from the clicked button
+    const clickedButton = event.target;
+    const playerDataJson = clickedButton.getAttribute('data-player-data');
+    
+    if (!playerDataJson) {
+        console.error('No player data found on button');
+        alert('Error: Could not find player data. Please refresh the page.');
+        return;
+    }
+    
+    try {
+        // Parse the player data and store it in GLOBAL variable for later use
+        const playerData = JSON.parse(playerDataJson);
+        window.currentPlayerForEdit = playerData; // Store globally
+        
+        // Update modal title
+        document.getElementById('playerOptionsTitle').textContent = `Player ${playerNumber} Options`;
+        
+        // Show options modal
+        document.getElementById('playerOptionsModal').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error parsing player data:', error);
+        alert('Error: Could not parse player data. Please refresh the page.');
+    }
+}
+
+// Close player options modal
+function closePlayerOptionsModal() {
+    document.getElementById('playerOptionsModal').style.display = 'none';
+    // Don't clear the global variable here - it's needed for editPlayerEntry()
+}
+
+// Edit player entry (show modal with side pot/roulette checkboxes)
+function editPlayerEntry() {
+    // Get player data from GLOBAL variable
+    const player = window.currentPlayerForEdit;
+    
+    if (!player) {
+        console.error('No player data found in global variable');
+        alert('Error: Player data not found. Please try again.');
+        closePlayerOptionsModal();
+        return;
+    }
+    
+    // Close options modal
+    closePlayerOptionsModal();
+    
+    // Show edit player entry modal
+    document.getElementById('editPlayerEntryModal').style.display = 'flex';
+    
+    // Set the checkboxes based on player data
+    document.getElementById('editPlayerSidePot').checked = player.sidePot === true;
+    document.getElementById('editPlayerRoulette').checked = player.roulette === true;
+    
+    // Update modal title
+    document.getElementById('editPlayerEntryTitle').textContent = `Edit Player ${currentPlayerNumber} Entry`;
+}
+
+// Close edit player entry modal
+function closeEditPlayerEntryModal() {
+    document.getElementById('editPlayerEntryModal').style.display = 'none';
+    // Clear the global variable after we're done with it
+    window.currentPlayerForEdit = null;
+}
+
+// Save player entry changes (side pot/roulette only)
+async function savePlayerEntryChanges() {
+    const tournamentId = currentTournament;
+    const foursomeId = currentFoursomeId;
+    const playerNumber = currentPlayerNumber;
+    
+    console.log('Saving player entry for:', { tournamentId, foursomeId, playerNumber });
+    
+    if (!tournamentId || !foursomeId || !playerNumber) {
+        alert('Error: Missing tournament, foursome, or player number.');
+        return;
+    }
+    
+    // Get player data from GLOBAL variable
+    const player = window.currentPlayerForEdit;
+    
+    if (!player) {
+        alert('Error: Player data not found. Please try again.');
+        closeEditPlayerEntryModal();
+        return;
+    }
+    
+    // Get checkbox values
+    const sidePot = document.getElementById('editPlayerSidePot').checked;
+    const roulette = document.getElementById('editPlayerRoulette').checked;
+    
+    try {
+        const token = localStorage.getItem('adminToken');
+        
+        // Prepare update data - only update sidePot and roulette
+        const updateData = {
+            [`player${playerNumber}`]: {
+                ...player,
+                sidePot: sidePot,
+                roulette: roulette
+            }
+        };
+        
+        console.log('Saving player entry changes:', updateData);
+        
+        const response = await fetch(`/api/tournaments/${tournamentId}/registrations/${foursomeId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(updateData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to update player entry: ${response.statusText} - ${errorText}`);
+        }
+        
+        // Reload tournament data
+        await loadTournamentData(tournamentId);
+        
+        // Close modal
+        closeEditPlayerEntryModal();
+        
+        // Show success message
+        alert('Player entry updated successfully!');
+        
+    } catch (error) {
+        console.error('Error saving player entry:', error);
+        alert('Error saving player entry: ' + error.message);
+    }
+}
+
+// Replace player (opens the add player modal)
+function replacePlayer() {
+    // Clear the global variable since we're not using it anymore
+    window.currentPlayerForEdit = null;
+    closePlayerOptionsModal();
+    addPlayer(currentTournament, currentFoursomeId, currentPlayerNumber);
+}
+
+// Delete player
+async function deletePlayer() {
+    if (!confirm('Are you sure you want to remove this player from the foursome?')) {
+        return;
+    }
+    
+    const tournamentId = currentTournament;
+    const foursomeId = currentFoursomeId;
+    const playerNumber = currentPlayerNumber;
+    
+    try {
+        const token = localStorage.getItem('adminToken');
+        
+        // Prepare update data to clear the player
+        const updateData = {
+            [`player${playerNumber}`]: null
+        };
+        
+        const response = await fetch(`/api/tournaments/${tournamentId}/registrations/${foursomeId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(updateData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to remove player: ${response.statusText} - ${errorText}`);
+        }
+        
+        // Reload tournament data
+        await loadTournamentData(tournamentId);
+        
+        // Clear the global variable
+        window.currentPlayerForEdit = null;
+        
+        // Close modal
+        closePlayerOptionsModal();
+        
+        // Show success message
+        alert('Player removed successfully!');
+        
+    } catch (error) {
+        console.error('Error removing player:', error);
+        alert('Error removing player: ' + error.message);
+    }
 }
 
 // Add empty foursome
@@ -633,133 +864,6 @@ function addPlayer(tournamentId, foursomeId, playerNumber) {
     document.getElementById('memberSearch').focus();
 }
 
-// Show player actions (for players 2-4)
-function showPlayerActions(tournamentId, foursomeId, playerNumber) {
-    // Store values directly in the action modal for persistence
-    const actionModal = document.getElementById('actionModal');
-    actionModal.dataset.tournamentId = tournamentId;
-    actionModal.dataset.foursomeId = foursomeId;
-    actionModal.dataset.playerNumber = playerNumber;
-    
-    // Also update global state for consistency
-    currentTournament = tournamentId;
-    currentFoursomeId = foursomeId;
-    currentPlayerNumber = playerNumber;
-    
-    // Update modal title
-    document.getElementById('actionModalTitle').textContent = `Player ${playerNumber} Actions`;
-    
-    // Show action modal
-    actionModal.style.display = 'flex';
-}
-
-// Close action modal
-function closeActionModal() {
-    document.getElementById('actionModal').style.display = 'none';
-    // Don't clear global state here - it might still be needed
-}
-
-// Show replace player modal
-function showReplacePlayer() {
-    // Get values from the action modal data attributes
-    const actionModal = document.getElementById('actionModal');
-    const tournamentId = actionModal.dataset.tournamentId;
-    const foursomeId = actionModal.dataset.foursomeId;
-    const playerNumber = actionModal.dataset.playerNumber;
-    
-    // Ensure we have the values
-    if (!tournamentId || !foursomeId || !playerNumber) {
-        console.error('Missing data for replace player:', { tournamentId, foursomeId, playerNumber });
-        // Fallback to global state
-        if (!currentTournament || !currentFoursomeId || !currentPlayerNumber) {
-            alert('Error: Missing data. Please try again.');
-            closeActionModal();
-            return;
-        }
-    }
-    
-    // Use data attributes if available, otherwise use global state
-    const finalTournamentId = tournamentId || currentTournament;
-    const finalFoursomeId = foursomeId || currentFoursomeId;
-    const finalPlayerNumber = playerNumber || currentPlayerNumber;
-    
-    // Update global state
-    currentTournament = finalTournamentId;
-    currentFoursomeId = finalFoursomeId;
-    currentPlayerNumber = finalPlayerNumber;
-    
-    // Close action modal
-    closeActionModal();
-    
-    // Open player modal for replacement
-    addPlayer(finalTournamentId, finalFoursomeId, finalPlayerNumber);
-}
-
-// Remove player
-async function removePlayer() {
-    // Get values from the action modal data attributes
-    const actionModal = document.getElementById('actionModal');
-    const tournamentId = actionModal.dataset.tournamentId;
-    const foursomeId = actionModal.dataset.foursomeId;
-    const playerNumber = actionModal.dataset.playerNumber;
-    
-    // Ensure we have the values
-    if (!tournamentId || !foursomeId || !playerNumber) {
-        console.error('Missing data for remove player:', { tournamentId, foursomeId, playerNumber });
-        // Fallback to global state
-        if (!currentTournament || !currentFoursomeId || !currentPlayerNumber) {
-            alert('Error: Missing data. Please try again.');
-            closeActionModal();
-            return;
-        }
-    }
-    
-    // Use data attributes if available, otherwise use global state
-    const finalTournamentId = tournamentId || currentTournament;
-    const finalFoursomeId = foursomeId || currentFoursomeId;
-    const finalPlayerNumber = playerNumber || currentPlayerNumber;
-    
-    if (!confirm('Are you sure you want to remove this player from the foursome?')) {
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('adminToken');
-        
-        // Prepare update data to clear the player
-        const updateData = {
-            [`player${finalPlayerNumber}`]: null
-        };
-        
-        const response = await fetch(`/api/tournaments/${finalTournamentId}/registrations/${finalFoursomeId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify(updateData)
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to remove player: ${response.statusText} - ${errorText}`);
-        }
-        
-        // Reload tournament data
-        loadTournamentData(finalTournamentId);
-        
-    } catch (error) {
-        console.error('Error removing player:', error);
-        alert('Error removing player: ' + error.message);
-    } finally {
-        // Clean up data attributes
-        delete actionModal.dataset.tournamentId;
-        delete actionModal.dataset.foursomeId;
-        delete actionModal.dataset.playerNumber;
-        closeActionModal();
-    }
-}
-
 // Search members
 async function searchMembers(query) {
     try {
@@ -836,8 +940,6 @@ function showManualEntry() {
 // Close player modal
 function closePlayerModal() {
     document.getElementById('playerModal').style.display = 'none';
-    // Only clear global state if we're not in the middle of a replace flow
-    // The showReplacePlayer function will set these again
 }
 
 // Confirm player action
@@ -860,7 +962,9 @@ async function confirmPlayerAction() {
             phoneNum: selectedMember.phone || selectedMember.phoneNum || '',
             ghin: selectedMember.ghin ? selectedMember.ghin.toString() : '',
             entryNum: selectedMember.entryNum ? selectedMember.entryNum.toString() : '',
-            index: selectedMember.index || ''
+            index: selectedMember.index || '',
+            sidePot: false, // Default to false when adding new player
+            roulette: false // Default to false when adding new player
         };
     } else {
         // Check manual entry
@@ -883,7 +987,9 @@ async function confirmPlayerAction() {
             phoneNum: phone,
             ghin: ghin,
             entryNum: entryNum,
-            index
+            index,
+            sidePot: false, // Default to false when adding new player
+            roulette: false // Default to false when adding new player
         };
     }
     
@@ -900,14 +1006,6 @@ async function confirmPlayerAction() {
             };
         } else if (memberData) {
             updateData[`player${currentPlayerNumber}`] = memberData;
-        }
-        
-        // If we're updating player1, we should NOT include sidePot/roulette in player1 object
-        // since they're stored at the document level
-        if (currentPlayerNumber === 1 && updateData.player1) {
-            // Remove sidePot and roulette from player1 if they exist
-            delete updateData.player1.sidePot;
-            delete updateData.player1.roulette;
         }
         
         console.log('Sending player update request:', updateData);
@@ -958,7 +1056,8 @@ async function confirmPlayerAction() {
 // Close modals when clicking outside content
 window.onclick = function(event) {
     const playerModal = document.getElementById('playerModal');
-    const actionModal = document.getElementById('actionModal');
+    const playerOptionsModal = document.getElementById('playerOptionsModal');
+    const editPlayerEntryModal = document.getElementById('editPlayerEntryModal');
     const editFoursomeModal = document.getElementById('editFoursomeModal');
     const importModal = document.getElementById('importModal');
     const exportModal = document.getElementById('exportModal');
@@ -967,8 +1066,14 @@ window.onclick = function(event) {
         closePlayerModal();
     }
     
-    if (event.target === actionModal) {
-        closeActionModal();
+    if (event.target === playerOptionsModal) {
+        // Clear global variable when closing options modal
+        window.currentPlayerForEdit = null;
+        closePlayerOptionsModal();
+    }
+    
+    if (event.target === editPlayerEntryModal) {
+        closeEditPlayerEntryModal();
     }
     
     if (event.target === editFoursomeModal) {
@@ -991,6 +1096,7 @@ function editFoursome(tournamentId, foursomeId, originalIndex) {
     // Store values for later use
     currentTournament = tournamentId;
     currentFoursomeId = foursomeId;
+    currentPlayerNumber = 1; // For foursome edit, we're editing player1
     
     // Find the foursome data using the original index
     let foursome = null;
@@ -1028,6 +1134,9 @@ function editFoursome(tournamentId, foursomeId, originalIndex) {
     
     // Fill in existing data
     fillEditFoursomeModal(foursome);
+    
+    // Update modal title
+    document.querySelector('#editFoursomeModal h3').textContent = 'Edit Foursome (Player 1)';
     
     // Show modal
     document.getElementById('editFoursomeModal').style.display = 'flex';
@@ -1090,9 +1199,16 @@ function fillEditFoursomeModal(foursome) {
             document.getElementById('editManualEntryNum').value = player1.entryNum || '';
             document.getElementById('editManualIndex').value = player1.index || '';
         }
+        
+        // Set side pot and roulette checkboxes for player1
+        document.getElementById('editSidePot').checked = player1.sidePot === true;
+        document.getElementById('editRoulette').checked = player1.roulette === true;
     } else {
         // If player1 is null/empty, ensure manual entry is shown
         showEditManualEntry();
+        // Set default values for checkboxes
+        document.getElementById('editSidePot').checked = false;
+        document.getElementById('editRoulette').checked = false;
     }
     
     // Fill other foursome details with dropdowns
@@ -1123,18 +1239,11 @@ function fillEditFoursomeModal(foursome) {
         cartOptionSelect.value = '';
     }
     
-    // Set checkboxes - check both player1 and foursome level
-    const sidePotChecked = foursome.sidePot || false;
-    const rouletteChecked = foursome.roulette || false;
-    
-    document.getElementById('editSidePot').checked = sidePotChecked;
-    document.getElementById('editRoulette').checked = rouletteChecked;
-    
     console.log('Form values set:', {
         startTime: startTimeSelect.value,
         cartOption: cartOptionSelect.value,
-        sidePot: sidePotChecked,
-        roulette: rouletteChecked
+        sidePot: document.getElementById('editSidePot').checked,
+        roulette: document.getElementById('editRoulette').checked
     });
 }
 
@@ -1185,14 +1294,16 @@ function closeEditFoursomeModal() {
     resetEditFoursomeModal();
     currentTournament = null;
     currentFoursomeId = null;
+    currentPlayerNumber = null;
 }
 
 // Save foursome changes
 async function saveFoursomeChanges() {
     const tournamentId = currentTournament;
     const foursomeId = currentFoursomeId;
+    const playerNumber = currentPlayerNumber; // Should be 1 for foursome edit
     
-    console.log('Saving foursome changes for:', { tournamentId, foursomeId });
+    console.log('Saving foursome changes for:', { tournamentId, foursomeId, playerNumber });
     
     if (!tournamentId || !foursomeId) {
         alert('Error: Missing tournament or foursome data.');
@@ -1224,8 +1335,6 @@ async function saveFoursomeChanges() {
         return;
     }
     
-    // Cart option is optional - no validation needed
-    
     try {
         const token = localStorage.getItem('adminToken');
         
@@ -1242,9 +1351,9 @@ async function saveFoursomeChanges() {
                 phoneNum: selectedMember.phoneNum || '',
                 ghin: selectedMember.ghin || '',
                 entryNum: selectedMember.entryNum || '',
-                index: selectedMember.index || ''
-                // NOTE: sidePot and roulette are NOT in player1 object anymore
-                // They're at the document level
+                index: selectedMember.index || '',
+                sidePot: sidePot,
+                roulette: roulette
             };
         } 
         // Check if manual entry is visible and has data
@@ -1265,33 +1374,27 @@ async function saveFoursomeChanges() {
                 phoneNum: document.getElementById('editManualPhone').value.trim(),
                 ghin: document.getElementById('editManualGhin').value.trim(),
                 entryNum: document.getElementById('editManualEntryNum').value.trim(),
-                index: document.getElementById('editManualIndex').value.trim()
-                // NOTE: sidePot and roulette are NOT in player1 object anymore
+                index: document.getElementById('editManualIndex').value.trim(),
+                sidePot: sidePot,
+                roulette: roulette
             };
         }
-        // If neither member nor manual entry, but player1 existed before, keep it
+        // If neither member nor manual entry, but player1 existed before, update it
         else if (window.currentPlayer1Data) {
-            console.log('Keeping existing player1 data');
-            player1Data = window.currentPlayer1Data;
-            // Remove sidePot and roulette from player1 if they exist
-            delete player1Data.sidePot;
-            delete player1Data.roulette;
+            console.log('Updating existing player1 data');
+            player1Data = {
+                ...window.currentPlayer1Data,
+                sidePot: sidePot,
+                roulette: roulette
+            };
         }
         
-        // Prepare update data - ALWAYS include these fields
+        // Prepare update data for foursome edit
         const updateData = {
             startTime: startTime,
             cartOption: cartOption, // This can be empty string
-            sidePot: sidePot,
-            roulette: roulette
+            player1: player1Data
         };
-        
-        // Add player1 data if available
-        if (player1Data) {
-            updateData.player1 = player1Data;
-        } else {
-            console.warn('No player1 data to send');
-        }
         
         console.log('Sending foursome update:', updateData);
         
@@ -1310,9 +1413,6 @@ async function saveFoursomeChanges() {
             throw new Error(`Failed to update foursome: ${response.statusText} - ${errorText}`);
         }
         
-        const result = await response.json();
-        console.log('Server response:', result);
-        
         // Reload tournament data
         await loadTournamentData(tournamentId);
         
@@ -1323,8 +1423,8 @@ async function saveFoursomeChanges() {
         closeEditFoursomeModal();
         
     } catch (error) {
-        console.error('Error updating foursome:', error);
-        alert('Error updating foursome: ' + error.message);
+        console.error('Error saving foursome:', error);
+        alert('Error saving foursome: ' + error.message);
     }
 }
 

@@ -391,24 +391,6 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
         // Handle player data updates
         // For player1, we need to handle sidePot and roulette specially
         if (updateData.player1) {
-            // Check if player1 has sidePot/roulette properties
-            // If yes, move them to top level ONLY if they're being updated
-            if (updateData.player1.sidePot !== undefined) {
-                updateData.sidePot = updateData.player1.sidePot;
-                // Don't delete from player1 if it exists in the current structure
-                if (!existingRegistration.player1 || !existingRegistration.player1.sidePot) {
-                    delete updateData.player1.sidePot;
-                }
-            }
-            
-            if (updateData.player1.roulette !== undefined) {
-                updateData.roulette = updateData.player1.roulette;
-                // Don't delete from player1 if it exists in the current structure
-                if (!existingRegistration.player1 || !existingRegistration.player1.roulette) {
-                    delete updateData.player1.roulette;
-                }
-            }
-            
             // Ensure player1 has proper fields
             if (updateData.player1.name) {
                 updateData.player1.name = updateData.player1.name.trim();
@@ -421,6 +403,14 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
                 }
             } else {
                 updateData.player1.memberId = null;
+            }
+            
+            // Ensure sidePot and roulette are boolean
+            if (updateData.player1.sidePot !== undefined) {
+                updateData.player1.sidePot = Boolean(updateData.player1.sidePot);
+            }
+            if (updateData.player1.roulette !== undefined) {
+                updateData.player1.roulette = Boolean(updateData.player1.roulette);
             }
         }
         
@@ -439,6 +429,14 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
                     }
                 } else {
                     updateData[playerKey].memberId = null;
+                }
+                
+                // Ensure sidePot and roulette are boolean for players 2-4
+                if (updateData[playerKey].sidePot !== undefined) {
+                    updateData[playerKey].sidePot = Boolean(updateData[playerKey].sidePot);
+                }
+                if (updateData[playerKey].roulette !== undefined) {
+                    updateData[playerKey].roulette = Boolean(updateData[playerKey].roulette);
                 }
                 
                 // If setting to null/empty

@@ -786,7 +786,7 @@ button:disabled {
     margin-bottom: 25px;
     background: #f8f9fa;
     position: relative;
-    min-height: 500px; 
+    min-height: 550px; 
 }
 
 .foursome-header {
@@ -1120,7 +1120,7 @@ button:disabled {
 /* Enhanced form styles for modal */
 #editFoursomeModal .modal {
     max-width: 700px; /* Increased from 500px to 700px */
-    max-height: 80vh; /* Limit height to 80% of viewport */
+    max-height: 90vh; /* Limit height to 80% of viewport */
     overflow-y: auto; /* Add scroll if needed */
     padding: 20px; /* Reduce padding to save height */
 }
