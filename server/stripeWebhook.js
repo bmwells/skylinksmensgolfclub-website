@@ -1,4 +1,4 @@
-// server/stripeWebhook.js - FIXED WITH CORRECT METADATA KEYS
+// server/stripeWebhook.js
 const { connectDB } = require('../db');
 const { ObjectId } = require('mongodb');
 
@@ -96,7 +96,7 @@ async function handleCompletedPayment(session) {
                         console.log('⚠️ No additionalPlayers data found (item_${i}_ap missing)');
                     }
                     
-                    // Create registration object
+                    // Create registration object WITHOUT top-level sidePot/roulette
                     const registration = {
                         tournamentId: tournamentId,
                         stripeSessionId: session.id,
@@ -106,8 +106,7 @@ async function handleCompletedPayment(session) {
                         updatedAt: new Date(session.created * 1000),
                         cartOption: mainPlayer.cartOption || '',
                         startTime: mainPlayer.startingTime || 'Doesn\'t Matter',
-                        sidePot: mainPlayer.sidePots === 'true' || mainPlayer.sidePot === true,
-                        roulette: mainPlayer.roulette === 'true' || mainPlayer.roulette === true,
+                        // REMOVED: sidePot and roulette from top level
                         customerEmail: session.customer_email || metadata.customerEmail || '',
                         customerName: metadata.customerName || '',
                         player1: null,
@@ -118,7 +117,7 @@ async function handleCompletedPayment(session) {
                     
                     console.log('\n=== Creating Player Objects ===');
                     
-                    // Add player1
+                    // Add player1 WITH sidePot/roulette from mainPlayer
                     if (mainPlayer && (mainPlayer.name || mainPlayer.fullName)) {
                         registration.player1 = {
                             name: mainPlayer.name || mainPlayer.fullName || '',
@@ -127,19 +126,21 @@ async function handleCompletedPayment(session) {
                             ghin: mainPlayer.ghin ? parseInt(mainPlayer.ghin) : null,
                             entryNum: null, // Not in metadata from stripe.js
                             index: '', // Not in metadata from stripe.js
+                            // ONLY player1 gets sidePot/roulette from their data
                             sidePot: mainPlayer.sidePots === 'true' || mainPlayer.sidePot === true,
                             roulette: mainPlayer.roulette === 'true' || mainPlayer.roulette === true,
                             memberId: null
                         };
                         console.log('✅ Added player1:', registration.player1.name);
+                        console.log(`  sidePot: ${registration.player1.sidePot}, roulette: ${registration.player1.roulette}`);
                     } else {
                         console.log('⚠️ Could not create player1 - missing data in mainPlayer object');
                         console.log('Main player object:', mainPlayer);
                     }
                     
-                    // Add additional players
+                    // Add additional players with sidePot/roulette AUTOMATICALLY FALSE
                     if (additionalPlayers && additionalPlayers.length > 0) {
-                        console.log(`Processing ${additionalPlayers.length} additional players`);
+                        console.log(`Processing ${additionalPlayers.length} additional players (sidePot/roulette always false)`);
                         
                         for (let j = 0; j < Math.min(additionalPlayers.length, 3); j++) {
                             const playerKey = `player${j + 2}`;
@@ -153,11 +154,13 @@ async function handleCompletedPayment(session) {
                                     ghin: player.ghin ? parseInt(player.ghin) : null,
                                     entryNum: null, // Not in metadata from stripe.js
                                     index: '', // Not in metadata from stripe.js
-                                    sidePot: player.sidePots === 'true' || player.sidePot === true,
-                                    roulette: player.roulette === 'true' || player.roulette === true,
+                                    // Additional players ALWAYS have false for sidePot/roulette
+                                    sidePot: false,
+                                    roulette: false,
                                     memberId: null
                                 };
-                                console.log(`✅ Added ${playerKey}:`, registration[playerKey].name);
+                                console.log(`✅ Added ${playerKey}: ${registration[playerKey].name}`);
+                                console.log(`  sidePot: false, roulette: false (auto-set for additional players)`);
                             } else if (player) {
                                 console.log(`⚠️ Player ${j + 2} has no name data:`, player);
                                 registration[playerKey] = null;
