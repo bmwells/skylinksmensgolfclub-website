@@ -68,7 +68,6 @@ async function handleCompletedPayment(session) {
                             } else if (typeof mainPlayerData === 'object') {
                                 mainPlayer = mainPlayerData;
                             }
-                            console.log('✅ Main player parsed successfully:', mainPlayer);
                         } catch (parseError) {
                             console.error('❌ Error parsing mainPlayer JSON:', parseError);
                             console.error('Raw mainPlayer string:', mainPlayerData);
@@ -85,7 +84,6 @@ async function handleCompletedPayment(session) {
                             } else if (typeof additionalPlayersData === 'object') {
                                 additionalPlayers = additionalPlayersData;
                             }
-                            console.log(`✅ Additional players parsed successfully: ${additionalPlayers.length} players`);
                             additionalPlayers.forEach((player, idx) => {
                                 console.log(`  Player ${idx + 2}:`, player);
                             });
@@ -132,7 +130,6 @@ async function handleCompletedPayment(session) {
                             roulette: mainPlayer.roulette === 'true' || mainPlayer.roulette === true,
                             memberId: null
                         };
-                        console.log('✅ Added player1:', registration.player1.name);
                         console.log(`  sidePot: ${registration.player1.sidePot}, roulette: ${registration.player1.roulette}`);
                     } else {
                         console.log('⚠️ Could not create player1 - missing data in mainPlayer object');
@@ -160,7 +157,6 @@ async function handleCompletedPayment(session) {
                                     roulette: false,
                                     memberId: null
                                 };
-                                console.log(`✅ Added ${playerKey}: ${registration[playerKey].name}`);
                                 console.log(`  sidePot: false, roulette: false (auto-set for additional players)`);
                             } else if (player) {
                                 console.log(`⚠️ Player ${j + 2} has no name data:`, player);
@@ -193,9 +189,6 @@ async function handleCompletedPayment(session) {
                             // Update entryNum and index from member data
                             registration.player1.entryNum = member.entryNum || null;
                             registration.player1.index = member.index || '';
-                            console.log('✅ Matched player1 with member:', member._id);
-                            console.log('  Updated entryNum:', member.entryNum);
-                            console.log('  Updated index:', member.index);
                         } else {
                             console.log('❌ No member found for player1');
                         }
@@ -211,7 +204,6 @@ async function handleCompletedPayment(session) {
                                 // Update entryNum and index from member data
                                 registration[playerKey].entryNum = member.entryNum || null;
                                 registration[playerKey].index = member.index || '';
-                                console.log(`✅ Matched ${playerKey} with member:`, member._id);
                                 console.log(`  Updated ${playerKey} entryNum:`, member.entryNum);
                                 console.log(`  Updated ${playerKey} index:`, member.index);
                             } else {
@@ -225,7 +217,6 @@ async function handleCompletedPayment(session) {
                     console.log('Final registration object:', JSON.stringify(registration, null, 2));
                     
                     const result = await registrationsCollection.insertOne(registration);
-                    console.log(`✅ Registration saved with ID: ${result.insertedId}`);
                     console.log(`=== COMPLETED PROCESSING FOR TOURNAMENT ${tournamentId} ===\n`);
                     
                 } catch (error) {
@@ -251,7 +242,6 @@ async function handleCompletedPayment(session) {
                         } else if (typeof memberDataStr === 'object') {
                             memberData = memberDataStr;
                         }
-                        console.log('✅ Member data parsed successfully:', memberData);
                     } catch (parseError) {
                         console.error('❌ Error parsing member data JSON:', parseError);
                         console.error('Raw member string:', memberDataStr);
@@ -326,7 +316,6 @@ async function handleCompletedPayment(session) {
                                 { _id: existingMember._id },
                                 { $set: updates }
                             );
-                            console.log(`✅ Updated existing member: ${existingMember._id}`);
                         }
                         
                         continue; // Skip creating new member
@@ -359,10 +348,6 @@ async function handleCompletedPayment(session) {
                     const result = await membersCollection.insertOne(newMember);
                     
                     console.log(`✅ New member created with ID: ${result.insertedId}`);
-                    console.log(`  Name: ${firstName} ${lastName}`);
-                    console.log(`  Email: ${email}`);
-                    console.log(`  Entry #: ${nextEntryNum}`);
-                    console.log(`  GHIN: ${ghin || 'Not provided'}`);
                     
                 } catch (error) {
                     console.error('❌ ERROR processing membership purchase:', error);

@@ -51,7 +51,6 @@ app.options('*', cors());
 // WEBHOOK HANDLER - MUST BE BEFORE ALL OTHER MIDDLEWARE!
 // --------------------
 app.post('/api/webhook', (req, res, next) => {
-    console.log('🔵 WEBHOOK HIT - raw handler');
     
     // Manually handle raw body
     let data = '';
@@ -63,10 +62,6 @@ app.post('/api/webhook', (req, res, next) => {
         try {
             const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
             const sig = req.headers['stripe-signature'];
-            
-            console.log('🔵 Webhook signature present:', !!sig);
-            console.log('🔵 Body length:', data.length);
-            console.log('🔵 STRIPE_WEBHOOK_SECRET exists:', !!process.env.STRIPE_WEBHOOK_SECRET);
             
             let event;
             try {
@@ -116,24 +111,6 @@ app.get('/api/webhook', (req, res) => {
     });
 });
 
-// Test endpoint to verify routing is working
-app.get('/api/webhook-test', (req, res) => {
-    console.log('✅ GET /api/webhook-test hit');
-    res.json({ 
-        message: 'Webhook test endpoint working',
-        timestamp: new Date().toISOString(),
-        path: '/api/webhook-test'
-    });
-});
-
-app.post('/api/webhook-test', (req, res) => {
-    console.log('✅ POST /api/webhook-test hit');
-    res.json({ 
-        message: 'POST webhook test working',
-        timestamp: new Date().toISOString(),
-        method: 'POST'
-    });
-});
 
 // Now add other middleware AFTER webhook
 app.use(express.json());
@@ -295,12 +272,7 @@ function servePage(res, pagePath, fallbackPath = null) {
     const fullPath = path.join(__dirname, 'public', pagePath);
     const fullFallbackPath = fallbackPath ? path.join(__dirname, 'public', fallbackPath) : null;
     
-    console.log(`📁 Attempting to serve: ${pagePath}`);
-    console.log(`📁 Full path: ${fullPath}`);
-    console.log(`📁 File exists: ${fs.existsSync(fullPath)}`);
-    
     if (fs.existsSync(fullPath)) {
-        console.log(`✅ Serving: ${pagePath}`);
         res.sendFile(fullPath);
     } else if (fallbackPath && fs.existsSync(fullFallbackPath)) {
         console.log(`⚠️ Serving fallback: ${fallbackPath}`);
@@ -373,64 +345,52 @@ app.get('/admin/:page', (req, res) => {
 
 // Explicit routes for membership pages - FIRST (most specific)
 app.get('/tournament-entry/membership-renewal', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/membership-renewal (exact)');
     servePage(res, 'tournament-entry/membership-renewal/index.html');
 });
 
 app.get('/tournament-entry/new-membership', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/new-membership (exact)');
     servePage(res, 'tournament-entry/new-membership/index.html');
 });
 
 app.get('/tournament-entry/checkout', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/checkout (exact)');
     servePage(res, 'tournament-entry/checkout/index.html');
 });
 
 // Also handle with trailing slash
 app.get('/tournament-entry/membership-renewal/', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/membership-renewal/ (with slash)');
     servePage(res, 'tournament-entry/membership-renewal/index.html');
 });
 
 app.get('/tournament-entry/new-membership/', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/new-membership/ (with slash)');
     servePage(res, 'tournament-entry/new-membership/index.html');
 });
 
 app.get('/tournament-entry/checkout/', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/checkout/ (with slash)');
     servePage(res, 'tournament-entry/checkout/index.html');
 });
 
 // Explicit routes for the HTML files themselves (in case browser requests them)
 app.get('/tournament-entry/membership-renewal/index.html', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/membership-renewal/index.html');
     res.sendFile(path.join(__dirname, 'public/tournament-entry/membership-renewal/index.html'));
 });
 
 app.get('/tournament-entry/new-membership/index.html', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/new-membership/index.html');
     res.sendFile(path.join(__dirname, 'public/tournament-entry/new-membership/index.html'));
 });
 
 // Tournament entry main page
 app.get('/tournament-entry', (req, res) => {
-    console.log('✅ HIT: /tournament-entry (main)');
     servePage(res, 'tournament-entry/index.html');
 });
 
 // Also handle with trailing slash
 app.get('/tournament-entry/', (req, res) => {
-    console.log('✅ HIT: /tournament-entry/ (main with slash)');
     servePage(res, 'tournament-entry/index.html');
 });
 
 // Dynamic tournament detail pages - AFTER specific routes
 app.get('/tournament-entry/:tournamentId', (req, res) => {
-    const tournamentId = req.params.tournamentId;
-    console.log(`✅ HIT: /tournament-entry/${tournamentId} (dynamic)`);
-    
+    const tournamentId = req.params.tournamentId;    
     // These should never be hit if the specific routes above work
     const reservedPaths = ['membership-renewal', 'new-membership', 'checkout'];
     if (reservedPaths.includes(tournamentId)) {
@@ -445,8 +405,6 @@ app.get('/tournament-entry/:tournamentId', (req, res) => {
 // Also handle dynamic routes with trailing slash
 app.get('/tournament-entry/:tournamentId/', (req, res) => {
     const tournamentId = req.params.tournamentId;
-    console.log(`✅ HIT: /tournament-entry/${tournamentId}/ (dynamic with slash)`);
-    
     const reservedPaths = ['membership-renewal', 'new-membership', 'checkout'];
     if (reservedPaths.includes(tournamentId)) {
         console.log(`⚠️ WARNING: Reserved path ${tournamentId} hit dynamic route - routing issue!`);
