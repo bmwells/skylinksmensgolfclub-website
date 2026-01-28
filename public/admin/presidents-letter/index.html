@@ -11,21 +11,21 @@
 <div class="header">
   <h1>President's Letter Editor</h1>
   <div>
-    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+    <button id="backButton">← Back to Admin</button>
   </div>
 </div>
 
 <div class="controls">
   <button onclick="addLetter()">📝 Add New Letter</button>
-  <button onclick="AdminCommon.toggleReorder()">↕️ Rearrange Letters</button>
-  <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
+  <button id="reorderButton">↕️ Rearrange Letters</button>
+  <button id="saveButton" style="background: #28a745;">💾 Save Changes</button>
 </div>
 
 <div id="reorderNotice" class="reorder-notice" style="display:none;">
   <span>Drag letters to reorder. Click "Save Order" when done.</span>
   <div class="reorder-actions">
-    <button class="save-order" onclick="AdminCommon.saveOrder('letters')">💾 Save Order</button>
-    <button onclick="AdminCommon.toggleReorder()">❌ Cancel</button>
+    <button class="save-order" id="saveOrderButton">💾 Save Order</button>
+    <button id="cancelReorderButton">❌ Cancel</button>
   </div>
 </div>
 
@@ -35,6 +35,11 @@
 <script>
 // Make render globally accessible
 window.render = render;
+window.updateLetter = updateLetter;
+window.updatePresident = updatePresident;
+window.addLetter = addLetter;
+window.addBulletPoint = addBulletPoint;
+window.deleteLetter = deleteLetter;
 
 // Store president data separately
 let presidentData = {
@@ -43,10 +48,102 @@ let presidentData = {
   role: 'President, Skylinks Men\'s Golf Club'
 };
 
-function init() {
-  if (AdminCommon.init('presidents-letter', [])) {
-    loadLetters();
+// Store month names globally
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+// Store the original save function
+let originalSave = null;
+
+// Wait for AdminCommon to be ready
+function waitForAdminCommon(callback) {
+  if (window.AdminCommon && window.adminModulesLoaded) {
+    callback();
+  } else {
+    if (window.adminModulesReady) {
+      // If ready callback already exists, chain it
+      const originalReady = window.adminModulesReady;
+      window.adminModulesReady = function() {
+        if (originalReady) originalReady();
+        callback();
+      };
+    } else {
+      window.adminModulesReady = callback;
+    }
   }
+}
+
+function init() {
+  waitForAdminCommon(function() {
+    // Save the original save function before overriding
+    originalSave = AdminCommon.save;
+    
+    // Override save function to include president data
+    AdminCommon.save = function() {
+      // Prepare full data structure
+      const fullData = {
+        president: presidentData,
+        letters: AdminCommon.data
+      };
+      
+      return fetch(`/api/presidents-letter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': this.token
+        },
+        body: JSON.stringify(fullData)
+      })
+      .then(res => {
+        if (res.ok) {
+          this.hasUnsavedChanges = false;
+          this.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
+          return res.json();
+        } else {
+          throw new Error('Save failed: ' + res.statusText);
+        }
+      });
+    };
+    
+    if (AdminCommon.init('presidents-letter', [])) {
+      loadLetters();
+      setupEventListeners();
+    }
+  });
+}
+
+function setupEventListeners() {
+  // Back button
+  document.getElementById('backButton').addEventListener('click', function(e) {
+    e.preventDefault();
+    AdminCommon.checkUnsavedChanges();
+  });
+  
+  // Reorder button
+  document.getElementById('reorderButton').addEventListener('click', function(e) {
+    e.preventDefault();
+    AdminCommon.toggleReorder();
+  });
+  
+  // Save button
+  document.getElementById('saveButton').addEventListener('click', function(e) {
+    e.preventDefault();
+    AdminCommon.saveWithAlert();
+  });
+  
+  // Save order button
+  document.getElementById('saveOrderButton').addEventListener('click', function(e) {
+    e.preventDefault();
+    AdminCommon.saveOrder('letters');
+  });
+  
+  // Cancel reorder button
+  document.getElementById('cancelReorderButton').addEventListener('click', function(e) {
+    e.preventDefault();
+    AdminCommon.toggleReorder();
+  });
 }
 
 function loadLetters() {
@@ -81,10 +178,22 @@ function render() {
     <h3>President Information</h3>
     <div class="form-row">
       <div style="flex: 1;">
-        ${AdminCommon.templates.textInput('President Name', presidentData.name, `updatePresident('name', this.value)`, 'President Name')}
+        <div class="input-group">
+          <label>President Name</label>
+          <input type="text" 
+                 value="${presidentData.name || ''}" 
+                 oninput="updatePresident('name', this.value)"
+                 placeholder="President Name">
+        </div>
       </div>
       <div style="flex: 2;">
-        ${AdminCommon.templates.textInput('Image URL', presidentData.imageUrl, `updatePresident('imageUrl', this.value)`, 'Image URL for President Photo')}
+        <div class="input-group">
+          <label>Image URL</label>
+          <input type="text" 
+                 value="${presidentData.imageUrl || ''}" 
+                 oninput="updatePresident('imageUrl', this.value)"
+                 placeholder="Image URL for President Photo">
+        </div>
       </div>
     </div>
   `;
@@ -109,12 +218,7 @@ function render() {
       letterDiv.draggable = false;
       
       // Month dropdown options
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      
-      const monthOptions = months.map(m => 
+      const monthOptions = MONTHS.map(m => 
         `<option value="${m}" ${letter.month === m ? 'selected' : ''}>${m}</option>`
       ).join('');
       
@@ -123,7 +227,7 @@ function render() {
         <div class="section-header">
           <h3>President's Letter – ${letter.month || ''} ${letter.year || ''}</h3>
           <div>
-            ${AdminCommon.templates.deleteButton(`deleteLetter(${letterIndex})`, 'Delete', true)}
+            <button onclick="deleteLetter(${letterIndex})" class="delete-btn" title="Delete">🗑️</button>
           </div>
         </div>
         
@@ -138,7 +242,13 @@ function render() {
             </div>
           </div>
           <div style="flex: 1;">
-            ${AdminCommon.templates.textInput('Year', letter.year, `updateLetter(${letterIndex}, 'year', this.value)`, 'e.g., 2025')}
+            <div class="input-group">
+              <label>Year</label>
+              <input type="text" 
+                     value="${letter.year || ''}" 
+                     oninput="updateLetter(${letterIndex}, 'year', this.value)"
+                     placeholder="e.g., 2025">
+            </div>
           </div>
         </div>
         
@@ -151,9 +261,9 @@ function render() {
             oninput="updateLetter(${letterIndex}, 'content', this.value)"
             placeholder="Write your letter here..."
             style="min-height: 300px; font-family: system-ui; line-height: 1.6;"
-          >${AdminCommon.escapeHtml(letter.content || '')}</textarea>
+          >${escapeHtml(letter.content || '')}</textarea>
           <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-            Tip: Use Enter for new paragraphs. Click 'Add Bullet Point' or Type \"*\" at the beginning of a line to insert a bullet point.
+            Tip: Use Enter for new paragraphs. Click 'Add Bullet Point' or Type "*" at the beginning of a line to insert a bullet point.
           </div>
         </div>
       `;
@@ -164,11 +274,17 @@ function render() {
     lettersContainer.appendChild(letterDiv);
   });
   
-  // Remove the old code that tried to update president info in first row
   // Re-setup input listeners after rendering new inputs
   if (!AdminCommon.isReorderMode) {
     AdminCommon.setupInputListeners();
   }
+}
+
+// Simple HTML escape function
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function updatePresident(field, value) {
@@ -241,34 +357,6 @@ function deleteLetter(letterIndex) {
     render();
   }
 }
-
-// Override save function to include president data
-const originalSave = AdminCommon.save;
-AdminCommon.save = function() {
-  // Prepare full data structure
-  const fullData = {
-    president: presidentData,
-    letters: AdminCommon.data
-  };
-  
-  return fetch(`/api/presidents-letter`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': this.token
-    },
-    body: JSON.stringify(fullData)
-  })
-  .then(res => {
-    if (res.ok) {
-      this.hasUnsavedChanges = false;
-      this.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
-      return res.json();
-    } else {
-      throw new Error('Save failed: ' + res.statusText);
-    }
-  });
-};
 
 window.onload = init;
 </script>

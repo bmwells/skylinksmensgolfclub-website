@@ -1394,6 +1394,12 @@ label {
         color: #e0e0e0;
     }
 
+    /* Fix GHIN badge text color in dark mode */
+    .compact-badges span[style*="background: #e9ecef"] {
+        color: #000000 !important; /* Change text to black in dark mode */
+        background: #e9ecef !important; /* Keep the gray background */
+    }
+
     .search-input input {
         background: #2d2d2d;
         border-color: #444;
