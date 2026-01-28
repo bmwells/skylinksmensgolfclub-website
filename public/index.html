@@ -236,69 +236,53 @@
     }
 
     // Load the first active tournament for the homepage card
-    async function loadHomeTournamentCard() {
-        try {
-            // Get active tournaments that are shown on the tournament entry page
-            const response = await fetch('/api/tournaments?activePage=true');
-            const tournaments = await response.json();
-            
-            const cardContainer = document.getElementById('home-monthly-tournament-card');
-            
-            if (tournaments.length === 0) {
-                // No active tournaments, show a default card
-                cardContainer.outerHTML = `
-                    <div class="tournament-card">
-                        <a href="/tournament-entry/">
-                            <div class="tournament-image" style="background-color: #f0f0f0;"></div>
-                            <h3>Upcoming Tournaments</h3>
-                            <p class="price">View All</p>
-                        </a>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Sort: pinned first, then by creation date
-            tournaments.sort((a, b) => {
-                if (a.pinned && !b.pinned) return -1;
-                if (!a.pinned && b.pinned) return 1;
-                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-            });
-            
-            // Use the first tournament
-            const tournament = tournaments[0];
-            
-            // Format price
-            const price = tournament.price ? parseFloat(tournament.price) : 90;
-            const formattedPrice = tournament.active !== false ? `From $${price}` : `$${price}`;
-            const title = tournament.title || 'Tournament';
-            const imageUrl = tournament.imageUrl || '';
-            const tournamentId = tournament.id;
-            
-            cardContainer.outerHTML = `
-                <div class="tournament-card">
-                    <a href="/tournament-entry/${tournamentId}/">
-                        <div class="tournament-image" style="background-image: url('${imageUrl}')"></div>
-                        <h3>${title}</h3>
-                        <p class="price">${formattedPrice}</p>
-                    </a>
-                </div>
-            `;
-            
-        } catch (error) {
-            console.error('Error loading tournament for homepage:', error);
-            const cardContainer = document.getElementById('home-monthly-tournament-card');
-            cardContainer.outerHTML = `
-                <div class="tournament-card">
-                    <a href="/tournament-entry/">
-                        <div class="tournament-image" style="background-color: #f0f0f0;"></div>
-                        <h3>Tournament Entry</h3>
-                        <p class="price">View All</p>
-                    </a>
-                </div>
-            `;
+async function loadHomeTournamentCard() {
+    try {
+        // Get active tournaments that are shown on the tournament entry page
+        const response = await fetch('/api/tournaments?activePage=true');
+        const tournaments = await response.json();
+        
+        const cardContainer = document.getElementById('home-monthly-tournament-card');
+        
+        if (tournaments.length === 0) {
+            // No active tournaments - REMOVE the entire card container
+            cardContainer.remove();
+            return;
         }
+        
+        // Sort: pinned first, then by creation date
+        tournaments.sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        });
+        
+        // Use the first tournament
+        const tournament = tournaments[0];
+        
+        // Format price
+        const price = tournament.price ? parseFloat(tournament.price) : 90;
+        const formattedPrice = tournament.active !== false ? `From $${price}` : `$${price}`;
+        const title = tournament.title || 'Tournament';
+        const imageUrl = tournament.imageUrl || '';
+        const tournamentId = tournament.id;
+        
+        cardContainer.outerHTML = `
+            <div class="tournament-card">
+                <a href="/tournament-entry/${tournamentId}/">
+                    <div class="tournament-image" style="background-image: url('${imageUrl}')"></div>
+                    <h3>${title}</h3>
+                    <p class="price">${formattedPrice}</p>
+                </a>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading tournament for homepage:', error);
+        const cardContainer = document.getElementById('home-monthly-tournament-card');
+        cardContainer.remove(); // Remove on error too
     }
+}
 
     // Make the SnapWidget responsive
     function makeWidgetResponsive() {

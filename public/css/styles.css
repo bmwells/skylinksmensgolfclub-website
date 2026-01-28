@@ -158,8 +158,17 @@ body {
 
 .tournament-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+    .tournament-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        max-width: 100%;
+    }
 }
 
 .tournament-card {
