@@ -282,7 +282,7 @@ function servePage(res, pagePath, fallbackPath = null) {
 }
 
 // --------------------
-// PAGE ROUTES - FIXED ORDER (MOST SPECIFIC FIRST)
+// PAGE ROUTES
 // --------------------
 
 // Home page

@@ -510,7 +510,7 @@
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-    // FIXED: Calculate total price based on product type
+    // Calculate total price based on product type
     let totalPrice;
     let basePrice;
     
