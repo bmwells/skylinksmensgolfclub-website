@@ -35,10 +35,10 @@ const DOMAIN = process.env.FRONTEND_DOMAIN || (isLocal ? 'http://localhost:3000'
 // --------------------
 app.use(cors({
     origin: [
-        'https://skylinksmensgolfclub-website.vercel.app',
-        'http://localhost:3000',
         'https://www.skylinksmensgolf.com',
-        'https://skylinksmensgolf.com'
+        'https://skylinksmensgolf.com',
+        'http://localhost:3000'
+        
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
