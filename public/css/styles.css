@@ -151,6 +151,9 @@ body {
 /* =========================================== */
 /* TOURNAMENT SECTION                         */
 /* =========================================== */
+/* =========================================== */
+/* TOURNAMENT SECTION                         */
+/* =========================================== */
 .tournament-section {
     padding: 4rem 2rem;
     background-color: #fff;
@@ -158,17 +161,15 @@ body {
 
 .tournament-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
-    max-width: 960px;
-    margin: 0 auto;
 }
 
-@media (max-width: 1024px) {
-    .tournament-grid {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        max-width: 100%;
-    }
+/* When there are only 2 cards (no live tournament) */
+.tournament-grid:has(.tournament-card:nth-child(2):last-child) {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .tournament-card {
