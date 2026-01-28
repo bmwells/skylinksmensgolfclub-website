@@ -74,9 +74,7 @@ app.post('/api/webhook', (req, res, next) => {
 
             switch (event.type) {
                 case 'checkout.session.completed':
-                    const session = event.data.object;
-                    console.log('💰 Payment completed for session:', session.id);
-                    
+                    const session = event.data.object;                    
                     try {
                         const { handleCompletedPayment } = require('./server/stripeWebhook');
                         await handleCompletedPayment(session);
