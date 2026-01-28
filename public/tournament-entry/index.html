@@ -137,19 +137,19 @@
                         </div>
                     `;
                 } else {
-                    // Create rows: tournaments first, then membership cards
-                    let tournamentsHTML = '';
-                    let membershipHTML = '';
+                    // Determine layout based on number of tournaments
+                    const tournamentCount = activeTournaments.length;
                     
-                    // Tournament cards
+                    // Create tournaments section
+                    let tournamentsHTML = '';
                     activeTournaments.forEach(tournament => {
                         tournamentsHTML += generateTournamentCard(tournament);
                     });
                     
                     // Membership cards
-                    membershipHTML = `
+                    const membershipHTML = `
                         <!-- Membership Renewal Card -->
-                        <a href="/tournament-entry/membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
+                        <a href="/tournament-entry/membership-renewal/" class="tournament-product-card membership-card" aria-label="Membership Renewal">
                             <div class="tournament-product-image-wrapper">
                                 <img 
                                     src="${getImageUrl('membership-renewal', 'https://res.cloudinary.com/doha9yjng/image/upload/v1767697872/renewal_jyzgn6.webp')}" 
@@ -166,7 +166,7 @@
                         </a>
 
                         <!-- New Membership Card -->
-                        <a href="/tournament-entry/new-membership/" class="tournament-product-card" aria-label="New Membership">
+                        <a href="/tournament-entry/new-membership/" class="tournament-product-card membership-card" aria-label="New Membership">
                             <div class="tournament-product-image-wrapper">
                                 <img 
                                     src="${getImageUrl('new-membership', 'https://res.cloudinary.com/doha9yjng/image/upload/v1767697872/new-member_ayklsq.webp')}" 
@@ -183,18 +183,29 @@
                         </a>
                     `;
                     
-                    // Determine grid layout based on number of tournaments
-                    const tournamentCount = activeTournaments.length;
-                    let tournamentsGridCols = tournamentCount === 1 ? '1fr' : 'repeat(2, 1fr)';
-                    
-                    gridContainer.innerHTML = `
-                        <div class="tournament-products-grid" style="grid-template-columns: ${tournamentsGridCols}; margin-bottom: 40px;">
-                            ${tournamentsHTML}
-                        </div>
-                        <div class="tournament-products-grid" style="grid-template-columns: repeat(2, 1fr);">
-                            ${membershipHTML}
-                        </div>
-                    `;
+                    if (tournamentCount === 1) {
+                        // Single tournament: display it centered above membership cards
+                        gridContainer.innerHTML = `
+                            <div class="single-tournament-container">
+                                <div class="single-tournament-card">
+                                    ${tournamentsHTML}
+                                </div>
+                            </div>
+                            <div class="tournament-products-grid membership-grid">
+                                ${membershipHTML}
+                            </div>
+                        `;
+                    } else {
+                        // Multiple tournaments: display in grid
+                        gridContainer.innerHTML = `
+                            <div class="tournament-products-grid multiple-tournaments-grid" style="grid-template-columns: repeat(${Math.min(tournamentCount, 2)}, 1fr); margin-bottom: 40px;">
+                                ${tournamentsHTML}
+                            </div>
+                            <div class="tournament-products-grid membership-grid">
+                                ${membershipHTML}
+                            </div>
+                        `;
+                    }
                 }
                 
             } catch (error) {
@@ -208,7 +219,7 @@
                         </div>
                         
                         <!-- Fallback membership cards -->
-                        <a href="/tournament-entry/membership-renewal/" class="tournament-product-card" aria-label="Membership Renewal">
+                        <a href="/tournament-entry/membership-renewal/" class="tournament-product-card membership-card" aria-label="Membership Renewal">
                             <div class="tournament-product-image-wrapper">
                                 <img 
                                     src="https://res.cloudinary.com/doha9yjng/image/upload/v1767697872/renewal_jyzgn6.webp" 
@@ -223,7 +234,7 @@
                             </div>
                         </a>
 
-                        <a href="/tournament-entry/new-membership/" class="tournament-product-card" aria-label="New Membership">
+                        <a href="/tournament-entry/new-membership/" class="tournament-product-card membership-card" aria-label="New Membership">
                             <div class="tournament-product-image-wrapper">
                                 <img 
                                     src="https://res.cloudinary.com/doha9yjng/image/upload/v1767697872/new-member_ayklsq.webp" 

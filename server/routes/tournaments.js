@@ -182,11 +182,6 @@ router.get('/:id/registrations', requireAdmin, async (req, res) => {
             return dateA - dateB;
         });
         
-        console.log('Sorted registrations by time:', registrations.map(r => ({
-            startTime: r.startTime,
-            player1: r.player1?.name || 'Empty'
-        })));
-        
         // Enrich with member data if available
         const enrichedRegistrations = await Promise.all(registrations.map(async (registration) => {
             const enrichedRegistration = { ...registration };
@@ -242,10 +237,9 @@ router.get('/:id/registrations', requireAdmin, async (req, res) => {
             return enrichedRegistration;
         }));
         
-        // Remove _id fields
-        const sanitizedRegistrations = enrichedRegistrations.map(({ _id, ...rest }) => rest);
+        // Return registrations WITH _id field
+        res.json(enrichedRegistrations);
         
-        res.json(sanitizedRegistrations);
     } catch (error) {
         console.error('Error getting tournament registrations:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -292,7 +286,7 @@ router.post('/:id/registrations', requireAdmin, async (req, res) => {
     }
 });
 
-// Update registration for a tournament
+// Update registration for a tournament - SIMPLIFIED VERSION
 router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.id;
@@ -307,73 +301,13 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
             updateData
         });
         
-        // Validate registrationId is a valid ObjectId or find it
-        let registrationObjectId;
-        try {
-            // First check if it's already a valid ObjectId
-            if (ObjectId.isValid(registrationId)) {
-                registrationObjectId = new ObjectId(registrationId);
-            } else {
-                // If not a valid ObjectId string, check what type of ID we have
-                console.log('Registration ID is not a valid ObjectId, trying to find by tournamentId and other criteria');
-                
-                // Try to find the registration by tournamentId
-                const existingRegistrations = await collection.find({ 
-                    tournamentId: tournamentId 
-                }).toArray();
-                
-                // Check if registrationId is a temporary ID (starts with 'temp_')
-                if (registrationId.startsWith('temp_')) {
-                    console.log('Handling temporary ID:', registrationId);
-                    
-                    // Parse the index from the temporary ID
-                    // Format: temp_tournamentId_index_timestamp
-                    const parts = registrationId.split('_');
-                    if (parts.length >= 3) {
-                        const tempIndex = parseInt(parts[2]); // The index part
-                        if (!isNaN(tempIndex) && existingRegistrations[tempIndex]) {
-                            registrationObjectId = existingRegistrations[tempIndex]._id;
-                            console.log(`Found registration by temp index ${tempIndex}, using _id:`, registrationObjectId);
-                        } else {
-                            console.error('Could not parse index from temp ID or index not found:', registrationId);
-                            return res.status(404).json({ error: 'Registration not found - invalid temp ID' });
-                        }
-                    } else {
-                        console.error('Invalid temp ID format:', registrationId);
-                        return res.status(400).json({ error: 'Invalid temporary ID format' });
-                    }
-                } 
-                // Check if registrationId is a number (index)
-                else if (!isNaN(registrationId)) {
-                    const index = parseInt(registrationId);
-                    if (existingRegistrations[index]) {
-                        registrationObjectId = existingRegistrations[index]._id;
-                        console.log(`Found registration by index ${index}, using _id:`, registrationObjectId);
-                    } else {
-                        console.error('Index not found:', index, 'Total registrations:', existingRegistrations.length);
-                        return res.status(404).json({ error: 'Registration not found - index out of bounds' });
-                    }
-                } 
-                // Try to find by other criteria (id field or string _id)
-                else {
-                    const foundRegistration = existingRegistrations.find(reg => 
-                        reg.id === registrationId || // if there's an 'id' field
-                        reg._id.toString() === registrationId // if _id was already converted to string
-                    );
-                    
-                    if (foundRegistration) {
-                        registrationObjectId = foundRegistration._id;
-                        console.log('Found registration by other criteria, using _id:', registrationObjectId);
-                    } else {
-                        console.error('Registration not found by any criteria:', registrationId);
-                        return res.status(404).json({ error: 'Registration not found' });
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error parsing registration ID:', error);
-            return res.status(400).json({ error: 'Invalid registration ID' });
+        // Validate registrationId is a valid ObjectId
+        if (!ObjectId.isValid(registrationId)) {
+            console.error('Invalid registration ID:', registrationId);
+            return res.status(400).json({ error: 'Invalid registration ID format' });
         }
+        
+        const registrationObjectId = new ObjectId(registrationId);
         
         // Validate that the registration exists
         const existingRegistration = await collection.findOne({
@@ -382,6 +316,7 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
         });
         
         if (!existingRegistration) {
+            console.error('Registration not found:', registrationId);
             return res.status(404).json({ error: 'Registration not found' });
         }
         
@@ -389,40 +324,15 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
         updateData.updatedAt = new Date();
         
         // Handle player data updates
-        // For player1, we need to handle sidePot and roulette specially
-        if (updateData.player1) {
-            // Ensure player1 has proper fields
-            if (updateData.player1.name) {
-                updateData.player1.name = updateData.player1.name.trim();
-            }
-            
-            // If memberId is provided, ensure it's a string
-            if (updateData.player1.memberId) {
-                if (typeof updateData.player1.memberId !== 'string') {
-                    updateData.player1.memberId = updateData.player1.memberId.toString();
-                }
-            } else {
-                updateData.player1.memberId = null;
-            }
-            
-            // Ensure sidePot and roulette are boolean
-            if (updateData.player1.sidePot !== undefined) {
-                updateData.player1.sidePot = Boolean(updateData.player1.sidePot);
-            }
-            if (updateData.player1.roulette !== undefined) {
-                updateData.player1.roulette = Boolean(updateData.player1.roulette);
-            }
-        }
-        
-        // For players 2-4, just ensure proper structure
-        for (let i = 2; i <= 4; i++) {
+        for (let i = 1; i <= 4; i++) {
             const playerKey = `player${i}`;
             if (updateData[playerKey]) {
+                // Ensure player has proper fields
                 if (updateData[playerKey].name) {
                     updateData[playerKey].name = updateData[playerKey].name.trim();
                 }
                 
-                // Handle memberId for players 2-4 as well
+                // If memberId is provided, ensure it's a string
                 if (updateData[playerKey].memberId) {
                     if (typeof updateData[playerKey].memberId !== 'string') {
                         updateData[playerKey].memberId = updateData[playerKey].memberId.toString();
@@ -431,7 +341,7 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
                     updateData[playerKey].memberId = null;
                 }
                 
-                // Ensure sidePot and roulette are boolean for players 2-4
+                // Ensure sidePot and roulette are boolean
                 if (updateData[playerKey].sidePot !== undefined) {
                     updateData[playerKey].sidePot = Boolean(updateData[playerKey].sidePot);
                 }
@@ -487,7 +397,7 @@ router.put('/:id/registrations/:registrationId', requireAdmin, async (req, res) 
     }
 });
 
-// Delete registration for a tournament
+// Delete registration for a tournament - SIMPLIFIED VERSION
 router.delete('/:id/registrations/:registrationId', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.id;
@@ -500,73 +410,13 @@ router.delete('/:id/registrations/:registrationId', requireAdmin, async (req, re
             registrationId
         });
         
-        // Validate registrationId is a valid ObjectId or find it
-        let registrationObjectId;
-        try {
-            // First check if it's already a valid ObjectId
-            if (ObjectId.isValid(registrationId)) {
-                registrationObjectId = new ObjectId(registrationId);
-            } else {
-                // If not a valid ObjectId string, check what type of ID we have
-                console.log('Registration ID is not a valid ObjectId, trying to find by tournamentId and other criteria');
-                
-                // Try to find the registration by tournamentId
-                const existingRegistrations = await collection.find({ 
-                    tournamentId: tournamentId 
-                }).toArray();
-                
-                // Check if registrationId is a temporary ID (starts with 'temp_')
-                if (registrationId.startsWith('temp_')) {
-                    console.log('Handling temporary ID:', registrationId);
-                    
-                    // Parse the index from the temporary ID
-                    // Format: temp_tournamentId_index_timestamp
-                    const parts = registrationId.split('_');
-                    if (parts.length >= 3) {
-                        const tempIndex = parseInt(parts[2]); // The index part
-                        if (!isNaN(tempIndex) && existingRegistrations[tempIndex]) {
-                            registrationObjectId = existingRegistrations[tempIndex]._id;
-                            console.log(`Found registration by temp index ${tempIndex}, using _id:`, registrationObjectId);
-                        } else {
-                            console.error('Could not parse index from temp ID or index not found:', registrationId);
-                            return res.status(404).json({ error: 'Registration not found - invalid temp ID' });
-                        }
-                    } else {
-                        console.error('Invalid temp ID format:', registrationId);
-                        return res.status(400).json({ error: 'Invalid temporary ID format' });
-                    }
-                } 
-                // Check if registrationId is a number (index)
-                else if (!isNaN(registrationId)) {
-                    const index = parseInt(registrationId);
-                    if (existingRegistrations[index]) {
-                        registrationObjectId = existingRegistrations[index]._id;
-                        console.log(`Found registration by index ${index}, using _id:`, registrationObjectId);
-                    } else {
-                        console.error('Index not found:', index, 'Total registrations:', existingRegistrations.length);
-                        return res.status(404).json({ error: 'Registration not found - index out of bounds' });
-                    }
-                } 
-                // Try to find by other criteria (id field or string _id)
-                else {
-                    const foundRegistration = existingRegistrations.find(reg => 
-                        reg.id === registrationId || // if there's an 'id' field
-                        reg._id.toString() === registrationId // if _id was already converted to string
-                    );
-                    
-                    if (foundRegistration) {
-                        registrationObjectId = foundRegistration._id;
-                        console.log('Found registration by other criteria, using _id:', registrationObjectId);
-                    } else {
-                        console.error('Registration not found by any criteria:', registrationId);
-                        return res.status(404).json({ error: 'Registration not found' });
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error parsing registration ID:', error);
-            return res.status(400).json({ error: 'Invalid registration ID' });
+        // Validate registrationId is a valid ObjectId
+        if (!ObjectId.isValid(registrationId)) {
+            console.error('Invalid registration ID:', registrationId);
+            return res.status(400).json({ error: 'Invalid registration ID format' });
         }
+        
+        const registrationObjectId = new ObjectId(registrationId);
         
         // Validate that the registration exists
         const existingRegistration = await collection.findOne({
@@ -575,6 +425,7 @@ router.delete('/:id/registrations/:registrationId', requireAdmin, async (req, re
         });
         
         if (!existingRegistration) {
+            console.error('Registration not found:', registrationId);
             return res.status(404).json({ error: 'Registration not found' });
         }
         

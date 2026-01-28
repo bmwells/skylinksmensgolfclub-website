@@ -154,3 +154,80 @@
                 padding: 40px 0;
             }
         }
+
+/* Single Tournament Layout */
+.single-tournament-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 0 20px;
+}
+
+.single-tournament-card {
+    width: calc(100% + 100px);
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.single-tournament-card .tournament-product-card {
+    width: 100%;
+}
+
+.single-tournament-card .tournament-product-image-wrapper {
+    aspect-ratio: 3/2;
+}
+
+/* Membership Grid */
+.membership-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 60px;
+    margin-top: 40px;
+}
+
+/* Multiple Tournaments Grid */
+.multiple-tournaments-grid {
+    display: grid;
+    gap: 60px;
+    margin-bottom: 40px;
+}
+
+/* Tournament cards - general styles that apply to all */
+.tournament-product-card {
+    background: transparent;
+    border: none;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease;
+    width: 100%;
+}
+
+.single-tournament-card .tournament-product-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Mobile Responsiveness for single tournament */
+@media (max-width: 768px) {
+    .single-tournament-card {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .single-tournament-container {
+        padding: 0 10px;
+    }
+    
+    .membership-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .multiple-tournaments-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .single-tournament-card {
+        width: 100%;
+    }
+}

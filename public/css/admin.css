@@ -786,7 +786,7 @@ button:disabled {
     margin-bottom: 25px;
     background: #f8f9fa;
     position: relative;
-    min-height: 550px; 
+    min-height: 580px; 
 }
 
 .foursome-header {
@@ -1048,6 +1048,32 @@ button:disabled {
     color: #495057;
 }
 
+/* Yes/No Badges in tournament meta */
+.meta-value .badge-yes,
+.meta-value .badge-no {
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    margin-left: 0 !important;
+    display: inline-block !important;
+    min-width: 50px !important;
+    text-align: center !important;
+}
+
+/* Override the global badge styles for tournament meta */
+.tournament-meta .badge-yes {
+    background: #28a745 !important;
+    color: white !important;
+    padding: 4px 12px !important;
+}
+
+.tournament-meta .badge-no {
+    background: #dc3545 !important;
+    color: white !important;
+    padding: 4px 12px !important;
+}
+
 /* Loading State */
 .loading {
     text-align: center;
@@ -1097,7 +1123,7 @@ button:disabled {
     font-size: 1.2rem;
 }
 
-/* Yes/No Badges */
+/* Yes/No Badges for player details */
 .badge {
     display: inline-block;
     padding: 2px 8px;
@@ -1108,13 +1134,17 @@ button:disabled {
 }
 
 .badge-yes {
-    background: #d4edda;
-    color: #155724;
+    background: #28a745 !important;
+    color: white !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
 }
 
 .badge-no {
-    background: #f8d7da;
-    color: #721c24;
+    background: #dc3545 !important;
+    color: white !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
 }
 
 /* Enhanced form styles for modal */
@@ -1419,6 +1449,27 @@ label {
         color: #e0e0e0;
     }
 
+    /* Yes/No Badges in dark mode */
+    .tournament-meta .badge-yes {
+        background: #28a745 !important;
+        color: white !important;
+    }
+
+    .tournament-meta .badge-no {
+        background: #dc3545 !important;
+        color: white !important;
+    }
+
+    .badge-yes {
+        background: #28a745 !important;
+        color: white !important;
+    }
+
+    .badge-no {
+        background: #dc3545 !important;
+        color: white !important;
+    }
+
     .no-entries {
         background: #2d2d2d;
         border-color: #444;
@@ -1432,16 +1483,6 @@ label {
     .player-row.player1 {
         background: #1a2a3a;
         border-left-color: #0066cc;
-    }
-
-    .badge-yes {
-        background: #1b5e20;
-        color: #c8e6c9;
-    }
-
-    .badge-no {
-        background: #7b1fa2;
-        color: #e1bee7;
     }
 
     /* Modal form inputs in dark mode */

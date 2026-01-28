@@ -25,7 +25,6 @@ let currentPlayerNumber = null;
 let selectedMember = null;
 let currentTournamentData = [];
 let tournaments = []; // Array to store all tournament info
-let originalTournamentData = []; // Store unsorted data for reference
 
 // Function to save active tab to localStorage
 function saveActiveTab(tournamentId) {
@@ -103,15 +102,40 @@ async function loadTournaments() {
             // Auto-select the first tournament
             switchTournament(tournaments[0].id);
         } else {
-            // No tournaments available
+            // No tournaments available - update button states to show they're disabled
             updateButtonStates();
+            // Also show appropriate message in container
+            const container = document.getElementById('tournament-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="no-entries">
+                        <h3>No Tournaments Available</h3>
+                        <p>Please create a tournament first.</p>
+                    </div>
+                `;
+            }
         }
         
     } catch (error) {
         console.error('Error loading tournaments:', error);
         document.getElementById('tournament-tabs').innerHTML = 
             `<p style="color: #dc3545;">Error loading tournaments: ${error.message}</p>`;
+        // Update button states to show they're disabled due to error
         updateButtonStates();
+        
+        // Show error in container as well
+        const container = document.getElementById('tournament-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="no-entries">
+                    <h3>Error Loading Tournaments</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadTournaments()" style="margin-top: 10px; padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
     }
 }
 
@@ -219,7 +243,6 @@ async function loadTournamentData(tournamentId) {
         
         const data = await response.json();
         currentTournamentData = data;
-        originalTournamentData = [...data]; // Store unsorted copy
         
         // Safely hide loading element if it exists
         const loadingEl = document.getElementById('tournament-loading');
@@ -240,15 +263,22 @@ async function loadTournamentData(tournamentId) {
     }
 }
 
-// Helper function to get foursome ID
-function getFoursomeId(foursome, tournamentId, originalIndex) {
-    if (foursome._id && /^[0-9a-fA-F]{24}$/.test(foursome._id.toString())) {
-        return foursome._id.toString();
-    } else if (foursome.id) {
-        return foursome.id;
-    } else {
-        return `temp_${tournamentId}_${originalIndex}_${Date.now()}`;
+// Helper function to get foursome ID 
+function getFoursomeId(foursome) {
+    if (!foursome) {
+        console.error('getFoursomeId: foursome is null or undefined');
+        return null;
     }
+    
+    // Always use _id (MongoDB ObjectId as string)
+    if (foursome._id) {
+        const id = foursome._id.toString ? foursome._id.toString() : foursome._id;
+        console.log('getFoursomeId: Returning _id:', id);
+        return id;
+    }
+    
+    console.error('getFoursomeId: No _id found in foursome:', foursome);
+    return null;
 }
 
 // Add this helper function to sort registrations by startTime
@@ -302,28 +332,6 @@ function sortRegistrationsByTime(registrations) {
     });
 }
 
-// Helper function to calculate foursome-level side pot and roulette
-function calculateFoursomeOptions(foursome) {
-    let sidePot = false;
-    let roulette = false;
-    
-    // Check all players
-    for (let i = 1; i <= 4; i++) {
-        const playerKey = `player${i}`;
-        const player = foursome[playerKey];
-        
-        if (player) {
-            if (player.sidePot === true) sidePot = true;
-            if (player.roulette === true) roulette = true;
-            
-            // If both are true, we can break early
-            if (sidePot && roulette) break;
-        }
-    }
-    
-    return { sidePot, roulette };
-}
-
 // Render tournament data with proper display of all fields
 function renderTournamentData(tournamentId, sortedData) {
     const container = document.getElementById('tournament-container');
@@ -339,76 +347,43 @@ function renderTournamentData(tournamentId, sortedData) {
         return;
     }
     
-    // Create a mapping of foursome identifiers to their original indices
-    const identifierToOriginalIndex = new Map();
-    
-    originalTournamentData.forEach((foursome, originalIndex) => {
-        if (foursome) {
-            // Create a unique identifier for the foursome
-            const identifier = createFoursomeIdentifier(foursome);
-            identifierToOriginalIndex.set(identifier, originalIndex);
-        }
-    });
-    
     let html = '';
     
     sortedData.forEach((foursome, sortedIndex) => {
-        // Find the original index using the identifier
-        let originalIndex = -1;
-        const identifier = createFoursomeIdentifier(foursome);
-        if (identifierToOriginalIndex.has(identifier)) {
-            originalIndex = identifierToOriginalIndex.get(identifier);
-        }
-        
-        // If not found by identifier, try to find by matching properties
-        if (originalIndex === -1) {
-            originalIndex = originalTournamentData.findIndex(item => 
-                JSON.stringify(item) === JSON.stringify(foursome)
-            );
-        }
-        
-        // Fallback to sorted index if still not found
-        if (originalIndex === -1) {
-            originalIndex = sortedIndex;
-        }
-        
-        html += renderFoursome(foursome, tournamentId, originalIndex, sortedIndex);
+        html += renderFoursome(foursome, tournamentId, sortedIndex);
     });
     
     container.innerHTML = html;
 }
 
-// Helper function to create a unique identifier for a foursome
-function createFoursomeIdentifier(foursome) {
-    if (!foursome) return '';
+// Helper function to check if any player in foursome has side pot or roulette
+function getFoursomePotStatus(foursome) {
+    let hasSidePot = false;
+    let hasRoulette = false;
     
-    // Use _id if available
-    if (foursome._id) {
-        return foursome._id.toString();
-    }
-    
-    // Otherwise, create a hash from the data
-    const dataString = JSON.stringify({
-        player1: foursome.player1?.name,
-        player2: foursome.player2?.name,
-        player3: foursome.player3?.name,
-        player4: foursome.player4?.name,
-        startTime: foursome.startTime,
-        createdAt: foursome.createdAt
+    // Check all players
+    const players = [foursome.player1, foursome.player2, foursome.player3, foursome.player4];
+    players.forEach(player => {
+        if (player && player.sidePot === true) {
+            hasSidePot = true;
+        }
+        if (player && player.roulette === true) {
+            hasRoulette = true;
+        }
     });
     
-    return dataString;
+    return {
+        sidePot: hasSidePot ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>',
+        roulette: hasRoulette ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>'
+    };
 }
 
-// Render a single foursome
-function renderFoursome(foursome, tournamentId, originalIndex, sortedIndex) {
+// Render a single foursome - USING DATABASE _id
+function renderFoursome(foursome, tournamentId, sortedIndex) {
     const player1 = foursome.player1 || {};
     const player2 = foursome.player2 || {};
     const player3 = foursome.player3 || {};
     const player4 = foursome.player4 || {};
-    
-    // Calculate foursome-level side pot and roulette
-    const foursomeOptions = calculateFoursomeOptions(foursome);
     
     // Format start time
     const startTime = foursome.startTime ? foursome.startTime : 'Not specified';
@@ -416,9 +391,8 @@ function renderFoursome(foursome, tournamentId, originalIndex, sortedIndex) {
     // Format cart option - handle empty string
     const cartOption = foursome.cartOption ? foursome.cartOption : 'None';
     
-    // Format side pot and roulette at foursome level
-    const sidePot = foursomeOptions.sidePot ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>';
-    const roulette = foursomeOptions.roulette ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>';
+    // Get foursome pot status
+    const potStatus = getFoursomePotStatus(foursome);
     
     // Build player name list for title
     const playerNames = [];
@@ -429,25 +403,23 @@ function renderFoursome(foursome, tournamentId, originalIndex, sortedIndex) {
     playerNames.push(formatPlayerNameForTitle(player3));
     playerNames.push(formatPlayerNameForTitle(player4));
     
-    // Use sorted index for display (since that's what users see)
-    const displayIndex = sortedIndex !== undefined ? sortedIndex : originalIndex;
-    const title = `Foursome ${displayIndex + 1} - ${playerNames.join(', ')} - ${startTime}`;
+    const title = `Foursome ${sortedIndex + 1} - ${playerNames.join(', ')} - ${startTime}`;
     
-    // Get the foursome ID
-    const foursomeId = getFoursomeId(foursome, tournamentId, originalIndex);
+    // Get the foursome ID - always use _id from database
+    const foursomeId = getFoursomeId(foursome);
     
     return `
         <div class="foursome-container" 
              data-foursome-id="${foursomeId}" 
-             data-original-index="${originalIndex}"
+             data-tournament-id="${tournamentId}"
              data-sorted-index="${sortedIndex}">
             <div class="foursome-header">
                 <h3>${title}</h3>
                 <div class="foursome-actions">
-                    <button class="edit-foursome-btn" onclick="editFoursome('${tournamentId}', '${foursomeId}', ${originalIndex})">
+                    <button class="edit-foursome-btn" onclick="editFoursome('${tournamentId}', '${foursomeId}')">
                         Edit Foursome
                     </button>
-                    <button class="remove-foursome-btn" onclick="removeFoursome('${tournamentId}', '${foursomeId}', ${originalIndex})">
+                    <button class="remove-foursome-btn" onclick="removeFoursome('${tournamentId}', '${foursomeId}')">
                         Remove Foursome
                     </button>
                 </div>
@@ -464,20 +436,19 @@ function renderFoursome(foursome, tournamentId, originalIndex, sortedIndex) {
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">Side Pot:</span>
-                    <span class="meta-value">${sidePot}</span>
+                    <span class="meta-value">${potStatus.sidePot}</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">Roulette:</span>
-                    <span class="meta-value">${roulette}</span>
+                    <span class="meta-value">${potStatus.roulette}</span>
                 </div>
-                <!-- Payment removed from display -->
             </div>
             
             <div class="player-grid">
-                ${renderPlayerRow(1, player1, tournamentId, foursomeId, originalIndex)}
-                ${renderPlayerRow(2, player2, tournamentId, foursomeId, originalIndex)}
-                ${renderPlayerRow(3, player3, tournamentId, foursomeId, originalIndex)}
-                ${renderPlayerRow(4, player4, tournamentId, foursomeId, originalIndex)}
+                ${renderPlayerRow(1, player1, tournamentId, foursomeId)}
+                ${renderPlayerRow(2, player2, tournamentId, foursomeId)}
+                ${renderPlayerRow(3, player3, tournamentId, foursomeId)}
+                ${renderPlayerRow(4, player4, tournamentId, foursomeId)}
             </div>
         </div>
     `;
@@ -499,7 +470,7 @@ function formatPlayerNameForTitle(player) {
 }
 
 // Render a player row 
-function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId, originalIndex) {
+function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId) {
     const isPlayer1 = playerNumber === 1;
     const isEmpty = !playerData || !playerData.name;
     
@@ -508,7 +479,12 @@ function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId, ori
     
     if (isEmpty) {
         playerInfo = `<div class="empty-slot">${getOrdinal(playerNumber)} Player Slot Empty</div>`;
-        actionButton = `<button class="action-btn add-btn" onclick="addPlayer('${tournamentId}', '${foursomeId}', ${playerNumber})">Add Player</button>`;
+        // Only show add button if we have a valid foursomeId
+        if (foursomeId && foursomeId !== 'null') {
+            actionButton = `<button class="action-btn add-btn" onclick="addPlayer('${tournamentId}', '${foursomeId}', ${playerNumber})">Add Player</button>`;
+        } else {
+            actionButton = `<button class="action-btn add-btn" disabled title="Cannot add player - missing foursome ID">Add Player</button>`;
+        }
     } else {
         // Get display data - use playerData directly since we have all info
         const displayData = playerData;
@@ -522,18 +498,27 @@ function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId, ori
                 <div><strong>Entry #:</strong> ${displayData.entryNum || 'Not provided'}</div>
                 <div><strong>Index:</strong> ${displayData.index || 'Not provided'}</div>
                 ${!isPlayer1 ? `
-                    <div><strong>Side Pot:</strong> ${playerData.sidePot ? 'Yes' : 'No'}</div>
-                    <div><strong>Roulette:</strong> ${playerData.roulette ? 'Yes' : 'No'}</div>
-                ` : ''}
+                    <div><strong>Side Pot:</strong> ${playerData.sidePot ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>'}</div>
+                    <div><strong>Roulette:</strong> ${playerData.roulette ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>'}</div>
+                ` : `
+                    <div><strong>Side Pot:</strong> ${playerData.sidePot ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>'}</div>
+                    <div><strong>Roulette:</strong> ${playerData.roulette ? '<span class="badge badge-yes">Yes</span>' : '<span class="badge badge-no">No</span>'}</div>
+                `}
             </div>
         `;
         
-        if (!isPlayer1) {
+        if (!isPlayer1 && foursomeId && foursomeId !== 'null') {
             // Store player data in data attributes for the button
             const playerDataJson = JSON.stringify(playerData).replace(/"/g, '&quot;');
             actionButton = `<button class="action-btn edit-btn" 
-                onclick="showPlayerOptions('${tournamentId}', '${foursomeId}', ${playerNumber}, ${originalIndex})"
+                onclick="showPlayerOptions('${tournamentId}', '${foursomeId}', ${playerNumber})"
                 data-player-data='${playerDataJson}'>Edit</button>`;
+        } else if (foursomeId && foursomeId !== 'null') {
+            // Player 1 - no edit button, just show a placeholder for alignment
+            actionButton = `<div class="player-actions-spacer"></div>`;
+        } else {
+            // Show disabled button if no valid ID
+            actionButton = `<button class="action-btn edit-btn" disabled title="Cannot edit - missing foursome ID">Edit</button>`;
         }
     }
     
@@ -549,8 +534,8 @@ function renderPlayerRow(playerNumber, playerData, tournamentId, foursomeId, ori
 }
 
 // Show player options modal (Edit Entry, Replace Player, Delete Player)
-function showPlayerOptions(tournamentId, foursomeId, playerNumber, originalIndex) {
-    console.log('showPlayerOptions called:', { tournamentId, foursomeId, playerNumber, originalIndex });
+function showPlayerOptions(tournamentId, foursomeId, playerNumber) {
+    console.log('showPlayerOptions called:', { tournamentId, foursomeId, playerNumber });
     
     // Store values in global state
     currentTournament = tournamentId;
@@ -785,17 +770,8 @@ async function addEmptyFoursome() {
     }
 }
 
-function openExportModal() {
-    if (!currentTournament) {
-        alert('Please select a tournament first.');
-        return;
-    }
-    
-    document.getElementById('exportModal').style.display = 'flex';
-}
-
-// Remove foursome
-async function removeFoursome(tournamentId, foursomeId, originalIndex) {
+// Remove foursome - USING DATABASE _id
+async function removeFoursome(tournamentId, foursomeId) {
     if (!confirm('Are you sure you want to remove this foursome? This action cannot be undone.')) {
         return;
     }
@@ -835,6 +811,14 @@ async function removeFoursome(tournamentId, foursomeId, originalIndex) {
 
 // Add player
 function addPlayer(tournamentId, foursomeId, playerNumber) {
+    console.log('addPlayer called:', { tournamentId, foursomeId, playerNumber });
+    
+    if (!foursomeId || foursomeId === 'null') {
+        console.error('Invalid foursomeId in addPlayer:', foursomeId);
+        alert('Error: Invalid foursome ID. Please refresh the page and try again.');
+        return;
+    }
+    
     currentTournament = tournamentId;
     currentFoursomeId = foursomeId;
     currentPlayerNumber = playerNumber;
@@ -1089,42 +1073,32 @@ window.onclick = function(event) {
     }
 };
 
-// Edit Foursome - Open modal 
-function editFoursome(tournamentId, foursomeId, originalIndex) {
-    console.log('editFoursome called with:', { tournamentId, foursomeId, originalIndex });
+// Edit Foursome - Open modal - USING DATABASE _id
+function editFoursome(tournamentId, foursomeId) {
+    console.log('editFoursome called with:', { tournamentId, foursomeId });
     
     // Store values for later use
     currentTournament = tournamentId;
     currentFoursomeId = foursomeId;
     currentPlayerNumber = 1; // For foursome edit, we're editing player1
     
-    // Find the foursome data using the original index
+    // Find the foursome data by ID
     let foursome = null;
     
-    if (foursomeId && foursomeId.startsWith('temp_')) {
-        console.log('Using temporary ID, finding by original index:', originalIndex);
-        foursome = originalTournamentData[originalIndex];
-    } else {
-        // Try to find by _id in the original data
-        foursome = originalTournamentData.find(f => {
-            if (!f) return false;
-            
-            // Check if _id matches (as string)
-            if (f._id && f._id.toString() === foursomeId) {
-                return true;
-            }
-            
-            // Check if there's an id property that matches
-            if (f.id && f.id === foursomeId) {
-                return true;
-            }
-            
-            return false;
-        });
-    }
+    // Look in currentTournamentData for the foursome with matching _id
+    foursome = currentTournamentData.find(f => {
+        if (!f) return false;
+        
+        // Check if _id matches (as string)
+        if (f._id && f._id.toString() === foursomeId) {
+            return true;
+        }
+        
+        return false;
+    });
     
     if (!foursome) {
-        console.error('Foursome not found! Looking for:', { tournamentId, foursomeId, originalIndex });
+        console.error('Foursome not found! Looking for ID:', foursomeId);
         alert('Foursome not found! Please refresh the page and try again.');
         return;
     }
@@ -1167,6 +1141,8 @@ function fillEditFoursomeModal(foursome) {
                 <div><strong>GHIN:</strong> ${player1.ghin || 'Not provided'}</div>
                 <div><strong>Entry #:</strong> ${player1.entryNum || 'Not provided'}</div>
                 <div><strong>Index:</strong> ${player1.index || 'Not provided'}</div>
+                <div><strong>Side Pot:</strong> ${player1.sidePot ? 'Yes' : 'No'}</div>
+                <div><strong>Roulette:</strong> ${player1.roulette ? 'Yes' : 'No'}</div>
             `;
             document.getElementById('editSelectedMemberInfo').style.display = 'block';
             
@@ -1179,7 +1155,9 @@ function fillEditFoursomeModal(foursome) {
                 phoneNum: player1.phoneNum || '',
                 ghin: player1.ghin,
                 entryNum: player1.entryNum,
-                index: player1.index || ''
+                index: player1.index || '',
+                sidePot: player1.sidePot || false,
+                roulette: player1.roulette || false
             };
         } else {
             // Player is not a member, show manual entry
@@ -1198,11 +1176,11 @@ function fillEditFoursomeModal(foursome) {
             document.getElementById('editManualGhin').value = player1.ghin || '';
             document.getElementById('editManualEntryNum').value = player1.entryNum || '';
             document.getElementById('editManualIndex').value = player1.index || '';
+            
+            // Set side pot and roulette checkboxes for player1
+            document.getElementById('editSidePot').checked = player1.sidePot === true;
+            document.getElementById('editRoulette').checked = player1.roulette === true;
         }
-        
-        // Set side pot and roulette checkboxes for player1
-        document.getElementById('editSidePot').checked = player1.sidePot === true;
-        document.getElementById('editRoulette').checked = player1.roulette === true;
     } else {
         // If player1 is null/empty, ensure manual entry is shown
         showEditManualEntry();
@@ -1310,7 +1288,7 @@ async function saveFoursomeChanges() {
         return;
     }
     
-    // Get form values
+    // Get form values - REMOVED customer email and name references
     const startTimeSelect = document.getElementById('editStartTime');
     const cartOptionSelect = document.getElementById('editCartOption');
     const sidePotCheckbox = document.getElementById('editSidePot');
@@ -1515,6 +1493,10 @@ function selectEditMember(member) {
     document.getElementById('editManualGhin').value = '';
     document.getElementById('editManualEntryNum').value = '';
     document.getElementById('editManualIndex').value = '';
+    
+    // Set side pot and roulette to false for new member (they can be set later)
+    document.getElementById('editSidePot').checked = false;
+    document.getElementById('editRoulette').checked = false;
 }
 
 // Import/Export Functions

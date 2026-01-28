@@ -29,14 +29,6 @@ router.get('/:tournamentId', requireAdmin, async (req, res) => {
             // Define patterns for "Doesn't Matter" or similar
             const doesntMatterPatterns = [
                 "doesn't matter",
-                "doesnt matter",
-                "don't care",
-                "dont care",
-                "no preference",
-                "any time",
-                "whenever",
-                "flexible",
-                "no specific"
             ];
             
             // Check if time contains any "doesn't matter" pattern

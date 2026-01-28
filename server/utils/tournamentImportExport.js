@@ -32,34 +32,38 @@ async function parseExcelFile(fileBuffer) {
         const foursome = {
             createdAt: new Date(),
             stripeSessionId: '',
-            paymentAmount: parseFloat(row.getCell('PaymentAmount')?.value || row.getCell('Payment Amount')?.value || 0) || 0,
-            cartOption: row.getCell('CartOption')?.value || row.getCell('Cart Option')?.value || '',
-            startTime: row.getCell('StartTime')?.value || row.getCell('Start Time')?.value || '',
-            sidePot: row.getCell('SidePot')?.value === true || 
-                     row.getCell('SidePot')?.value === 'true' || 
-                     row.getCell('Side Pot')?.value === true || 
-                     row.getCell('Side Pot')?.value === 'true',
-            roulette: row.getCell('Roulette')?.value === true || 
-                      row.getCell('Roulette')?.value === 'true'
+            paymentAmount: parseFloat(row.getCell('PaymentAmount')?.value || 0) || 0,
+            basePrice: parseFloat(row.getCell('BasePrice')?.value || 0) || 0,
+            cartOption: row.getCell('CartOption')?.value || '',
+            startTime: row.getCell('StartTime')?.value || '',
+            customerEmail: row.getCell('CustomerEmail')?.value || '',
+            customerName: row.getCell('CustomerName')?.value || '',
+            updatedAt: new Date()
         };
         
         // Process players 1-4
         for (let i = 1; i <= 4; i++) {
-            const playerName = row.getCell(`Player${i}Name`)?.value || 
-                              row.getCell(`Player ${i} Name`)?.value;
+            const playerName = row.getCell(`Player${i}Name`)?.value;
             if (playerName && playerName.toString().trim() !== '') {
+                // Check if memberId exists in the data
+                let memberId = null;
+                const memberIdValue = row.getCell(`Player${i}MemberId`)?.value;
+                if (memberIdValue && memberIdValue.toString().trim() !== '') {
+                    memberId = memberIdValue.toString().trim();
+                }
+                
                 foursome[`player${i}`] = {
-                    name: playerName.toString(),
-                    email: row.getCell(`Player${i}Email`)?.value?.toString() || 
-                           row.getCell(`Player ${i} Email`)?.value?.toString() || '',
-                    phone: row.getCell(`Player${i}Phone`)?.value?.toString() || 
-                           row.getCell(`Player ${i} Phone`)?.value?.toString() || '',
-                    ghin: parseInt(row.getCell(`Player${i}GHIN`)?.value || 
-                                  row.getCell(`Player ${i} GHIN`)?.value) || null,
-                    entryNum: parseInt(row.getCell(`Player${i}EntryNum`)?.value || 
-                                     row.getCell(`Player ${i} Entry Num`)?.value) || null,
-                    index: row.getCell(`Player${i}Index`)?.value?.toString() || 
-                           row.getCell(`Player ${i} Index`)?.value?.toString() || ''
+                    name: playerName.toString().trim(),
+                    email: row.getCell(`Player${i}Email`)?.value?.toString() || '',
+                    phoneNum: row.getCell(`Player${i}Phone`)?.value?.toString() || '',
+                    ghin: row.getCell(`Player${i}GHIN`)?.value?.toString() || null,
+                    entryNum: row.getCell(`Player${i}EntryNum`)?.value?.toString() || null,
+                    index: row.getCell(`Player${i}Index`)?.value?.toString() || '',
+                    sidePot: row.getCell(`Player${i}SidePot`)?.value === true || 
+                             row.getCell(`Player${i}SidePot`)?.value === 'true' || false,
+                    roulette: row.getCell(`Player${i}Roulette`)?.value === true || 
+                              row.getCell(`Player${i}Roulette`)?.value === 'true' || false,
+                    memberId: memberId
                 };
             } else {
                 foursome[`player${i}`] = null;
@@ -105,23 +109,37 @@ function parseCsvTsvFile(fileBuffer, delimiter) {
             createdAt: new Date(),
             stripeSessionId: '',
             paymentAmount: parseFloat(row.PaymentAmount || 0) || 0,
+            basePrice: parseFloat(row.BasePrice || 0) || 0,
             cartOption: row.CartOption || '',
             startTime: row.StartTime || '',
-            sidePot: row.SidePot === 'true' || row.SidePot === 'TRUE',
-            roulette: row.Roulette === 'true' || row.Roulette === 'TRUE'
+            customerEmail: row.CustomerEmail || '',
+            customerName: row.CustomerName || '',
+            updatedAt: new Date()
         };
         
         // Process players 1-4
         for (let playerNum = 1; playerNum <= 4; playerNum++) {
-            const playerName = row[`Player${playerNum}Name`] || row[`Player ${playerNum} Name`];
+            const playerName = row[`Player${playerNum}Name`];
             if (playerName && playerName.trim() !== '') {
+                // Check if memberId exists in the data
+                let memberId = null;
+                const memberIdValue = row[`Player${playerNum}MemberId`];
+                if (memberIdValue && memberIdValue.trim() !== '') {
+                    memberId = memberIdValue.trim();
+                }
+                
                 foursome[`player${playerNum}`] = {
-                    name: playerName,
-                    email: row[`Player${playerNum}Email`] || row[`Player ${playerNum} Email`] || '',
-                    phone: row[`Player${playerNum}Phone`] || row[`Player ${playerNum} Phone`] || '',
-                    ghin: parseInt(row[`Player${playerNum}GHIN`] || row[`Player ${playerNum} GHIN`]) || null,
-                    entryNum: parseInt(row[`Player${playerNum}EntryNum`] || row[`Player ${playerNum} Entry Num`]) || null,
-                    index: row[`Player${playerNum}Index`] || row[`Player ${playerNum} Index`] || ''
+                    name: playerName.trim(),
+                    email: row[`Player${playerNum}Email`] || '',
+                    phoneNum: row[`Player${playerNum}Phone`] || '',
+                    ghin: row[`Player${playerNum}GHIN`] || null,
+                    entryNum: row[`Player${playerNum}EntryNum`] || null,
+                    index: row[`Player${playerNum}Index`] || '',
+                    sidePot: row[`Player${playerNum}SidePot`] === 'true' || 
+                             row[`Player${playerNum}SidePot`] === 'TRUE' || false,
+                    roulette: row[`Player${playerNum}Roulette`] === 'true' ||
+                              row[`Player${playerNum}Roulette`] === 'TRUE' || false,
+                    memberId: memberId
                 };
             } else {
                 foursome[`player${playerNum}`] = null;
@@ -146,56 +164,110 @@ async function createExcelWorkbook(entries) {
     
     const worksheet = workbook.addWorksheet('Foursomes');
     
-    // Prepare export data
-    const exportData = entries.map((entry, index) => {
-        const row = {
-            FoursomeNumber: index + 1,
-            StartTime: entry.startTime || '',
-            CartOption: entry.cartOption || '',
-            SidePot: entry.sidePot || false,
-            Roulette: entry.roulette || false,
-            PaymentAmount: entry.paymentAmount || 0,
-            CreatedAt: entry.createdAt ? new Date(entry.createdAt).toISOString() : ''
-        };
+    // Define the headers - REMOVED SidePot and Roulette between CartOption and PaymentAmount
+    const headers = [
+        'FoursomeNumber',
+        'StartTime',
+        'CartOption',
+        'PaymentAmount',
+        'BasePrice',
+        'CreatedAt',
+        'CustomerEmail',
+        'CustomerName',
+        // Player 1
+        'Player1Name',
+        'Player1Email',
+        'Player1Phone',
+        'Player1GHIN',
+        'Player1EntryNum',
+        'Player1Index',
+        'Player1SidePot',
+        'Player1Roulette',
+        'Player1MemberId',
+        // Player 2
+        'Player2Name',
+        'Player2Email',
+        'Player2Phone',
+        'Player2GHIN',
+        'Player2EntryNum',
+        'Player2Index',
+        'Player2SidePot',
+        'Player2Roulette',
+        'Player2MemberId',
+        // Player 3
+        'Player3Name',
+        'Player3Email',
+        'Player3Phone',
+        'Player3GHIN',
+        'Player3EntryNum',
+        'Player3Index',
+        'Player3SidePot',
+        'Player3Roulette',
+        'Player3MemberId',
+        // Player 4
+        'Player4Name',
+        'Player4Email',
+        'Player4Phone',
+        'Player4GHIN',
+        'Player4EntryNum',
+        'Player4Index',
+        'Player4SidePot',
+        'Player4Roulette',
+        'Player4MemberId'
+    ];
+    
+    // Add headers to worksheet
+    worksheet.addRow(headers);
+    
+    // Add data rows
+    entries.forEach((entry, index) => {
+        const row = [];
         
-        // Add player data
+        // Basic foursome info
+        row.push(index + 1); // FoursomeNumber
+        row.push(entry.startTime || ''); // StartTime
+        row.push(entry.cartOption || ''); // CartOption
+        row.push(entry.paymentAmount || 0); // PaymentAmount
+        row.push(entry.basePrice || 0); // BasePrice
+        row.push(entry.createdAt ? new Date(entry.createdAt).toISOString() : ''); // CreatedAt
+        row.push(entry.customerEmail || ''); // CustomerEmail
+        row.push(entry.customerName || ''); // CustomerName
+        
+        // Process each player
         for (let i = 1; i <= 4; i++) {
             const playerKey = `player${i}`;
             const player = entry[playerKey];
             
             if (player) {
-                row[`Player${i}Name`] = player.name || '';
-                row[`Player${i}Email`] = player.email || '';
-                row[`Player${i}Phone`] = player.phone || player.phoneNum || '';
-                row[`Player${i}GHIN`] = player.ghin || '';
-                row[`Player${i}EntryNum`] = player.entryNum || '';
-                row[`Player${i}Index`] = player.index || '';
+                row.push(player.name || ''); // PlayerXName
+                row.push(player.email || ''); // PlayerXEmail
+                row.push(player.phoneNum || ''); // PlayerXPhone
+                row.push(player.ghin || ''); // PlayerXGHIN
+                row.push(player.entryNum || ''); // PlayerXEntryNum
+                row.push(player.index || ''); // PlayerXIndex
+                row.push(player.sidePot || false); // PlayerXSidePot
+                row.push(player.roulette || false); // PlayerXRoulette
+                row.push(player.memberId || ''); // PlayerXMemberId
             } else {
-                row[`Player${i}Name`] = '';
-                row[`Player${i}Email`] = '';
-                row[`Player${i}Phone`] = '';
-                row[`Player${i}GHIN`] = '';
-                row[`Player${i}EntryNum`] = '';
-                row[`Player${i}Index`] = '';
+                // Empty values for empty player slots
+                row.push(''); // Name
+                row.push(''); // Email
+                row.push(''); // Phone
+                row.push(''); // GHIN
+                row.push(''); // EntryNum
+                row.push(''); // Index
+                row.push(false); // SidePot
+                row.push(false); // Roulette
+                row.push(''); // MemberId
             }
         }
         
-        return row;
+        worksheet.addRow(row);
     });
     
-    if (exportData.length === 0) {
+    if (entries.length === 0) {
         throw new Error('No data to export');
     }
-    
-    // Add headers
-    const headers = Object.keys(exportData[0]);
-    worksheet.addRow(headers);
-    
-    // Add data rows
-    exportData.forEach(row => {
-        const values = headers.map(header => row[header]);
-        worksheet.addRow(values);
-    });
     
     // Auto-fit columns
     worksheet.columns.forEach(column => {
@@ -220,62 +292,117 @@ async function createExcelWorkbook(entries) {
  * @returns {string} CSV/TSV formatted text
  */
 function createCsvTsvText(entries, delimiter) {
-    // Prepare export data
-    const exportData = entries.map((entry, index) => {
-        const row = {
-            FoursomeNumber: index + 1,
-            StartTime: entry.startTime || '',
-            CartOption: entry.cartOption || '',
-            SidePot: entry.sidePot || false,
-            Roulette: entry.roulette || false,
-            PaymentAmount: entry.paymentAmount || 0,
-            CreatedAt: entry.createdAt ? new Date(entry.createdAt).toISOString() : ''
-        };
+    // Define headers - REMOVED SidePot and Roulette between CartOption and PaymentAmount
+    const headers = [
+        'FoursomeNumber',
+        'StartTime',
+        'CartOption',
+        'PaymentAmount',
+        'BasePrice',
+        'CreatedAt',
+        'CustomerEmail',
+        'CustomerName',
+        // Player 1
+        'Player1Name',
+        'Player1Email',
+        'Player1Phone',
+        'Player1GHIN',
+        'Player1EntryNum',
+        'Player1Index',
+        'Player1SidePot',
+        'Player1Roulette',
+        'Player1MemberId',
+        // Player 2
+        'Player2Name',
+        'Player2Email',
+        'Player2Phone',
+        'Player2GHIN',
+        'Player2EntryNum',
+        'Player2Index',
+        'Player2SidePot',
+        'Player2Roulette',
+        'Player2MemberId',
+        // Player 3
+        'Player3Name',
+        'Player3Email',
+        'Player3Phone',
+        'Player3GHIN',
+        'Player3EntryNum',
+        'Player3Index',
+        'Player3SidePot',
+        'Player3Roulette',
+        'Player3MemberId',
+        // Player 4
+        'Player4Name',
+        'Player4Email',
+        'Player4Phone',
+        'Player4GHIN',
+        'Player4EntryNum',
+        'Player4Index',
+        'Player4SidePot',
+        'Player4Roulette',
+        'Player4MemberId'
+    ];
+    
+    let csvData = headers.join(delimiter) + '\n';
+    
+    // Add data rows
+    entries.forEach((entry, index) => {
+        const row = [];
         
-        // Add player data
+        // Basic foursome info
+        row.push(index + 1); // FoursomeNumber
+        row.push(entry.startTime || ''); // StartTime
+        row.push(entry.cartOption || ''); // CartOption
+        row.push(entry.paymentAmount || 0); // PaymentAmount
+        row.push(entry.basePrice || 0); // BasePrice
+        row.push(entry.createdAt ? new Date(entry.createdAt).toISOString() : ''); // CreatedAt
+        row.push(entry.customerEmail || ''); // CustomerEmail
+        row.push(entry.customerName || ''); // CustomerName
+        
+        // Process each player
         for (let i = 1; i <= 4; i++) {
             const playerKey = `player${i}`;
             const player = entry[playerKey];
             
             if (player) {
-                row[`Player${i}Name`] = player.name || '';
-                row[`Player${i}Email`] = player.email || '';
-                row[`Player${i}Phone`] = player.phone || player.phoneNum || '';
-                row[`Player${i}GHIN`] = player.ghin || '';
-                row[`Player${i}EntryNum`] = player.entryNum || '';
-                row[`Player${i}Index`] = player.index || '';
+                row.push(player.name || ''); // PlayerXName
+                row.push(player.email || ''); // PlayerXEmail
+                row.push(player.phoneNum || ''); // PlayerXPhone
+                row.push(player.ghin || ''); // PlayerXGHIN
+                row.push(player.entryNum || ''); // PlayerXEntryNum
+                row.push(player.index || ''); // PlayerXIndex
+                row.push(player.sidePot || false); // PlayerXSidePot
+                row.push(player.roulette || false); // PlayerXRoulette
+                row.push(player.memberId || ''); // PlayerXMemberId
             } else {
-                row[`Player${i}Name`] = '';
-                row[`Player${i}Email`] = '';
-                row[`Player${i}Phone`] = '';
-                row[`Player${i}GHIN`] = '';
-                row[`Player${i}EntryNum`] = '';
-                row[`Player${i}Index`] = '';
+                // Empty values for empty player slots
+                row.push(''); // Name
+                row.push(''); // Email
+                row.push(''); // Phone
+                row.push(''); // GHIN
+                row.push(''); // EntryNum
+                row.push(''); // Index
+                row.push(false); // SidePot
+                row.push(false); // Roulette
+                row.push(''); // MemberId
             }
         }
         
-        return row;
-    });
-    
-    if (exportData.length === 0) {
-        throw new Error('No data to export');
-    }
-    
-    // Get headers
-    const headers = Object.keys(exportData[0]);
-    let csvData = headers.join(delimiter) + '\n';
-    
-    // Add rows
-    exportData.forEach(row => {
-        const values = headers.map(header => {
-            let value = row[header];
+        // Join row values with delimiter, escaping values that contain the delimiter
+        const escapedRow = row.map(value => {
             if (typeof value === 'string' && value.includes(delimiter)) {
-                value = `"${value}"`;
+                return `"${value}"`;
             }
             return value;
         });
-        csvData += values.join(delimiter) + '\n';
+        
+        csvData += escapedRow.join(delimiter) + '\n';
     });
+    
+    if (entries.length === 0) {
+        throw new Error('No data to export');
+    }
     
     return csvData;
 }
