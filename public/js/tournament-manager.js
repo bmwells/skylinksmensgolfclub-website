@@ -94,6 +94,9 @@ async function loadTournaments() {
         // Update button states (initially disabled)
         updateButtonStates();
         
+        // Clear any existing title
+        updateTournamentTitle(null);
+        
         // Restore active tab or select first
         const savedTab = restoreActiveTab();
         if (savedTab && tournaments.some(t => t.id === savedTab)) {
@@ -122,6 +125,9 @@ async function loadTournaments() {
             `<p style="color: #dc3545;">Error loading tournaments: ${error.message}</p>`;
         // Update button states to show they're disabled due to error
         updateButtonStates();
+        
+        // Clear title display
+        updateTournamentTitle(null);
         
         // Show error in container as well
         const container = document.getElementById('tournament-container');
@@ -183,11 +189,42 @@ function switchTournament(tournamentId) {
         }
     });
     
+    // Update tournament title display
+    updateTournamentTitle(tournamentId);
+    
     // Update button states
     updateButtonStates();
     
     // Load tournament data
     loadTournamentData(tournamentId);
+}
+
+// Update the tournament title display
+function updateTournamentTitle(tournamentId) {
+    const titleContainer = document.getElementById('current-tournament-title');
+    
+    if (!titleContainer) {
+        console.error('current-tournament-title element not found');
+        return;
+    }
+    
+    if (!tournamentId) {
+        titleContainer.innerHTML = '';
+        return;
+    }
+    
+    // Find the tournament in the tournaments array
+    const tournament = tournaments.find(t => t.id === tournamentId);
+    
+    if (tournament) {
+        titleContainer.innerHTML = `
+            <h2>${tournament.title}</h2>
+        `;
+        titleContainer.style.display = 'block';
+    } else {
+        titleContainer.innerHTML = '';
+        titleContainer.style.display = 'none';
+    }
 }
 
 function setupEventListeners() {

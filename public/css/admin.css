@@ -1096,6 +1096,39 @@ button:disabled {
     100% { transform: rotate(360deg); }
 }
 
+.current-tournament-title {
+    text-align: center;
+    margin: 15px 0 20px 0;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%);
+    border-radius: 8px;
+    border-left: 4px solid #0066cc;
+    border-right: 4px solid #0066cc;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+}
+
+.current-tournament-title h2 {
+    margin: 0;
+    color: #0066cc;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode styles for tournament title */
+@media (prefers-color-scheme: dark) {
+    .current-tournament-title {
+        background: linear-gradient(135deg, #1a2a3a 0%, #16202d 100%);
+        border-left-color: #4da6ff;
+        border-right-color: #4da6ff;
+        box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+    }
+    
+    .current-tournament-title h2 {
+        color: #4da6ff;
+    }
+}
+
 /* No Entries Message */
 .no-entries {
     text-align: center;
