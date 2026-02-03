@@ -71,6 +71,93 @@
             }
         }
 
+        // Helper function to extract day number from display day (handles ranges like "16-17")
+        function getSortingDay(displayDay) {
+            if (!displayDay) return 0;
+            
+            // If it's a range like "16-17" or "9-10", take the first number
+            const rangeMatch = displayDay.match(/^(\d+)/);
+            if (rangeMatch) {
+                return parseInt(rangeMatch[1], 10);
+            }
+            
+            // If it's just a single number
+            const singleMatch = displayDay.match(/\d+/);
+            return singleMatch ? parseInt(singleMatch[0], 10) : 0;
+        }
+
+        // Improved getMonthIndex to handle full month names
+        function getMonthIndex(monthAbbr) {
+            if (!monthAbbr) return 0;
+            
+            const monthMap = {
+                'jan': 0, 'january': 0,
+                'feb': 1, 'february': 1,
+                'mar': 2, 'march': 2,
+                'apr': 3, 'april': 3,
+                'may': 4,
+                'jun': 5, 'june': 5,
+                'jul': 6, 'july': 6,
+                'aug': 7, 'august': 7,
+                'sep': 8, 'september': 8,
+                'oct': 9, 'october': 9,
+                'nov': 10, 'november': 10,
+                'dec': 11, 'december': 11
+            };
+            
+            const shortMonth = monthAbbr.toLowerCase().substring(0, 3);
+            return monthMap[shortMonth] !== undefined ? monthMap[shortMonth] : 0;
+        }
+
+        // Simpler, more robust parseDateForSorting function
+        function parseDateForSorting(event) {
+            // Try to get year from date string first
+            let year = new Date().getFullYear();
+            const yearMatch = event.date?.match(/\b(\d{4})\b/);
+            if (yearMatch) {
+                year = parseInt(yearMatch[1]);
+            }
+            
+            // Get month index from displayDate.month or date string
+            let monthIndex = 0;
+            if (event.displayDate?.month) {
+                monthIndex = getMonthIndex(event.displayDate.month);
+            } else if (event.date) {
+                // Extract month from date string
+                const monthMatch = event.date.match(/^(\w+)/i);
+                if (monthMatch) {
+                    monthIndex = getMonthIndex(monthMatch[1]);
+                }
+            }
+            
+            // Get day from displayDate.day or date string
+            let dayNum = 1;
+            if (event.displayDate?.day) {
+                dayNum = getSortingDay(event.displayDate.day);
+            } else if (event.date) {
+                // Extract first day number from date string
+                const dayMatch = event.date.match(/\b(\d+)(?:-\d+)?\b/);
+                if (dayMatch) {
+                    dayNum = parseInt(dayMatch[1]);
+                }
+            }
+            
+            // For upcoming events that appear to be in the past, check if they should be next year
+            const now = new Date();
+            const parsedDate = new Date(year, monthIndex, dayNum);
+            
+            if (event.status === 'upcoming' && parsedDate < now) {
+                // Check if this is likely the same event next year
+                // (e.g., it's currently December and we have a January event)
+                if (parsedDate.getMonth() < now.getMonth() || 
+                    (parsedDate.getMonth() === now.getMonth() && parsedDate.getDate() < now.getDate())) {
+                    return new Date(year + 1, monthIndex, dayNum);
+                }
+            }
+            
+            return parsedDate;
+        }
+
         // Load schedule from API
         async function loadSchedule() {
             try {
@@ -89,10 +176,19 @@
                 const upcomingEvents = events.filter(event => event.status === 'upcoming');
                 const pastEvents = events.filter(event => event.status === 'past');
                 
-                // Sort by date (assuming date format like "December 14, 2025")
-                const sortByDate = (a, b) => new Date(a.date) - new Date(b.date);
-                upcomingEvents.sort(sortByDate);
-                pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date)); // Reverse for past events
+                // Sort upcoming events by date (closest future first)
+                upcomingEvents.sort((a, b) => {
+                    const dateA = parseDateForSorting(a);
+                    const dateB = parseDateForSorting(b);
+                    return dateA - dateB; // Ascending - closest future first
+                });
+                
+                // Sort past events by date (most recent past first)
+                pastEvents.sort((a, b) => {
+                    const dateA = parseDateForSorting(a);
+                    const dateB = parseDateForSorting(b);
+                    return dateB - dateA; // Descending - most recent past first
+                });
                 
                 // Create upcoming events section
                 if (upcomingEvents.length > 0) {

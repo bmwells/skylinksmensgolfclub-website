@@ -17,16 +17,7 @@
 
 <div class="edit-buttons">
   <button onclick="addRow()">✏️ Add Row</button>
-  <button onclick="AdminCommon.toggleReorder()">↕️ Rearrange Rows</button>
   <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745;">💾 Save Changes</button>
-</div>
-
-<div id="reorderNotice" class="reorder-notice" style="display:none;">
-  <span>Drag rows to reorder. Click "Save Order" when done.</span>
-  <div class="reorder-actions">
-    <button class="save-order" onclick="AdminCommon.saveOrder('rows')">💾 Save Order</button>
-    <button onclick="AdminCommon.toggleReorder()">❌ Cancel</button>
-  </div>
 </div>
 
 <div id="rows"></div>
@@ -40,14 +31,40 @@ function init() {
 
 function loadResults() {
     AdminCommon.load().then(() => {
+        // Sort results by month and day (most recent first)
+        sortResultsByDate();
         render();
-        // Setup drag and drop container
-        document.getElementById('rows').addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
     }).catch(err => {
         alert('Error loading results: ' + err.message);
     });
+}
+
+function sortResultsByDate() {
+    // Sort results by month and day (most recent first)
+    AdminCommon.data.sort((a, b) => {
+        const dateA = createDateFromMonthDay(a.month, a.day);
+        const dateB = createDateFromMonthDay(b.month, b.day);
+        
+        // Sort descending (most recent first)
+        return dateB - dateA;
+    });
+}
+
+function createDateFromMonthDay(month, day) {
+    const monthAbbr = month ? month.substring(0, 3).toLowerCase() : '';
+    const dayNum = parseInt(day) || 1;
+    
+    // Month mapping (3-letter abbreviations)
+    const monthMap = {
+        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+    };
+    
+    const monthIndex = monthMap[monthAbbr] !== undefined ? monthMap[monthAbbr] : 0;
+    const currentYear = new Date().getFullYear();
+    
+    // Create a date with current year (for sorting purposes only)
+    return new Date(currentYear, monthIndex, dayNum);
 }
 
 function render() {
@@ -56,42 +73,30 @@ function render() {
     
     AdminCommon.data.forEach((r, i) => {
         const rowDiv = AdminCommon.createElement('div', 'row', '', {
-            'data-index': i,
-            'draggable': AdminCommon.isReorderMode ? 'true' : 'false'
+            'data-index': i
         });
         
-        if (AdminCommon.isReorderMode) {
-            // Minimal view for reordering
-            rowDiv.innerHTML = AdminCommon.templates.minimalRow(
-                r.title || 'Untitled Result',
-                (r.dateText || '') + ' ' + (r.timeText || '')
-            );
-            
-            // Add drag events (using the original drag-and-drop logic)
-            AdminCommon.addDragEvents(rowDiv, i);
-        } else {
-            // Full edit view
-            rowDiv.innerHTML = AdminCommon.templates.textInput('Title', r.title, `updateResult(${i}, 'title', this.value)`, 'Result title') +
-                AdminCommon.templates.formRow(`
-                    <div style="flex: 1;">
-                        ${AdminCommon.templates.textInput('Date', r.dateText, `updateResult(${i}, 'dateText', this.value)`, 'e.g., Saturday, October 18, 2025', '')}
-                    </div>
-                    <div style="flex: 1;">
-                        ${AdminCommon.templates.textInput('Time', r.timeText, `updateResult(${i}, 'timeText', this.value)`, 'e.g., 1:00 PM', '')}
-                    </div>
-                `) +
-                AdminCommon.templates.formRow(`
-                    <div style="flex: 1;">
-                        ${AdminCommon.templates.textInput('Month', r.month, `updateResult(${i}, 'month', this.value)`, 'e.g., Oct', '')}
-                    </div>
-                    <div style="flex: 1;">
-                        ${AdminCommon.templates.textInput('Day', r.day, `updateResult(${i}, 'day', this.value)`, 'e.g., 18', '')}
-                    </div>
-                `) +
-                AdminCommon.templates.textInput('Image URL', r.image, `updateResult(${i}, 'image', this.value)`, 'https://example.com/image.jpg') +
-                AdminCommon.templates.textInput('Results Link URL', r.link, `updateResult(${i}, 'link', this.value)`, 'https://example.com/details') +
-                AdminCommon.templates.deleteButton(`deleteRow(${i})`, 'Delete');
-        }
+        // Full edit view
+        rowDiv.innerHTML = AdminCommon.templates.textInput('Title', r.title, `updateResult(${i}, 'title', this.value)`, 'Result title') +
+            AdminCommon.templates.formRow(`
+                <div style="flex: 1;">
+                    ${AdminCommon.templates.textInput('Date', r.dateText, `updateResult(${i}, 'dateText', this.value)`, 'e.g., Saturday, October 18, 2025', '')}
+                </div>
+                <div style="flex: 1;">
+                    ${AdminCommon.templates.textInput('Time', r.timeText, `updateResult(${i}, 'timeText', this.value)`, 'e.g., 1:00 PM', '')}
+                </div>
+            `) +
+            AdminCommon.templates.formRow(`
+                <div style="flex: 1;">
+                    ${AdminCommon.templates.textInput('Month (3 letters)', r.month, `updateResult(${i}, 'month', this.value)`, 'e.g., Oct', '')}
+                </div>
+                <div style="flex: 1;">
+                    ${AdminCommon.templates.textInput('Day', r.day, `updateResult(${i}, 'day', this.value)`, 'e.g., 18', '')}
+                </div>
+            `) +
+            AdminCommon.templates.textInput('Image URL', r.image, `updateResult(${i}, 'image', this.value)`, 'https://example.com/image.jpg') +
+            AdminCommon.templates.textInput('Results Link URL', r.link, `updateResult(${i}, 'link', this.value)`, 'https://example.com/details') +
+            AdminCommon.templates.deleteButton(`deleteRow(${i})`, 'Delete');
         
         rowsContainer.appendChild(rowDiv);
     });
@@ -99,6 +104,11 @@ function render() {
 
 function updateResult(index, field, value) {
     AdminCommon.updateItem(index, field, value);
+    // Resort after update if date-related field was changed
+    if (field === 'month' || field === 'day') {
+        sortResultsByDate();
+        render();
+    }
 }
 
 function deleteRow(index) {
@@ -108,11 +118,6 @@ function deleteRow(index) {
 }
 
 function addRow() {
-    if (AdminCommon.isReorderMode) {
-        alert('Please exit reorder mode before adding new rows.');
-        return;
-    }
-    
     AdminCommon.addItem({
         title: '',
         dateText: '',
