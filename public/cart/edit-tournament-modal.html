@@ -9,6 +9,9 @@
         // Store tooltip state globally (same as product.js)
         let activeTooltip = null;
         let activeTooltipButton = null;
+        
+        // Store tournament data for this modal
+        let tournamentData = null;
 
         function formatPhoneNumber(value) {
             const numbers = value.replace(/\D/g, '');
@@ -174,6 +177,73 @@
                 });
             });
         }
+        
+        // NEW FUNCTION: Update modal display based on tournament options
+        function updateEditModalBasedOnTournament() {
+            if (!tournamentData) return;
+            
+            // Show/hide cart option dropdown based on tournament data
+            const cartOptionContainer = document.getElementById('cart-option-container');
+            const cartOptionSelect = document.getElementById('cart-option');
+            
+            if (cartOptionContainer && cartOptionSelect) {
+                if (tournamentData.cartOption === true) {
+                    cartOptionContainer.style.display = 'block';
+                } else {
+                    cartOptionContainer.style.display = 'none';
+                }
+            }
+            
+            // Show/hide addon options container based on tournament options
+            const addonContainer = document.getElementById('addon-options-container');
+            if (addonContainer) {
+                const hasSidePotOption = tournamentData.sidePotOption !== false; // Default to true if not set
+                const hasRouletteOption = tournamentData.rouletteOption !== false; // Default to true if not set
+                
+                if (hasSidePotOption || hasRouletteOption) {
+                    addonContainer.style.display = 'block';
+                    
+                    // Show/hide individual options
+                    const sidePotContainer = document.getElementById('side-pot-option-container');
+                    const rouletteContainer = document.getElementById('roulette-option-container');
+                    
+                    if (sidePotContainer) {
+                        sidePotContainer.style.display = hasSidePotOption ? 'flex' : 'none';
+                    }
+                    if (rouletteContainer) {
+                        rouletteContainer.style.display = hasRouletteOption ? 'flex' : 'none';
+                    }
+                } else {
+                    addonContainer.style.display = 'none';
+                }
+            }
+        }
+        
+        // NEW FUNCTION: Update prices in edit modal
+        function updateEditModalPrices() {
+            // Update price displays in modal with dynamic data
+            const roulettePriceEl = document.getElementById('roulette-price');
+            const sidePotPriceEl = document.getElementById('side-pot-price');
+            
+            if (tournamentData) {
+                const roulettePrice = parseFloat(tournamentData.roulette) || 30;
+                const sidePotPrice = parseFloat(tournamentData.sidePot) || 25;
+                
+                if (roulettePriceEl) {
+                    roulettePriceEl.textContent = '$' + roulettePrice.toFixed(2);
+                }
+                if (sidePotPriceEl) {
+                    sidePotPriceEl.textContent = '$' + sidePotPrice.toFixed(2);
+                }
+            }
+        }
+        
+        // NEW FUNCTION: Set tournament data for edit modal
+        function setTournamentDataForEditModal(data) {
+            tournamentData = data;
+            updateEditModalPrices();
+            updateEditModalBasedOnTournament();
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             setupPhoneFormatting();
@@ -230,7 +300,15 @@
                     // document.getElementById('edit-modal').style.display = 'none';
                 });
             }
+            
+            // Check if tournament data is passed from parent window
+            if (window.opener && window.opener.tournamentData) {
+                setTournamentDataForEditModal(window.opener.tournamentData);
+            }
         });
+        
+        // Make the setTournamentData function available globally
+        window.setTournamentDataForEditModal = setTournamentDataForEditModal;
     </script>
 </head>
 
@@ -282,10 +360,11 @@
         </div>
     </div>
     
-    <!-- Optional Add-ons - SIMPLIFIED -->
-    <div class="row">
-        <div class="col" style="display: flex; gap: 30px; align-items: center; margin-top: 15px;">
-            <div style="display: flex; align-items: center;">
+    <!-- Optional Add-ons - CONDITIONAL -->
+    <div class="row" id="addon-options-container" style="display: block;">
+        <div class="col" style="display: flex; gap: 30px; align-items: center; margin-top: 15px; flex-wrap: wrap;">
+            <!-- Side Pot Option (Conditional) -->
+            <div id="side-pot-option-container" style="display: flex; align-items: center;">
                 <input type="checkbox" id="side-pots" name="side-pots" style="width: 18px; height: 18px;">
                 <label for="side-pots" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
                     Side Pots (<span id="side-pot-price">$25</span>)
@@ -296,7 +375,8 @@
                 </button>
             </div>
             
-            <div style="display: flex; align-items: center;">
+            <!-- Roulette Option (Conditional) -->
+            <div id="roulette-option-container" style="display: flex; align-items: center;">
                 <input type="checkbox" id="roulette" name="roulette" style="width: 18px; height: 18px;">
                 <label for="roulette" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
                     Roulette (<span id="roulette-price">$30</span>)

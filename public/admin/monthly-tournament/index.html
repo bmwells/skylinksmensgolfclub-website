@@ -117,6 +117,22 @@
       </div>
     </div>
     
+    <!-- NEW: Side Pot and Roulette Option Toggles -->
+    <div class="form-row">
+      <div style="flex: 1; display: flex; align-items: center; padding-top: 15px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="tournament-roulette-option">
+          <span>Show Roulette Option</span>
+        </label>
+      </div>
+      <div style="flex: 1; display: flex; align-items: center; padding-top: 15px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="tournament-side-pot-option">
+          <span>Show Side Pot Option</span>
+        </label>
+      </div>
+    </div>
+    
     <div class="form-row">
       <div style="flex: 1; display: flex; align-items: center; padding-top: 25px;">
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -321,6 +337,8 @@ async function loadTournament(tournamentId) {
         document.getElementById('tournament-roulette').value = tournament.roulette || '';
         document.getElementById('tournament-side-pot').value = tournament.sidePot || '';
         document.getElementById('tournament-cart-option').checked = tournament.cartOption === true;
+        document.getElementById('tournament-roulette-option').checked = tournament.rouletteOption !== false; // Default to true
+        document.getElementById('tournament-side-pot-option').checked = tournament.sidePotOption !== false; // Default to true
         document.getElementById('tournament-active').checked = tournament.active !== false;
         document.getElementById('tournament-active-page').checked = tournament.activePage === true;
         document.getElementById('tournament-pinned').checked = tournament.pinned === true;
@@ -520,7 +538,9 @@ async function confirmCreateTournament() {
             pinned: false,
             cartOption: true,
             roulette: 30,
+            rouletteOption: true, // NEW: Default to true
             sidePot: 25,
+            sidePotOption: true, // NEW: Default to true
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -639,7 +659,9 @@ async function saveTournament() {
             format: format,
             price: parseFloat(price),
             roulette: parseFloat(document.getElementById('tournament-roulette').value) || 30,
+            rouletteOption: document.getElementById('tournament-roulette-option').checked, // NEW
             sidePot: parseFloat(document.getElementById('tournament-side-pot').value) || 25,
+            sidePotOption: document.getElementById('tournament-side-pot-option').checked, // NEW
             cartOption: document.getElementById('tournament-cart-option').checked,
             active: document.getElementById('tournament-active').checked,
             activePage: document.getElementById('tournament-active-page').checked,
@@ -830,6 +852,8 @@ function resetForm() {
     document.getElementById('tournament-price').value = '';
     document.getElementById('tournament-roulette').value = '';
     document.getElementById('tournament-side-pot').value = '';
+    document.getElementById('tournament-roulette-option').checked = true; // NEW: Default to true
+    document.getElementById('tournament-side-pot-option').checked = true; // NEW: Default to true
     document.getElementById('tournament-cart-option').checked = true;
     document.getElementById('tournament-active').checked = true;
     document.getElementById('tournament-active-page').checked = true;

@@ -269,8 +269,8 @@
         // Update price displays in modal if tournament data is available
         if (modalState.isTournament && tournamentData) {
             updateModalPrices();
-            // Show/hide cart option dropdown based on tournament data
-            toggleCartOptionDropdown();
+            // Show/hide options based on tournament data
+            updateModalBasedOnTournament();
         }
 
         // Initialize autocomplete if needed
@@ -297,17 +297,45 @@
         }, 150);
     }
 
-    function toggleCartOptionDropdown() {
+    // NEW FUNCTION: Update modal display based on tournament options
+    function updateModalBasedOnTournament() {
+        if (!tournamentData) return;
+        
+        // Show/hide cart option dropdown based on tournament data
         const cartOptionContainer = document.getElementById('cart-option-container');
         const cartOptionSelect = document.getElementById('cart-option');
         
-        if (cartOptionContainer && cartOptionSelect && tournamentData) {
+        if (cartOptionContainer && cartOptionSelect) {
             if (tournamentData.cartOption === true) {
                 cartOptionContainer.style.display = 'block';
                 cartOptionSelect.required = true;
             } else {
                 cartOptionContainer.style.display = 'none';
                 cartOptionSelect.required = false;
+            }
+        }
+        
+        // Show/hide addon options container based on tournament options
+        const addonContainer = document.getElementById('addon-options-container');
+        if (addonContainer) {
+            const hasSidePotOption = tournamentData.sidePotOption !== false; // Default to true if not set
+            const hasRouletteOption = tournamentData.rouletteOption !== false; // Default to true if not set
+            
+            if (hasSidePotOption || hasRouletteOption) {
+                addonContainer.style.display = 'block';
+                
+                // Show/hide individual options
+                const sidePotContainer = document.getElementById('side-pot-option-container');
+                const rouletteContainer = document.getElementById('roulette-option-container');
+                
+                if (sidePotContainer) {
+                    sidePotContainer.style.display = hasSidePotOption ? 'flex' : 'none';
+                }
+                if (rouletteContainer) {
+                    rouletteContainer.style.display = hasRouletteOption ? 'flex' : 'none';
+                }
+            } else {
+                addonContainer.style.display = 'none';
             }
         }
     }
@@ -324,10 +352,10 @@
             const sidePotPrice = parseFloat(tournamentData.sidePot) || 25;
             
             if (roulettePriceEl) {
-                roulettePriceEl.textContent = '$' + roulettePrice;
+                roulettePriceEl.textContent = '$' + roulettePrice.toFixed(2);
             }
             if (sidePotPriceEl) {
-                sidePotPriceEl.textContent = '$' + sidePotPrice;
+                sidePotPriceEl.textContent = '$' + sidePotPrice.toFixed(2);
             }
             if (rouletteCheckbox) {
                 rouletteCheckbox.value = roulettePrice;
@@ -538,8 +566,20 @@
         const startingTimeSelect = document.getElementById('starting-time');
         const cartOptionSelect = document.getElementById('cart-option');
         
-        formData.sidePots = sidePotsCheckbox ? sidePotsCheckbox.checked : false;
-        formData.roulette = rouletteCheckbox ? rouletteCheckbox.checked : false;
+        // Only include side pots if option is enabled and checkbox exists
+        if (sidePotsCheckbox && tournamentData && tournamentData.sidePotOption !== false) {
+            formData.sidePots = sidePotsCheckbox.checked;
+        } else {
+            formData.sidePots = false;
+        }
+        
+        // Only include roulette if option is enabled and checkbox exists
+        if (rouletteCheckbox && tournamentData && tournamentData.rouletteOption !== false) {
+            formData.roulette = rouletteCheckbox.checked;
+        } else {
+            formData.roulette = false;
+        }
+        
         formData.startingTime = startingTimeSelect ? startingTimeSelect.value : '';
         
         // Add cart option if enabled
@@ -563,12 +603,14 @@
         const roulettePrice = tournamentData && tournamentData.roulette ? 
             parseFloat(tournamentData.roulette) : 30;
         
-        if (formData.sidePots) {
+        // Only add side pots if option is enabled and selected
+        if (tournamentData && tournamentData.sidePotOption !== false && formData.sidePots) {
             addons.push({ name: 'Side Pots', price: sidePotPrice });
             addonsTotal += sidePotPrice;
         }
         
-        if (formData.roulette) {
+        // Only add roulette if option is enabled and selected
+        if (tournamentData && tournamentData.rouletteOption !== false && formData.roulette) {
             addons.push({ name: 'Roulette', price: roulettePrice });
             addonsTotal += roulettePrice;
         }
@@ -581,6 +623,8 @@
         formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
         formData.tournamentPrice = tournamentData ? tournamentData.price : 0;
         formData.cartOptionEnabled = tournamentData ? tournamentData.cartOption : false;
+        formData.sidePotOptionEnabled = tournamentData ? (tournamentData.sidePotOption !== false) : false;
+        formData.rouletteOptionEnabled = tournamentData ? (tournamentData.rouletteOption !== false) : false;
         
         // Additional players
         const additionalPlayers = [];
@@ -632,7 +676,11 @@
         sidePotPrice: currentProduct.type === 'tournament' ? 
             (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : 25) : null,
         cartOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
-            tournamentData.cartOption : false
+            tournamentData.cartOption : false,
+        sidePotOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
+            (tournamentData.sidePotOption !== false) : false,
+        rouletteOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
+            (tournamentData.rouletteOption !== false) : false
     };
 }
 
@@ -1055,7 +1103,7 @@
             if (document.getElementById('member-modal-backdrop') && 
                 document.getElementById('member-modal-backdrop').classList.contains('active')) {
                 updateModalPrices();
-                toggleCartOptionDropdown();
+                updateModalBasedOnTournament();
             }
             
             // Update current product with dynamic data if it's a tournament
@@ -1079,6 +1127,8 @@
                 }
             }
         },
+        // Expose the updateModalBasedOnTournament function for use elsewhere
+        updateModalBasedOnTournament: updateModalBasedOnTournament,
         // Expose the setupTooltips function
         setupTooltips: setupTooltips
     };

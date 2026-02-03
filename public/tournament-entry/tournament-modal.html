@@ -45,10 +45,11 @@
                 </div>
             </div>
             
-            <!-- Optional Add-ons for Primary Player - SIMPLIFIED -->
-            <div class="row">
-                <div class="col" style="display: flex; gap: 30px; align-items: center; margin-top: 15px;">
-                    <div style="display: flex; align-items: center;">
+            <!-- Optional Add-ons for Primary Player - CONDITIONAL -->
+            <div class="row" id="addon-options-container" style="display: none;">
+                <div class="col" style="display: flex; gap: 30px; align-items: center; margin-top: 15px; flex-wrap: wrap;">
+                    <!-- Side Pot Option (Conditional) -->
+                    <div id="side-pot-option-container" style="display: flex; align-items: center;">
                         <input type="checkbox" id="side-pots" name="side-pots" style="width: 18px; height: 18px;">
                         <label for="side-pots" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
                             Side Pots (<span id="side-pot-price">$25</span>)
@@ -58,7 +59,8 @@
                         </button>
                     </div>
                     
-                    <div style="display: flex; align-items: center;">
+                    <!-- Roulette Option (Conditional) -->
+                    <div id="roulette-option-container" style="display: flex; align-items: center;">
                         <input type="checkbox" id="roulette" name="roulette" style="width: 18px; height: 18px;">
                         <label for="roulette" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
                             Roulette (<span id="roulette-price">$30</span>)
