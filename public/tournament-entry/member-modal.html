@@ -1,6 +1,6 @@
 <!-- member-modal.html -->
 <!-- Modal for membership details collection -->
- <link rel="stylesheet" href="/css/product.css" />
+<link rel="stylesheet" href="/css/product.css" />
 
 <div class="member-modal-backdrop" id="member-modal-backdrop" aria-hidden="true">
     <div class="member-modal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
@@ -9,9 +9,10 @@
         <div class="row">
             <div class="col">
                 <label for="modal-name">Name *</label>
-                <input id="modal-name" placeholder="" required  autocomplete="off" />
+                <input id="modal-name" placeholder="" required autocomplete="off" 
+                       pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
+                       title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
             </div>
-
         </div>
         
         <div class="row">
@@ -21,14 +22,14 @@
             </div>
             <div class="col">
                 <label for="modal-phone">Phone *</label>
-                <input id="modal-phone" placeholder="" required/>
+                <input id="modal-phone" placeholder="" required maxlength="14" />
             </div>
         </div>
 
          <div class="row">
             <div class="col">
                 <label for="modal-ghin">GHIN Number *</label>
-                <input id="modal-ghin" placeholder="" required />
+                <input id="modal-ghin" placeholder="" required maxlength="8" pattern="\d{1,8}" />
             </div>
         </div>
         
@@ -41,3 +42,119 @@
         </div>
     </div>
 </div>
+
+<script>
+// Enhanced name validation for membership modal
+function setupMembershipNameValidation() {
+    const nameInput = document.getElementById('modal-name');
+    
+    if (!nameInput) return;
+    
+    // Real-time character filtering
+    nameInput.addEventListener('input', function(e) {
+        // Get current value and cursor position
+        const cursorPos = this.selectionStart;
+        const originalValue = this.value;
+        
+        // Remove any characters that aren't allowed
+        // Allow: letters, spaces, hyphens, apostrophes
+        let newValue = originalValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'\-\s]/g, '');
+        
+        // Remove extra spaces (only allow single spaces between words)
+        newValue = newValue.replace(/\s+/g, ' ').trim();
+        
+        // Limit to two words maximum
+        const words = newValue.split(' ');
+        if (words.length > 2) {
+            newValue = words.slice(0, 2).join(' ');
+        }
+        
+        // Update value if changed
+        if (newValue !== originalValue) {
+            this.value = newValue;
+            
+            // Restore cursor position (adjust for removed characters)
+            const diff = newValue.length - originalValue.length;
+            this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+        }
+    });
+    
+    // Prevent typing invalid characters
+    nameInput.addEventListener('keydown', function(e) {
+        // Allow control keys
+        if (e.ctrlKey || e.metaKey || 
+            e.key === 'Backspace' || e.key === 'Delete' || 
+            e.key === 'Tab' || e.key === 'Enter' || 
+            e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+            e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+            e.key === 'Home' || e.key === 'End') {
+            return;
+        }
+        
+        // Only allow: letters, space, hyphen, apostrophe
+        const allowedChars = /^[A-Za-zÀ-ÖØ-öø-ÿ'\- ]$/;
+        if (!allowedChars.test(e.key)) {
+            e.preventDefault();
+        }
+        
+        // Prevent more than one space in a row
+        if (e.key === ' ') {
+            const cursorPos = this.selectionStart;
+            const beforeCursor = this.value.substring(0, cursorPos);
+            if (beforeCursor.endsWith(' ') || beforeCursor.length === 0) {
+                e.preventDefault();
+            }
+        }
+    });
+    
+    // On blur, enforce exactly two words
+    nameInput.addEventListener('blur', function() {
+        const words = this.value.trim().split(/\s+/);
+        
+        if (words.length !== 2) {
+            // Show error
+            this.style.borderColor = '#ff4444';
+            
+            // Create or update error message
+            let errorMsg = this.parentNode.querySelector('.name-error');
+            if (!errorMsg) {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'name-error';
+                errorMsg.style.color = '#ff4444';
+                errorMsg.style.fontSize = '0.85rem';
+                errorMsg.style.marginTop = '5px';
+                this.parentNode.appendChild(errorMsg);
+            }
+            
+            if (words.length === 1) {
+                errorMsg.textContent = 'Please enter both first and last name';
+            } else if (words.length > 2) {
+                errorMsg.textContent = 'Please enter only first and last name';
+            } else if (words.length === 0) {
+                errorMsg.textContent = 'Name is required';
+            }
+        } else {
+            // Clear error
+            this.style.borderColor = '#ddd';
+            const errorMsg = this.parentNode.querySelector('.name-error');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    });
+    
+    // Clear error on focus
+    nameInput.addEventListener('focus', function() {
+        this.style.borderColor = '#ddd';
+        const errorMsg = this.parentNode.querySelector('.name-error');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+    });
+}
+
+// Initialize when modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    setupMembershipNameValidation();
+});
+</script>

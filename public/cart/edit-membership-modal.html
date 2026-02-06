@@ -88,9 +88,62 @@
                 gap: 0;
             }
         }
+        
+        /* Name error styling */
+        .name-error {
+            color: #ff4444;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
     </style>
+</head>
+<body>
+    <div class="edit-modal-backdrop" id="edit-modal">
+        <div class="edit-modal" role="dialog" aria-modal="true">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
+                <h3 style="margin:0;">Edit Membership Details</h3>
+                <button id="modal-close" style="background:transparent; border:none; font-size:24px; cursor:pointer; color: #666;">×</button>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <label for="modal-name">Name *</label>
+                    <input id="modal-name" required 
+                           pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
+                           title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <label for="modal-email">Email *</label>
+                    <input id="modal-email" type="email" required />
+                </div>
+                <div class="col">
+                    <label for="modal-phone">Phone *</label>
+                    <input id="modal-phone" required maxlength="14" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="modal-ghin">GHIN Number *</label>
+                    <input id="modal-ghin" required maxlength="8" pattern="\d{1,8}" />
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <p class="required-note">* Required fields</p>
+                <div class="actions">
+                    <button id="modal-close-2" class="btn ghost">Cancel</button>
+                    <button id="modal-save" class="btn primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Phone number formatting function (same as in product.js and cart.js)
+        // Phone number formatting function
         function formatPhoneNumber(value) {
             // Remove all non-numeric characters
             const numbers = value.replace(/\D/g, '');
@@ -175,55 +228,122 @@
                 });
             });
         }
+        
+        // Enhanced name validation for edit modal
+        function setupEditModalNameValidation() {
+            const nameInput = document.getElementById('modal-name');
+            
+            if (!nameInput) return;
+            
+            // Real-time character filtering
+            nameInput.addEventListener('input', function(e) {
+                // Get current value and cursor position
+                const cursorPos = this.selectionStart;
+                const originalValue = this.value;
+                
+                // Remove any characters that aren't allowed
+                // Allow: letters, spaces, hyphens, apostrophes
+                let newValue = originalValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'\-\s]/g, '');
+                
+                // Remove extra spaces (only allow single spaces between words)
+                newValue = newValue.replace(/\s+/g, ' ').trim();
+                
+                // Limit to two words maximum
+                const words = newValue.split(' ');
+                if (words.length > 2) {
+                    newValue = words.slice(0, 2).join(' ');
+                }
+                
+                // Update value if changed
+                if (newValue !== originalValue) {
+                    this.value = newValue;
+                    
+                    // Restore cursor position (adjust for removed characters)
+                    const diff = newValue.length - originalValue.length;
+                    this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+                }
+            });
+            
+            // Prevent typing invalid characters
+            nameInput.addEventListener('keydown', function(e) {
+                // Allow control keys
+                if (e.ctrlKey || e.metaKey || 
+                    e.key === 'Backspace' || e.key === 'Delete' || 
+                    e.key === 'Tab' || e.key === 'Enter' || 
+                    e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+                    e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+                    e.key === 'Home' || e.key === 'End') {
+                    return;
+                }
+                
+                // Only allow: letters, space, hyphen, apostrophe
+                const allowedChars = /^[A-Za-zÀ-ÖØ-öø-ÿ'\- ]$/;
+                if (!allowedChars.test(e.key)) {
+                    e.preventDefault();
+                }
+                
+                // Prevent more than one space in a row
+                if (e.key === ' ') {
+                    const cursorPos = this.selectionStart;
+                    const beforeCursor = this.value.substring(0, cursorPos);
+                    if (beforeCursor.endsWith(' ') || beforeCursor.length === 0) {
+                        e.preventDefault();
+                    }
+                }
+            });
+            
+            // On blur, enforce exactly two words
+            nameInput.addEventListener('blur', function() {
+                const words = this.value.trim().split(/\s+/);
+                
+                if (words.length !== 2) {
+                    // Show error
+                    this.style.borderColor = '#ff4444';
+                    
+                    // Create or update error message
+                    let errorMsg = this.parentNode.querySelector('.name-error');
+                    if (!errorMsg) {
+                        errorMsg = document.createElement('div');
+                        errorMsg.className = 'name-error';
+                        errorMsg.style.color = '#ff4444';
+                        errorMsg.style.fontSize = '0.85rem';
+                        errorMsg.style.marginTop = '5px';
+                        this.parentNode.appendChild(errorMsg);
+                    }
+                    
+                    if (words.length === 1) {
+                        errorMsg.textContent = 'Please enter both first and last name';
+                    } else if (words.length > 2) {
+                        errorMsg.textContent = 'Please enter only first and last name';
+                    } else if (words.length === 0) {
+                        errorMsg.textContent = 'Name is required';
+                    }
+                } else {
+                    // Clear error
+                    this.style.borderColor = '#ddd';
+                    const errorMsg = this.parentNode.querySelector('.name-error');
+                    if (errorMsg) {
+                        errorMsg.remove();
+                    }
+                }
+            });
+            
+            // Clear error on focus
+            nameInput.addEventListener('focus', function() {
+                this.style.borderColor = '#ddd';
+                const errorMsg = this.parentNode.querySelector('.name-error');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+            });
+        }
 
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             setupPhoneFormatting();
             setupGHINFormatting();
+            setupEditModalNameValidation();
         });
     </script>
-</head>
-<body>
-    <div class="edit-modal-backdrop" id="edit-modal">
-        <div class="edit-modal" role="dialog" aria-modal="true">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
-                <h3 style="margin:0;">Edit Membership Details</h3>
-                <button id="modal-close" style="background:transparent; border:none; font-size:24px; cursor:pointer; color: #666;">×</button>
-            </div>
-            
-            <div class="row">
-                <div class="col">
-                    <label for="modal-name">Name *</label>
-                    <input id="modal-name" required />
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col">
-                    <label for="modal-email">Email *</label>
-                    <input id="modal-email" type="email" required />
-                </div>
-                <div class="col">
-                    <label for="modal-phone">Phone *</label>
-                    <input id="modal-phone" required maxlength="14" />
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col">
-                    <label for="modal-ghin">GHIN Number *</label>
-                    <input id="modal-ghin" required />
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <p class="required-note">* Required fields</p>
-                <div class="actions">
-                    <button id="modal-close-2" class="btn ghost">Cancel</button>
-                    <button id="modal-save" class="btn primary">Save Changes</button>
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

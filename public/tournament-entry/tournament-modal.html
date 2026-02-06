@@ -13,8 +13,8 @@
                     <label for="modal-name">Name *</label>
                     <div class="input-wrapper">
                         <input id="modal-name" placeholder="First and Last Name" required autocomplete="off"  
-                               pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]+$"
-                               title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                               pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
+                               title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
                         <div class="loading-spinner" id="name-loading" style="display: none;">
                             <div class="spinner"></div>
                         </div>
@@ -107,8 +107,8 @@
                         <label for="modal-name2">Name</label>
                         <div class="input-wrapper">
                             <input id="modal-name2" placeholder="First and Last Name" autocomplete="off" 
-                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
-                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
+                                   title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
                             <div class="loading-spinner" id="name2-loading" style="display: none;">
                                 <div class="spinner"></div>
                             </div>
@@ -143,8 +143,8 @@
                         <label for="modal-name3">Name</label>
                         <div class="input-wrapper">
                             <input id="modal-name3" placeholder="First and Last Name" autocomplete="off" 
-                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
-                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
+                                   title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
                             <div class="loading-spinner" id="name3-loading" style="display: none;">
                                 <div class="spinner"></div>
                             </div>
@@ -179,8 +179,8 @@
                         <label for="modal-name4">Name</label>
                         <div class="input-wrapper">
                             <input id="modal-name4" placeholder="First and Last Name" autocomplete="off" 
-                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]+\s+[A-Za-zÀ-öø-ÿ'\-]+$"
-                                   title="Enter exactly two words (first and last name). Only letters, hyphens, and apostrophes allowed." />
+                                   pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
+                                   title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
                             <div class="loading-spinner" id="name4-loading" style="display: none;">
                                 <div class="spinner"></div>
                             </div>
@@ -235,3 +235,121 @@
         </div>
     </div>
 </div>
+
+<script>
+// Enhanced name validation for tournament modal
+function setupTournamentNameValidation() {
+    const nameInputs = document.querySelectorAll('#member-modal-backdrop input[id*="name"]');
+    
+    nameInputs.forEach(input => {
+        // Real-time character filtering
+        input.addEventListener('input', function(e) {
+            // Get current value and cursor position
+            const cursorPos = this.selectionStart;
+            const originalValue = this.value;
+            
+            // Remove any characters that aren't allowed
+            // Allow: letters, spaces, hyphens, apostrophes
+            let newValue = originalValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'\-\s]/g, '');
+            
+            // Remove extra spaces (only allow single spaces between words)
+            newValue = newValue.replace(/\s+/g, ' ').trim();
+            
+            // Limit to two words maximum
+            const words = newValue.split(' ');
+            if (words.length > 2) {
+                newValue = words.slice(0, 2).join(' ');
+            }
+            
+            // Update value if changed
+            if (newValue !== originalValue) {
+                this.value = newValue;
+                
+                // Restore cursor position (adjust for removed characters)
+                const diff = newValue.length - originalValue.length;
+                this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+            }
+        });
+        
+        // Prevent typing invalid characters
+        input.addEventListener('keydown', function(e) {
+            // Allow control keys
+            if (e.ctrlKey || e.metaKey || 
+                e.key === 'Backspace' || e.key === 'Delete' || 
+                e.key === 'Tab' || e.key === 'Enter' || 
+                e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+                e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+                e.key === 'Home' || e.key === 'End') {
+                return;
+            }
+            
+            // Only allow: letters, space, hyphen, apostrophe
+            const allowedChars = /^[A-Za-zÀ-ÖØ-öø-ÿ'\- ]$/;
+            if (!allowedChars.test(e.key)) {
+                e.preventDefault();
+            }
+            
+            // Prevent more than one space in a row
+            if (e.key === ' ') {
+                const cursorPos = this.selectionStart;
+                const beforeCursor = this.value.substring(0, cursorPos);
+                if (beforeCursor.endsWith(' ') || beforeCursor.length === 0) {
+                    e.preventDefault();
+                }
+            }
+        });
+        
+        // On blur, enforce exactly two words (for required fields)
+        if (input.hasAttribute('required')) {
+            input.addEventListener('blur', function() {
+                const words = this.value.trim().split(/\s+/);
+                
+                if (words.length !== 2) {
+                    // Show error
+                    this.style.borderColor = '#ff4444';
+                    
+                    // Create or update error message
+                    let errorMsg = this.parentNode.querySelector('.name-error');
+                    if (!errorMsg) {
+                        errorMsg = document.createElement('div');
+                        errorMsg.className = 'name-error';
+                        errorMsg.style.color = '#ff4444';
+                        errorMsg.style.fontSize = '0.85rem';
+                        errorMsg.style.marginTop = '5px';
+                        this.parentNode.appendChild(errorMsg);
+                    }
+                    
+                    if (words.length === 1) {
+                        errorMsg.textContent = 'Please enter both first and last name';
+                    } else if (words.length > 2) {
+                        errorMsg.textContent = 'Please enter only first and last name';
+                    } else if (words.length === 0) {
+                        errorMsg.textContent = 'Name is required';
+                    }
+                } else {
+                    // Clear error
+                    this.style.borderColor = '#ddd';
+                    const errorMsg = this.parentNode.querySelector('.name-error');
+                    if (errorMsg) {
+                        errorMsg.remove();
+                    }
+                }
+            });
+            
+            // Clear error on focus
+            input.addEventListener('focus', function() {
+                this.style.borderColor = '#ddd';
+                const errorMsg = this.parentNode.querySelector('.name-error');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+            });
+        }
+    });
+}
+
+// Initialize when modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    setupTournamentNameValidation();
+});
+</script>
