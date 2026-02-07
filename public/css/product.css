@@ -986,3 +986,65 @@
         }
         
 
+/* =========================================== */
+/* Tournament Modal Member Validation Styles   */
+/* =========================================== */
+
+.member-verification {
+    animation: fadeIn 0.3s ease;
+}
+
+.field-error {
+    animation: fadeIn 0.3s ease;
+}
+
+.member-error {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Validation states for tournament modal fields */
+#member-modal-backdrop input:required.member-valid {
+    border-color: #28a745 !important;
+}
+
+#member-modal-backdrop input:required.member-invalid {
+    border-color: #dc3545 !important;
+}
+
+/* Autocomplete enhancements for tournament modal */
+.autocomplete-item .email-indicator {
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+/* Next button states */
+#member-modal-next:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    background-color: #6c757d !important;
+}
+
+#member-modal-next:not(:disabled) {
+    opacity: 1 !important;
+    cursor: pointer !important;
+    background-color: #000 !important;
+}
+
+/* Loading state for member search */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.loading-spinner.pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Responsive adjustments for validation messages */
+@media (max-width: 768px) {
+    .member-verification,
+    .field-error,
+    .member-error {
+        font-size: 0.8rem;
+    }
+}

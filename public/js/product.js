@@ -141,6 +141,86 @@
         return PRODUCTS['new-membership'];
     }
 
+    // Enhanced validation for tournament Player 1
+    function validateTournamentPlayer1() {
+        if (!modalState.isTournament) return { valid: true };
+
+        // Check if member autocomplete is initialized and has a valid member
+        if (window.MemberAutocompleteInstance && 
+            window.MemberAutocompleteInstance.isPlayer1MemberValid) {
+            const isValidMember = window.MemberAutocompleteInstance.isPlayer1MemberValid();
+            if (!isValidMember) {
+                return {
+                    valid: false,
+                    message: 'You must select a member from the list. Player 1 must be a verified member.'
+                };
+            }
+        }
+
+        const nameInput = document.getElementById('modal-name');
+        const emailInput = document.getElementById('modal-email');
+        const phoneInput = document.getElementById('modal-phone');
+        const ghinInput = document.getElementById('modal-ghin');
+
+        // Check all required fields are filled
+        if (!nameInput || !nameInput.value.trim()) {
+            return {
+                valid: false,
+                message: 'Please select a member from the list.'
+            };
+        }
+
+        if (!emailInput || !emailInput.value.trim()) {
+            return {
+                valid: false,
+                message: 'Email is required for tournament registration.'
+            };
+        }
+
+        if (!phoneInput || !phoneInput.value.trim()) {
+            return {
+                valid: false,
+                message: 'Phone number is required for tournament registration.'
+            };
+        }
+
+        if (!ghinInput || !ghinInput.value.trim()) {
+            return {
+                valid: false,
+                message: 'GHIN number is required for tournament registration.'
+            };
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailInput.value.trim())) {
+            return {
+                valid: false,
+                message: 'Please provide a valid email address.'
+            };
+        }
+
+        // Validate phone has at least 10 digits
+        const phoneDigits = phoneInput.value.replace(/\D/g, '');
+        if (phoneDigits.length < 10) {
+            return {
+                valid: false,
+                message: 'Please provide a valid 10-digit phone number.'
+            };
+        }
+
+        // Validate GHIN is 1-8 digits
+        const ghinDigits = ghinInput.value.replace(/\D/g, '');
+        if (ghinDigits.length === 0 || ghinDigits.length > 8) {
+            return {
+                valid: false,
+                message: 'GHIN must be 1-8 digits.'
+            };
+        }
+
+        return { valid: true };
+    }
+
     // Name validation: only letters and spaces, exactly two words
     function validateName(name) {
         const trimmedName = name.trim();
@@ -252,6 +332,14 @@
                 step1.style.display = 'block';
                 step2.style.display = 'none';
             }
+            
+            // Disable Next button initially for tournament modal
+            const nextButton = document.getElementById('member-modal-next');
+            if (nextButton) {
+                nextButton.disabled = true;
+                nextButton.style.opacity = '0.6';
+                nextButton.style.cursor = 'not-allowed';
+            }
         }
         
         // Clear all inputs
@@ -263,7 +351,15 @@
                 input.selectedIndex = 0;
             } else {
                 input.value = '';
+                // Reset border colors
+                input.style.borderColor = '#ddd';
             }
+        });
+
+        // Clear error messages
+        const errors = backdrop.querySelectorAll('.member-error, .field-error, .member-verification');
+        errors.forEach(error => {
+            error.style.display = 'none';
         });
 
         // Update price displays in modal if tournament data is available
@@ -410,6 +506,35 @@
     }
 
     function validateStep1() {
+        // For tournament modal, use the enhanced validation
+        if (modalState.isTournament) {
+            const validation = validateTournamentPlayer1();
+            if (!validation.valid) {
+                alert(validation.message);
+                
+                // Focus on the first invalid field
+                const nameInput = document.getElementById('modal-name');
+                if (nameInput && !nameInput.value.trim()) {
+                    nameInput.focus();
+                } else {
+                    const emailInput = document.getElementById('modal-email');
+                    const phoneInput = document.getElementById('modal-phone');
+                    const ghinInput = document.getElementById('modal-ghin');
+                    
+                    if (emailInput && !emailInput.value.trim()) {
+                        emailInput.focus();
+                    } else if (phoneInput && !phoneInput.value.trim()) {
+                        phoneInput.focus();
+                    } else if (ghinInput && !ghinInput.value.trim()) {
+                        ghinInput.focus();
+                    }
+                }
+                return false;
+            }
+            return true;
+        }
+
+        // Original validation for non-tournament products
         const nameInput = document.getElementById('modal-name');
         const emailInput = document.getElementById('modal-email');
         const ghinInput = document.getElementById('modal-ghin');
@@ -1130,6 +1255,8 @@
         // Expose the updateModalBasedOnTournament function for use elsewhere
         updateModalBasedOnTournament: updateModalBasedOnTournament,
         // Expose the setupTooltips function
-        setupTooltips: setupTooltips
+        setupTooltips: setupTooltips,
+        // Expose tournament validation function
+        validateTournamentPlayer1: validateTournamentPlayer1
     };
 })();

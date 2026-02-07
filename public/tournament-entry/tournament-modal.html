@@ -10,13 +10,23 @@
             
             <div class="row">
                 <div class="col">
-                    <label for="modal-name">Name *</label>
+                    <label for="modal-name">Select Member *</label>
                     <div class="input-wrapper">
-                        <input id="modal-name" placeholder="First and Last Name" required autocomplete="off"  
+                        <input id="modal-name" placeholder="Search for member name..." required autocomplete="off"  
                                pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
-                               title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
+                               title="You must select a member from the list. Type to search members." />
                         <div class="loading-spinner" id="name-loading" style="display: none;">
                             <div class="spinner"></div>
+                        </div>
+                        <div class="member-verification" id="member-verified" style="display: none;">
+                            <span style="color: #28a745; font-size: 0.85rem; margin-top: 5px; display: block;">
+                                ✓ Member verified
+                            </span>
+                        </div>
+                        <div class="member-error" id="member-not-found" style="display: none;">
+                            <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                                ✗ Member not found. You must select a member from the list.
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -25,13 +35,25 @@
             <div class="row">
                 <div class="col">
                     <label for="modal-email">Email *</label>
-                    <input id="modal-email" type="email" placeholder="" required />
+                    <input id="modal-email" type="email" placeholder="" required 
+                           data-required-for-member="true" />
+                    <div class="field-error" id="email-error" style="display: none;">
+                        <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                            Email is required for tournament registration
+                        </span>
+                    </div>
                 </div>
                 <div class="col">
-                    <label for="modal-phone">Phone</label>
+                    <label for="modal-phone">Phone *</label>
                     <input id="modal-phone" placeholder="" required
                            maxlength="14"
+                           data-required-for-member="true"
                            title="10-digit phone number" />
+                    <div class="field-error" id="phone-error" style="display: none;">
+                        <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                            Phone is required for tournament registration
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -41,7 +63,13 @@
                     <input id="modal-ghin" placeholder="" required
                            maxlength="8"
                            pattern="\d{1,8}"
+                           data-required-for-member="true"
                            title="Up to 8-digit GHIN number" />
+                    <div class="field-error" id="ghin-error" style="display: none;">
+                        <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                            GHIN is required for tournament registration
+                        </span>
+                    </div>
                 </div>
             </div>
             
@@ -87,10 +115,12 @@
             </div>
             
             <div class="modal-footer">
-                <p class="required-note">* Required fields</p>
+                <p class="required-note">* Required fields.</p>
                 <div class="actions">
                     <button id="member-modal-cancel" class="btn ghost">Cancel</button>
-                    <button id="member-modal-next" class="btn primary">Next</button>
+                    <button id="member-modal-next" class="btn primary" disabled style="opacity: 0.6; cursor: not-allowed;">
+                        Next
+                    </button>
                 </div>
             </div>
         </div>
