@@ -24,6 +24,87 @@
             border-radius: 12px;
         }
         
+        /* Modal styles for membership selection */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-content h3 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+        
+        .modal-content p {
+            margin-bottom: 2rem;
+            color: #666;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .modal-btn-new {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .modal-btn-new:hover {
+            background-color: #1e3a23;
+        }
+        
+        .modal-btn-renew {
+            background-color: #f0f0f0;
+            color: var(--primary);
+        }
+        
+        .modal-btn-renew:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .close-modal {
+            margin-top: 1.5rem;
+            background: none;
+            border: none;
+            color: #999;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 1300px) {
             .instagram-widget-container {
@@ -40,6 +121,10 @@
         @media (max-width: 768px) {
             .instagram-widget-container {
                 max-width: 600px;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
             }
         }
         
@@ -80,24 +165,10 @@
     <section class="tournament-section">
         <div class="container">
             <h2 class="section-title">Tournament Entry</h2>
-            <div class="tournament-grid">
-                <!-- Monthly Tournament Card - Will be populated by JavaScript -->
-                <div id="home-monthly-tournament-card" class="tournament-loading">
-                    Loading monthly tournament...
-                </div>
-                <div class="tournament-card">
-                    <a href="/tournament-entry/new-membership/">
-                        <div class="tournament-image" id="new-membership-image"></div>
-                        <h3>New Membership</h3>
-                        <p class="price">$109</p>
-                    </a>
-                </div>
-                <div class="tournament-card">
-                    <a href="/tournament-entry/membership-renewal/">
-                        <div class="tournament-image" id="membership-renewal-image"></div>
-                        <h3>Membership Renewal</h3>
-                        <p class="price">$89</p>
-                    </a>
+            <div class="tournament-grid" id="tournament-grid-container">
+                <!-- Tournament cards will be populated by JavaScript -->
+                <div id="home-tournament-cards" class="tournament-loading">
+                    Loading tournaments...
                 </div>
             </div>
         </div>
@@ -164,6 +235,19 @@
         </div>
     </section>
 
+    <!-- Membership Selection Modal -->
+    <div id="membership-modal" class="modal">
+        <div class="modal-content">
+            <h3>Membership Selection</h3>
+            <p>Are you a new member or renewing your existing membership?</p>
+            <div class="modal-buttons">
+                <a href="/tournament-entry/new-membership/" class="modal-btn modal-btn-new">New Member</a>
+                <a href="/tournament-entry/membership-renewal/" class="modal-btn modal-btn-renew">Renew Membership</a>
+            </div>
+            <button class="close-modal" onclick="closeMembershipModal()">Close</button>
+        </div>
+    </div>
+
     <!-- FOOTER INJECTION -->
     <div id="footer-placeholder"></div>
 
@@ -209,24 +293,6 @@
                 }
             }
             
-            // Apply new membership image
-            const newMembershipImage = images.find(img => img.id === 'new-membership');
-            if (newMembershipImage && newMembershipImage.imageUrl) {
-                const newMembershipDiv = document.getElementById('new-membership-image');
-                if (newMembershipDiv) {
-                    newMembershipDiv.style.backgroundImage = `url('${newMembershipImage.imageUrl}')`;
-                }
-            }
-            
-            // Apply membership renewal image
-            const renewalImage = images.find(img => img.id === 'membership-renewal');
-            if (renewalImage && renewalImage.imageUrl) {
-                const renewalDiv = document.getElementById('membership-renewal-image');
-                if (renewalDiv) {
-                    renewalDiv.style.backgroundImage = `url('${renewalImage.imageUrl}')`;
-                }
-            }
-            
         } catch (error) {
             console.error('Error loading images:', error);
             // Set fallback background colors if images fail to load
@@ -235,54 +301,128 @@
         }
     }
 
-    // Load the first active tournament for the homepage card
-async function loadHomeTournamentCard() {
-    try {
-        // Get active tournaments that are shown on the tournament entry page
-        const response = await fetch('/api/tournaments?activePage=true');
-        const tournaments = await response.json();
-        
-        const cardContainer = document.getElementById('home-monthly-tournament-card');
-        
-        if (tournaments.length === 0) {
-            // No active tournaments - REMOVE the entire card container
-            cardContainer.remove();
-            return;
+    // Load active tournaments for the homepage cards (up to 2)
+    async function loadHomeTournamentCards() {
+        try {
+            // Get active tournaments that are shown on the tournament entry page
+            const response = await fetch('/api/tournaments?activePage=true');
+            const tournaments = await response.json();
+            
+            const container = document.getElementById('tournament-grid-container');
+            const loadingElement = document.getElementById('home-tournament-cards');
+            
+            // Sort: pinned first, then by creation date
+            tournaments.sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            });
+            
+            // Take up to 2 tournaments
+            const tournamentsToShow = tournaments.slice(0, 2);
+            
+            // Create membership card HTML (always show this one)
+            const membershipCard = `
+                <div class="tournament-card">
+                    <a href="#" onclick="openMembershipModal(event)">
+                        <div class="tournament-image" id="membership-image"></div>
+                        <h3>New/Renew Membership</h3>
+                        <p class="price">From $89</p>
+                    </a>
+                </div>
+            `;
+            
+            // Create tournament cards HTML
+            let tournamentCardsHTML = '';
+            tournamentsToShow.forEach(tournament => {
+                const price = tournament.price ? parseFloat(tournament.price) : 90;
+                const formattedPrice = tournament.active !== false ? `From $${price}` : `$${price}`;
+                const title = tournament.title || 'Tournament';
+                const imageUrl = tournament.imageUrl || '';
+                const tournamentId = tournament.id;
+                
+                tournamentCardsHTML += `
+                    <div class="tournament-card">
+                        <a href="/tournament-entry/${tournamentId}/">
+                            <div class="tournament-image" style="background-image: url('${imageUrl}')"></div>
+                            <h3>${title}</h3>
+                            <p class="price">${formattedPrice}</p>
+                        </a>
+                    </div>
+                `;
+            });
+            
+            // Combine all cards: membership first, then tournaments
+            const allCards = membershipCard + tournamentCardsHTML;
+            
+            // Replace loading element with actual cards
+            loadingElement.outerHTML = allCards;
+            
+            // Load membership image
+            loadMembershipImage();
+            
+        } catch (error) {
+            console.error('Error loading tournaments for homepage:', error);
+            // Show membership card only if tournaments fail to load
+            const loadingElement = document.getElementById('home-tournament-cards');
+            const membershipCard = `
+                <div class="tournament-card">
+                    <a href="#" onclick="openMembershipModal(event)">
+                        <div class="tournament-image" id="membership-image"></div>
+                        <h3>New/Renew Membership</h3>
+                        <p class="price">From $89</p>
+                    </a>
+                </div>
+            `;
+            loadingElement.outerHTML = membershipCard;
+            loadMembershipImage();
         }
-        
-        // Sort: pinned first, then by creation date
-        tournaments.sort((a, b) => {
-            if (a.pinned && !b.pinned) return -1;
-            if (!a.pinned && b.pinned) return 1;
-            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-        });
-        
-        // Use the first tournament
-        const tournament = tournaments[0];
-        
-        // Format price
-        const price = tournament.price ? parseFloat(tournament.price) : 90;
-        const formattedPrice = tournament.active !== false ? `From $${price}` : `$${price}`;
-        const title = tournament.title || 'Tournament';
-        const imageUrl = tournament.imageUrl || '';
-        const tournamentId = tournament.id;
-        
-        cardContainer.outerHTML = `
-            <div class="tournament-card">
-                <a href="/tournament-entry/${tournamentId}/">
-                    <div class="tournament-image" style="background-image: url('${imageUrl}')"></div>
-                    <h3>${title}</h3>
-                    <p class="price">${formattedPrice}</p>
-                </a>
-            </div>
-        `;
-        
-    } catch (error) {
-        console.error('Error loading tournament for homepage:', error);
-        const cardContainer = document.getElementById('home-monthly-tournament-card');
-        cardContainer.remove(); // Remove on error too
     }
-}
+    
+    // Load membership image (could be either new-membership or membership-renewal, or a dedicated combined image)
+    async function loadMembershipImage() {
+        try {
+            const response = await fetch('/api/images');
+            const images = await response.json();
+            
+            // Try to find a dedicated membership image first, fall back to new-membership
+            let membershipImage = images.find(img => img.id === 'membership');
+            if (!membershipImage) {
+                membershipImage = images.find(img => img.id === 'new-membership');
+            }
+            
+            const membershipImageDiv = document.getElementById('membership-image');
+            if (membershipImageDiv && membershipImage && membershipImage.imageUrl) {
+                membershipImageDiv.style.backgroundImage = `url('${membershipImage.imageUrl}')`;
+            } else if (membershipImageDiv) {
+                membershipImageDiv.style.backgroundColor = '#f0f0f0';
+            }
+        } catch (error) {
+            console.error('Error loading membership image:', error);
+            const membershipImageDiv = document.getElementById('membership-image');
+            if (membershipImageDiv) {
+                membershipImageDiv.style.backgroundColor = '#f0f0f0';
+            }
+        }
+    }
+
+    // Modal functions
+    function openMembershipModal(event) {
+        event.preventDefault();
+        document.getElementById('membership-modal').style.display = 'flex';
+    }
+    
+    function closeMembershipModal() {
+        document.getElementById('membership-modal').style.display = 'none';
+    }
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('membership-modal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
 
     // Make the SnapWidget responsive
     function makeWidgetResponsive() {
@@ -302,7 +442,7 @@ async function loadHomeTournamentCard() {
     // Load everything when page is ready
     document.addEventListener('DOMContentLoaded', function() {
         loadAndApplyImages();
-        loadHomeTournamentCard();
+        loadHomeTournamentCards();
         
         // Make widget responsive
         makeWidgetResponsive();
