@@ -1,5 +1,5 @@
 <!-- member-modal.html -->
-<!-- Modal for membership details collection -->
+<!-- Modal for membership details collection with autocomplete and validation -->
 <link rel="stylesheet" href="/css/product.css" />
 
 <div class="member-modal-backdrop" id="member-modal-backdrop" aria-hidden="true">
@@ -8,28 +8,63 @@
         
         <div class="row">
             <div class="col">
-                <label for="modal-name">Name *</label>
-                <input id="modal-name" placeholder="" required autocomplete="off" 
-                       pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
-                       title="Enter exactly two names (first and last). Only letters, hyphens, and apostrophes allowed. Each name must be 2-30 characters." />
+                <label for="modal-name">Select Member *</label>
+                <div class="input-wrapper">
+                    <input id="modal-name" placeholder="Search for member name..." required autocomplete="off" 
+                           pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}\s+[A-Za-zÀ-ÖØ-öø-ÿ'\-]{2,30}$"
+                           title="You must select a member from the list. Type to search members." />
+                    <div class="loading-spinner" id="name-loading" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                    <div class="member-verification" id="member-verified" style="display: none;">
+                        <span style="color: #28a745; font-size: 0.85rem; margin-top: 5px; display: block;">
+                            ✓ Member verified
+                        </span>
+                    </div>
+                    <div class="member-error" id="member-not-found" style="display: none;">
+                        <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                            ✗ Member not found. You must select a member from the list.
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div class="row">
             <div class="col">
                 <label for="modal-email">Email *</label>
-                <input id="modal-email" type="email" placeholder="" required />
+                <input id="modal-email" type="email" placeholder="" required 
+                       data-required-for-member="true" />
+                <div class="field-error" id="email-error" style="display: none;">
+                    <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                        Email is required
+                    </span>
+                </div>
             </div>
             <div class="col">
                 <label for="modal-phone">Phone *</label>
-                <input id="modal-phone" placeholder="" required maxlength="14" />
+                <input id="modal-phone" placeholder="" required maxlength="14" 
+                       data-required-for-member="true"
+                       title="10-digit phone number" />
+                <div class="field-error" id="phone-error" style="display: none;">
+                    <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                        Phone is required (must be 10 digits)
+                    </span>
+                </div>
             </div>
         </div>
 
          <div class="row">
             <div class="col">
                 <label for="modal-ghin">GHIN Number *</label>
-                <input id="modal-ghin" placeholder="" required maxlength="8" pattern="\d{1,8}" />
+                <input id="modal-ghin" placeholder="" required maxlength="8" pattern="\d{1,8}" 
+                       data-required-for-member="true"
+                       title="Up to 8-digit GHIN number" />
+                <div class="field-error" id="ghin-error" style="display: none;">
+                    <span style="color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: block;">
+                        GHIN is required (must be 1-8 digits)
+                    </span>
+                </div>
             </div>
         </div>
         
@@ -37,14 +72,14 @@
             <p class="required-note">* Required fields</p>
             <div class="actions">
                 <button id="member-modal-cancel" class="btn ghost">Cancel</button>
-                <button id="member-modal-save" class="btn primary">Add To Cart</button>
+                <button id="member-modal-save" class="btn primary" disabled style="opacity: 0.6; cursor: not-allowed;">Add To Cart</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Enhanced name validation for membership modal
+// Enhanced name validation for membership modal with autocomplete
 function setupMembershipNameValidation() {
     const nameInput = document.getElementById('modal-name');
     
@@ -104,51 +139,6 @@ function setupMembershipNameValidation() {
             if (beforeCursor.endsWith(' ') || beforeCursor.length === 0) {
                 e.preventDefault();
             }
-        }
-    });
-    
-    // On blur, enforce exactly two words
-    nameInput.addEventListener('blur', function() {
-        const words = this.value.trim().split(/\s+/);
-        
-        if (words.length !== 2) {
-            // Show error
-            this.style.borderColor = '#ff4444';
-            
-            // Create or update error message
-            let errorMsg = this.parentNode.querySelector('.name-error');
-            if (!errorMsg) {
-                errorMsg = document.createElement('div');
-                errorMsg.className = 'name-error';
-                errorMsg.style.color = '#ff4444';
-                errorMsg.style.fontSize = '0.85rem';
-                errorMsg.style.marginTop = '5px';
-                this.parentNode.appendChild(errorMsg);
-            }
-            
-            if (words.length === 1) {
-                errorMsg.textContent = 'Please enter both first and last name';
-            } else if (words.length > 2) {
-                errorMsg.textContent = 'Please enter only first and last name';
-            } else if (words.length === 0) {
-                errorMsg.textContent = 'Name is required';
-            }
-        } else {
-            // Clear error
-            this.style.borderColor = '#ddd';
-            const errorMsg = this.parentNode.querySelector('.name-error');
-            if (errorMsg) {
-                errorMsg.remove();
-            }
-        }
-    });
-    
-    // Clear error on focus
-    nameInput.addEventListener('focus', function() {
-        this.style.borderColor = '#ddd';
-        const errorMsg = this.parentNode.querySelector('.name-error');
-        if (errorMsg) {
-            errorMsg.remove();
         }
     });
 }

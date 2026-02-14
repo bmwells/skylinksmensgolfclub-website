@@ -6,6 +6,7 @@ class MemberAutocomplete {
         this.currentActiveInput = null;
         this.selectedMembers = {}; // Track selected members by input ID
         this.isTournamentModal = false;
+        this.isMembershipModal = false;
     }
 
     init() {
@@ -16,24 +17,164 @@ class MemberAutocomplete {
         this.currentActiveInput = null;
         this.selectedMembers = {};
 
-        // Check if this is a tournament modal
+        // Check modal type
         const modalBackdrop = document.getElementById('member-modal-backdrop');
-        this.isTournamentModal = modalBackdrop && modalBackdrop.querySelector('#step1-content');
+        this.isTournamentModal = modalBackdrop && modalBackdrop.querySelector('#step1-content') !== null;
+        this.isMembershipModal = modalBackdrop && !modalBackdrop.querySelector('#step1-content') && 
+                                 modalBackdrop.querySelector('#modal-name') !== null;
 
-        // Player 1 primary field
+        // Player 1 primary field (for both tournament and membership)
         const primary = document.getElementById('modal-name');
         if (primary) this.setupAutocomplete(primary, 1);
 
-        // Player 1–4 (tournament)
-        for (let i = 1; i <= 4; i++) {
-            const input = document.getElementById(`modal-name${i}`);
-            if (input) this.setupAutocomplete(input, i);
+        // Player 1–4 (tournament only)
+        if (this.isTournamentModal) {
+            for (let i = 1; i <= 4; i++) {
+                const input = document.getElementById(`modal-name${i}`);
+                if (input) this.setupAutocomplete(input, i);
+            }
         }
 
-        // Setup real-time validation for tournament modal
+        // Setup real-time validation based on modal type
         if (this.isTournamentModal) {
             this.setupTournamentValidation();
+        } else if (this.isMembershipModal) {
+            this.setupMembershipValidation();
         }
+    }
+
+    setupMembershipValidation() {
+        const nameInput = document.getElementById('modal-name');
+        const emailInput = document.getElementById('modal-email');
+        const phoneInput = document.getElementById('modal-phone');
+        const ghinInput = document.getElementById('modal-ghin');
+        const saveButton = document.getElementById('member-modal-save');
+
+        if (!nameInput || !emailInput || !phoneInput || !ghinInput || !saveButton) return;
+
+        // Real-time validation for all required fields
+        const validateFields = () => {
+            const isValid = this.validateMembershipFields();
+            if (isValid) {
+                saveButton.disabled = false;
+                saveButton.style.opacity = '1';
+                saveButton.style.cursor = 'pointer';
+            } else {
+                saveButton.disabled = true;
+                saveButton.style.opacity = '0.6';
+                saveButton.style.cursor = 'not-allowed';
+            }
+        };
+
+        // Validate on input changes
+        [emailInput, phoneInput, ghinInput].forEach(input => {
+            input.addEventListener('input', validateFields);
+            input.addEventListener('blur', validateFields);
+        });
+
+        // Also validate when member is selected
+        nameInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                // Check if this is a valid member selection
+                if (this.selectedMembers['modal-name']) {
+                    validateFields();
+                } else {
+                    // Show member not found error
+                    const errorElement = document.getElementById('member-not-found');
+                    if (errorElement) {
+                        errorElement.style.display = 'block';
+                    }
+                    // Clear the verified indicator
+                    const verifiedElement = document.getElementById('member-verified');
+                    if (verifiedElement) {
+                        verifiedElement.style.display = 'none';
+                    }
+                    validateFields();
+                }
+            }, 200);
+        });
+
+        // Initial validation
+        validateFields();
+    }
+
+    validateMembershipFields() {
+        // Check if a member is selected
+        const nameInput = document.getElementById('modal-name');
+        if (!nameInput || !this.selectedMembers['modal-name']) {
+            return false;
+        }
+
+        // Get the selected member
+        const selectedMember = this.selectedMembers['modal-name'];
+        
+        // Check required fields
+        const emailInput = document.getElementById('modal-email');
+        const phoneInput = document.getElementById('modal-phone');
+        const ghinInput = document.getElementById('modal-ghin');
+
+        if (!emailInput || !phoneInput || !ghinInput) return false;
+
+        // Validate email
+        const email = emailInput.value.trim();
+        if (!email) {
+            this.showFieldError('email-error', 'Email is required');
+            emailInput.style.borderColor = '#dc3545';
+            return false;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.showFieldError('email-error', 'Please enter a valid email address');
+            emailInput.style.borderColor = '#dc3545';
+            return false;
+        }
+
+        // Clear email error if valid
+        this.hideFieldError('email-error');
+        emailInput.style.borderColor = '#28a745';
+
+        // Validate phone
+        const phone = phoneInput.value.trim();
+        if (!phone) {
+            this.showFieldError('phone-error', 'Phone is required');
+            phoneInput.style.borderColor = '#dc3545';
+            return false;
+        }
+
+        // Check if phone has at least 10 digits
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length < 10) {
+            this.showFieldError('phone-error', 'Please enter a valid 10-digit phone number');
+            phoneInput.style.borderColor = '#dc3545';
+            return false;
+        }
+
+        // Clear phone error if valid
+        this.hideFieldError('phone-error');
+        phoneInput.style.borderColor = '#28a745';
+
+        // Validate GHIN
+        const ghin = ghinInput.value.trim();
+        if (!ghin) {
+            this.showFieldError('ghin-error', 'GHIN is required');
+            ghinInput.style.borderColor = '#dc3545';
+            return false;
+        }
+
+        // GHIN should be 1-8 digits
+        const ghinDigits = ghin.replace(/\D/g, '');
+        if (ghinDigits.length === 0 || ghinDigits.length > 8) {
+            this.showFieldError('ghin-error', 'GHIN must be 1-8 digits');
+            ghinInput.style.borderColor = '#dc3545';
+            return false;
+        }
+
+        // Clear GHIN error if valid
+        this.hideFieldError('ghin-error');
+        ghinInput.style.borderColor = '#28a745';
+
+        return true;
     }
 
     setupTournamentValidation() {
@@ -204,8 +345,8 @@ class MemberAutocomplete {
             clearTimeout(this.debounceTimers[inputId]);
             const value = input.value.trim();
 
-            // For Player 1 in tournament modal, require at least 2 characters
-            if (this.isTournamentModal && playerNumber === 1) {
+            // For Player 1 in tournament or membership modal, require at least 2 characters
+            if (playerNumber === 1) {
                 if (value.length < 2) {
                     this.hide(inputId);
                     
@@ -234,7 +375,7 @@ class MemberAutocomplete {
         input.addEventListener('focus', () => {
             this.currentActiveInput = inputId;
             // Clear any member not found error when user focuses
-            if (this.isTournamentModal && playerNumber === 1) {
+            if (playerNumber === 1) {
                 const errorElement = document.getElementById('member-not-found');
                 if (errorElement) {
                     errorElement.style.display = 'none';
@@ -247,8 +388,8 @@ class MemberAutocomplete {
                 if (this.currentActiveInput === inputId) {
                     this.hide(inputId);
                     
-                    // For Player 1 in tournament modal, validate member selection on blur
-                    if (this.isTournamentModal && playerNumber === 1) {
+                    // For Player 1, validate member selection on blur
+                    if (playerNumber === 1) {
                         const value = input.value.trim();
                         if (value && !this.selectedMembers[inputId]) {
                             // User typed something but didn't select from autocomplete
@@ -343,9 +484,9 @@ class MemberAutocomplete {
         if (emailField) {
             emailField.value = member.email || '';
             // Highlight if email is missing
-            if (!member.email && this.isTournamentModal && inputId === 'modal-name') {
+            if (!member.email && (this.isTournamentModal || this.isMembershipModal) && inputId === 'modal-name') {
                 emailField.style.borderColor = '#dc3545';
-                this.showFieldError('email-error', 'Email is required for tournament registration');
+                this.showFieldError('email-error', 'Email is required');
             } else if (member.email) {
                 emailField.style.borderColor = '#28a745';
                 this.hideFieldError('email-error');
@@ -355,9 +496,9 @@ class MemberAutocomplete {
         if (ghinField) {
             ghinField.value = member.ghin || '';
             // Highlight if GHIN is missing
-            if (!member.ghin && this.isTournamentModal && inputId === 'modal-name') {
+            if (!member.ghin && (this.isTournamentModal || this.isMembershipModal) && inputId === 'modal-name') {
                 ghinField.style.borderColor = '#dc3545';
-                this.showFieldError('ghin-error', 'GHIN is required for tournament registration');
+                this.showFieldError('ghin-error', 'GHIN is required');
             } else if (member.ghin) {
                 ghinField.style.borderColor = '#28a745';
                 this.hideFieldError('ghin-error');
@@ -369,13 +510,13 @@ class MemberAutocomplete {
             phoneField.value = this.formatPhone(clean);
             phoneField.style.borderColor = '#28a745';
             this.hideFieldError('phone-error');
-        } else if (this.isTournamentModal && inputId === 'modal-name') {
+        } else if ((this.isTournamentModal || this.isMembershipModal) && inputId === 'modal-name') {
             phoneField.style.borderColor = '#dc3545';
-            this.showFieldError('phone-error', 'Phone is required for tournament registration');
+            this.showFieldError('phone-error', 'Phone is required');
         }
 
-        // Show member verified indicator for tournament modal
-        if (this.isTournamentModal && inputId === 'modal-name') {
+        // Show member verified indicator
+        if (inputId === 'modal-name') {
             const verifiedElement = document.getElementById('member-verified');
             const errorElement = document.getElementById('member-not-found');
             
@@ -390,9 +531,13 @@ class MemberAutocomplete {
         this.hide(inputId);
 
         // Trigger validation check after selection
-        if (this.isTournamentModal && inputId === 'modal-name') {
+        if (inputId === 'modal-name') {
             setTimeout(() => {
-                this.validatePlayer1Fields();
+                if (this.isTournamentModal) {
+                    this.validatePlayer1Fields();
+                } else if (this.isMembershipModal) {
+                    this.validateMembershipFields();
+                }
             }, 100);
         }
     }
