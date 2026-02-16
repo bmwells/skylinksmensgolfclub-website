@@ -4,14 +4,6 @@
 
     // Base product definitions
     const PRODUCTS = {
-        'new-membership': {
-            id: 'new-membership',
-            name: 'New Membership',
-            price: 109.00,
-            type: 'membership',
-            useAutocomplete: false,
-            imageKey: 'new-membership'
-        },
         'membership-renewal': {
             id: 'membership-renewal',
             name: 'Membership Renewal',
@@ -486,7 +478,7 @@
         }, 150);
     }
 
-    // NEW FUNCTION: Update modal display based on tournament options
+    // Update modal display based on tournament options
     function updateModalBasedOnTournament() {
         if (!tournamentData) return;
         

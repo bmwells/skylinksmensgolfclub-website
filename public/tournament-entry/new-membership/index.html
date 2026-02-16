@@ -53,7 +53,7 @@
                     <div class="product-add-to-cart">
                         <div class="product-add-to-cart-layout-wrapper">                            
                             <div class="sqs-add-to-cart-button-wrapper" data-animation-role="button" style="visibility: visible;">
-                                <button id="open-member-modal" class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
+                                <button id="new-member-open-modal" class="sqs-add-to-cart-button sqs-suppress-edit-mode sqs-editable-button sqs-button-element--primary" data-dynamic-strings="">
                                     <div class="sqs-add-to-cart-button-inner">
                                         <span class="add-to-cart-text">Add To Cart</span>
                                         <span class="cart-loader"></span>
@@ -69,7 +69,7 @@
     </section>
 
     <!-- Modal placeholder - will be populated by JavaScript -->
-    <div id="member-modal-placeholder"></div>
+    <div id="new-member-modal-placeholder"></div>
 
     <!-- FOOTER INJECTION -->
     <div id="footer-placeholder"></div>
@@ -77,8 +77,8 @@
     <!-- Scripts -->
     <script src="/js/menu.js"></script>
     <script src="/js/cart.js"></script>
-    <script src="/js/product.js"></script>
     <script src="/js/cart-count.js"></script>
+    <script src="/js/new-member-modal.js"></script>
 
     <script>
         // Load header + footer on page
@@ -100,38 +100,38 @@
                 const images = await response.json();
                 const newMembershipImage = images.find(img => img.id === 'new-membership');
                 const productImg = document.getElementById('new-membership-product-image');
+                if (newMembershipImage && productImg) {
                     productImg.src = newMembershipImage.imageUrl;
                     productImg.alt = newMembershipImage.pageName || 'New Membership';
+                }
             } catch (error) {
                 console.error('Error loading product image:', error);
-                const productImg = document.getElementById('new-membership-product-image');
-
             }
         }
 
-        // Load product modal
-        fetch("/tournament-entry/member-modal.html")
+        // Load new member modal
+        fetch("/tournament-entry/new-member-modal.html")
             .then(res => {
-                if (!res.ok) throw new Error('Modal not found');
+                if (!res.ok) throw new Error('New member modal not found');
                 return res.text();
             })
             .then(html => {
-                document.getElementById("member-modal-placeholder").innerHTML = html;
-                // Re-initialize product modal after loading
-                if (typeof window.ProductModal !== 'undefined' && typeof window.ProductModal.init === 'function') {
-                    window.ProductModal.init();
+                document.getElementById("new-member-modal-placeholder").innerHTML = html;
+                // Initialize the isolated new member modal
+                if (typeof window.NewMemberModal !== 'undefined' && typeof window.NewMemberModal.init === 'function') {
+                    window.NewMemberModal.init();
                 }
             })
             .catch(error => {
-                console.warn('Product modal could not be loaded:', error);
+                console.warn('New member modal could not be loaded:', error);
                 // Simple fallback modal
                 const fallbackModal = `
-                    <div class="member-modal-backdrop" id="member-modal-backdrop" aria-hidden="true">
+                    <div class="member-modal-backdrop" id="new-member-modal-backdrop" aria-hidden="true">
                         <div class="member-modal" role="dialog" aria-modal="true">
-                            <h3>Membership Details</h3>
+                            <h3>New Membership</h3>
                             <p>Modal could not be loaded. Please refresh the page.</p>
                             <div class="actions">
-                                <button id="member-modal-cancel" class="btn ghost">Close</button>
+                                <button id="new-member-modal-cancel" class="btn ghost">Close</button>
                             </div>
                         </div>
                     </div>
@@ -143,17 +143,24 @@
                         .btn.ghost { background:transparent; border:1px solid #ddd; }
                     </style>
                 `;
-                document.getElementById("member-modal-placeholder").innerHTML = fallbackModal;
+                document.getElementById("new-member-modal-placeholder").innerHTML = fallbackModal;
+                
+                // Try to initialize anyway
+                setTimeout(() => {
+                    if (typeof window.NewMemberModal !== 'undefined' && typeof window.NewMemberModal.init === 'function') {
+                        window.NewMemberModal.init();
+                    }
+                }, 100);
             });
 
         // Initialize product detection after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing product for new membership page...');
+            console.log('DOM loaded, initializing new membership page...');
             loadProductImage();
             
             // Ensure the modal loads properly
             setTimeout(() => {
-                console.log('Product initialization complete for new membership');
+                console.log('New membership page initialization complete');
             }, 500);
         });
     </script>

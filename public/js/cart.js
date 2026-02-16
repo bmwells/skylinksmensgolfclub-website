@@ -155,7 +155,7 @@ function setupEditModalPhoneFormatting() {
             }
             
             // Allow numbers only
-            if (!/\d/.test(e.key)) {
+            if (!/\d/.test(e.key) && e.key !== '(' && e.key !== ')' && e.key !== '-' && e.key !== ' ') {
                 e.preventDefault();
             }
         });
@@ -489,7 +489,11 @@ async function renderCart() {
             let details = [];
             if (item.form.name) details.push(`Name: ${item.form.name}`);
             if (item.form.email) details.push(`Email: ${item.form.email}`);
-            if (item.form.ghin) details.push(`GHIN: ${item.form.ghin}`);
+            
+            // Only show GHIN for membership renewals (not for new memberships)
+            if (item.productId !== 'new-membership' && item.form.ghin) {
+                details.push(`GHIN: ${item.form.ghin}`);
+            }
             
             detailsDiv.textContent = details.join(' | ');
         }
@@ -562,6 +566,7 @@ function openEditModal(item, tournamentData = null) {
     if (item.type === 'tournament') {
         openTournamentEditModal(item, tournamentData);
     } else {
+        // For membership items, pass the product ID to identify type
         openMembershipEditModal(item);
     }
 }
@@ -698,6 +703,12 @@ function openMembershipEditModal(item) {
             modalContainer.innerHTML = html;
             document.body.appendChild(modalContainer);
             
+            // Determine membership type from product ID
+            const membershipType = item.productId || 'membership-renewal'; // Default to renewal
+            
+            // Configure GHIN field based on membership type
+            configureGHINField(membershipType, item);
+            
             // Fill form values
             document.getElementById("modal-name").value = item.form.name || "";
             document.getElementById("modal-email").value = item.form.email || "";
@@ -706,7 +717,11 @@ function openMembershipEditModal(item) {
             const phoneValue = item.form.phone || "";
             document.getElementById("modal-phone").value = formatPhoneNumber(phoneValue);
             
-            document.getElementById("modal-ghin").value = item.form.ghin || "";
+            // Only set GHIN value if field exists (it will for renewals)
+            const ghinInput = document.getElementById("modal-ghin");
+            if (ghinInput && item.form.ghin) {
+                ghinInput.value = item.form.ghin;
+            }
             
             // Setup phone formatting AFTER values are set
             setTimeout(() => {
@@ -715,7 +730,7 @@ function openMembershipEditModal(item) {
             }, 50);
             
             // Initialize autocomplete for membership renewal only
-            if (item.id === 'membership-renewal' && typeof initMemberAutocomplete === 'function') {
+            if (membershipType === 'membership-renewal' && typeof initMemberAutocomplete === 'function') {
                 setTimeout(() => initMemberAutocomplete(), 100);
             }
             
@@ -726,8 +741,51 @@ function openMembershipEditModal(item) {
             bindEditModalEvents();
         })
         .catch(error => {
+            console.error('Error loading edit modal:', error);
             openSimpleEditModal(item);
         });
+}
+
+// Helper function to configure GHIN field based on membership type
+function configureGHINField(membershipType, item) {
+    const ghinRow = document.getElementById('ghin-row');
+    const ghinInput = document.getElementById('modal-ghin');
+    const ghinLabel = document.getElementById('ghin-label');
+    const ghinHint = document.getElementById('ghin-hint');
+    const membershipBadge = document.getElementById('membership-type-badge');
+    
+    if (!ghinRow || !ghinInput) return;
+    
+    if (membershipType === 'new-membership') {
+        // New membership - hide GHIN field (not required)
+        ghinRow.style.display = 'none';
+        ghinInput.required = false;
+        if (membershipBadge) {
+            membershipBadge.textContent = 'New Membership';
+            membershipBadge.style.backgroundColor = '#e3f2fd';
+            membershipBadge.style.color = '#1976d2';
+        }
+        
+        // Show hint that GHIN is not required
+        if (ghinHint) {
+            ghinHint.style.display = 'block';
+            ghinHint.textContent = 'GHIN is not required for new memberships';
+        }
+    } else {
+        // Membership renewal - show GHIN field (required)
+        ghinRow.style.display = 'flex';
+        ghinInput.required = true;
+        if (membershipBadge) {
+            membershipBadge.textContent = 'Renewal';
+            membershipBadge.style.backgroundColor = '#fff3e0';
+            membershipBadge.style.color = '#ed6c02';
+        }
+        
+        // Hide hint
+        if (ghinHint) {
+            ghinHint.style.display = 'none';
+        }
+    }
 }
 
 function openSimpleEditModal(item) {
@@ -874,10 +932,10 @@ function saveTournamentEditModal() {
         // Get additional players
         const additionalPlayers = [];
         for (let i = 2; i <= 4; i++) {
-            const name = document.getElementById(`modal-name${i}`).value;
-            if (name) {
+            const nameInput = document.getElementById(`modal-name${i}`);
+            if (nameInput && nameInput.value) {
                 additionalPlayers.push({
-                    name: name,
+                    name: nameInput.value,
                     email: document.getElementById(`modal-email${i}`).value,
                     phone: document.getElementById(`modal-phone${i}`).value,
                     ghin: document.getElementById(`modal-ghin${i}`).value
@@ -922,12 +980,28 @@ function saveTournamentEditModal() {
 }
 
 function saveMembershipEditModal() {
+    const ghinInput = document.getElementById("modal-ghin");
+    const membershipBadge = document.getElementById('membership-type-badge');
+    const membershipType = membershipBadge ? 
+        (membershipBadge.textContent === 'New Membership' ? 'new-membership' : 'membership-renewal') : 
+        'membership-renewal';
+    
     const updatedForm = {
         name: document.getElementById("modal-name").value,
         email: document.getElementById("modal-email").value,
         phone: document.getElementById("modal-phone").value,
-        ghin: document.getElementById("modal-ghin").value,
     };
+    
+    // Only include GHIN for membership renewals
+    if (membershipType === 'membership-renewal' && ghinInput) {
+        // For renewals, GHIN is required
+        if (!ghinInput.value.trim()) {
+            alert('GHIN number is required for membership renewal');
+            return;
+        }
+        updatedForm.ghin = ghinInput.value;
+    }
+    // For new memberships, don't include GHIN at all
 
     updateCartItem(editingItemId, { form: updatedForm });
     closeEditModal();
@@ -960,7 +1034,7 @@ document.addEventListener("cartUpdated", () => {
 });
 
 /* ============================================================
-   Enhanced Stripe Checkout Handler - DO NOT CLEAR CART HERE
+   Enhanced Stripe Checkout Handler
    ============================================================ */
 document.addEventListener("DOMContentLoaded", () => {
     const checkoutButton = document.getElementById("checkout-button");

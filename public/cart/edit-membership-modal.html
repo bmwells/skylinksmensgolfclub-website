@@ -96,13 +96,27 @@
             font-size: 0.85rem;
             margin-top: 5px;
         }
+        
+        /* Membership type indicator */
+        .membership-type-badge {
+            background-color: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #666;
+            margin-left: 10px;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
     <div class="edit-modal-backdrop" id="edit-modal">
         <div class="edit-modal" role="dialog" aria-modal="true">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
-                <h3 style="margin:0;">Edit Membership Details</h3>
+                <h3 style="margin:0;">
+                    Edit Membership Details
+                    <span id="membership-type-badge" class="membership-type-badge"></span>
+                </h3>
                 <button id="modal-close" style="background:transparent; border:none; font-size:24px; cursor:pointer; color: #666;">×</button>
             </div>
             
@@ -126,10 +140,14 @@
                 </div>
             </div>
 
-            <div class="row">
+            <!-- GHIN Row - Will be shown/hidden based on membership type -->
+            <div class="row" id="ghin-row">
                 <div class="col">
-                    <label for="modal-ghin">GHIN Number *</label>
-                    <input id="modal-ghin" required maxlength="8" pattern="\d{1,8}" />
+                    <label for="modal-ghin" id="ghin-label">GHIN Number *</label>
+                    <input id="modal-ghin" maxlength="8" pattern="\d{1,8}" />
+                    <div class="field-hint" id="ghin-hint" style="display: none; color: #666; font-size: 0.85rem; margin-top: 5px;">
+                        GHIN is not required for new memberships
+                    </div>
                 </div>
             </div>
             
@@ -193,7 +211,7 @@
                     }
                     
                     // Allow numbers only
-                    if (!/\d/.test(e.key)) {
+                    if (!/\d/.test(e.key) && e.key !== '(' && e.key !== ')' && e.key !== '-' && e.key !== ' ') {
                         e.preventDefault();
                     }
                 });
@@ -202,31 +220,31 @@
 
         // GHIN formatting function - limit to 8 digits only
         function setupGHINFormatting() {
-            const ghinInputs = document.querySelectorAll('input[id*="ghin"]');
-            ghinInputs.forEach(input => {
-                // Format existing value on load - remove non-numeric and limit to 8
-                if (input.value) {
-                    input.value = input.value.replace(/\D/g, '').slice(0, 8);
+            const ghinInput = document.getElementById('modal-ghin');
+            if (!ghinInput) return;
+            
+            // Format existing value on load - remove non-numeric and limit to 8
+            if (ghinInput.value) {
+                ghinInput.value = ghinInput.value.replace(/\D/g, '').slice(0, 8);
+            }
+            
+            // Add input event listener for real-time formatting
+            ghinInput.addEventListener('input', function(e) {
+                // Remove non-numeric characters and limit to 8 digits
+                this.value = this.value.replace(/\D/g, '').slice(0, 8);
+            });
+            
+            // Only allow numbers and navigation keys
+            ghinInput.addEventListener('keydown', function(e) {
+                // Allow navigation keys, delete, backspace, tab
+                if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
+                    return;
                 }
                 
-                // Add input event listener for real-time formatting
-                input.addEventListener('input', function(e) {
-                    // Remove non-numeric characters and limit to 8 digits
-                    this.value = this.value.replace(/\D/g, '').slice(0, 8);
-                });
-                
-                // Only allow numbers and navigation keys
-                input.addEventListener('keydown', function(e) {
-                    // Allow navigation keys, delete, backspace, tab
-                    if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
-                        return;
-                    }
-                    
-                    // Allow numbers only
-                    if (!/\d/.test(e.key)) {
-                        e.preventDefault();
-                    }
-                });
+                // Allow numbers only
+                if (!/\d/.test(e.key)) {
+                    e.preventDefault();
+                }
             });
         }
         
@@ -339,11 +357,46 @@
             });
         }
 
+        // Function to configure GHIN field based on membership type
+        function configureGHINField(membershipType) {
+            const ghinRow = document.getElementById('ghin-row');
+            const ghinInput = document.getElementById('modal-ghin');
+            const ghinLabel = document.getElementById('ghin-label');
+            const ghinHint = document.getElementById('ghin-hint');
+            const membershipBadge = document.getElementById('membership-type-badge');
+            
+            if (!ghinRow || !ghinInput || !ghinLabel) return;
+            
+            if (membershipType === 'new-membership') {
+                // New membership - hide GHIN field (not required)
+                ghinRow.style.display = 'none';
+                ghinInput.required = false;
+                if (membershipBadge) {
+                    membershipBadge.textContent = 'New Membership';
+                }
+            } else {
+                // Membership renewal - show GHIN field (required)
+                ghinRow.style.display = 'flex';
+                ghinInput.required = true;
+                if (membershipBadge) {
+                    membershipBadge.textContent = 'Renewal';
+                }
+            }
+            
+            // Show/hide hint
+            if (ghinHint) {
+                ghinHint.style.display = membershipType === 'new-membership' ? 'block' : 'none';
+            }
+        }
+
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             setupPhoneFormatting();
             setupGHINFormatting();
             setupEditModalNameValidation();
+            
+            // Check URL or data attribute to determine membership type
+            // This will be set when opening the modal
         });
     </script>
 </body>
