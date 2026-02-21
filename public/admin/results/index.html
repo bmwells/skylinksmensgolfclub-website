@@ -31,28 +31,49 @@ function init() {
 
 function loadResults() {
     AdminCommon.load().then(() => {
-        // Sort results by month and day (most recent first)
-        sortResultsByDate();
+        // Sort results by date (most recent first - DESCENDING)
+        sortResultsByDateDescending();
         render();
     }).catch(err => {
         alert('Error loading results: ' + err.message);
     });
 }
 
-function sortResultsByDate() {
-    // Sort results by month and day (most recent first)
+function sortResultsByDateDescending() {
+    // Sort results by date (most recent first - DESCENDING)
     AdminCommon.data.sort((a, b) => {
-        const dateA = createDateFromMonthDay(a.month, a.day);
-        const dateB = createDateFromMonthDay(b.month, b.day);
+        const dateA = parseDateFromResult(a);
+        const dateB = parseDateFromResult(b);
         
         // Sort descending (most recent first)
         return dateB - dateA;
     });
 }
 
-function createDateFromMonthDay(month, day) {
-    const monthAbbr = month ? month.substring(0, 3).toLowerCase() : '';
-    const dayNum = parseInt(day) || 1;
+function parseDateFromResult(result) {
+    // Extract year from dateText
+    let year = new Date().getFullYear(); // Default to current year
+    
+    if (result.dateText) {
+        // Look for 4-digit year in dateText
+        const yearMatch = result.dateText.match(/\b(20\d{2})\b/);
+        if (yearMatch) {
+            year = parseInt(yearMatch[1]);
+        }
+    }
+    
+    // Get month and day
+    const monthAbbr = result.month ? result.month.substring(0, 3).toLowerCase() : '';
+    const dayText = result.day || '1';
+    
+    // Handle date ranges (e.g., "16-17")
+    let day = 1;
+    if (dayText.includes('-')) {
+        // If it's a range, use the first day
+        day = parseInt(dayText.split('-')[0]) || 1;
+    } else {
+        day = parseInt(dayText) || 1;
+    }
     
     // Month mapping (3-letter abbreviations)
     const monthMap = {
@@ -61,10 +82,9 @@ function createDateFromMonthDay(month, day) {
     };
     
     const monthIndex = monthMap[monthAbbr] !== undefined ? monthMap[monthAbbr] : 0;
-    const currentYear = new Date().getFullYear();
     
-    // Create a date with current year (for sorting purposes only)
-    return new Date(currentYear, monthIndex, dayNum);
+    // Create date object for comparison
+    return new Date(year, monthIndex, day);
 }
 
 function render() {
@@ -91,7 +111,7 @@ function render() {
                     ${AdminCommon.templates.textInput('Month (3 letters)', r.month, `updateResult(${i}, 'month', this.value)`, 'e.g., Oct', '')}
                 </div>
                 <div style="flex: 1;">
-                    ${AdminCommon.templates.textInput('Day', r.day, `updateResult(${i}, 'day', this.value)`, 'e.g., 18', '')}
+                    ${AdminCommon.templates.textInput('Day', r.day, `updateResult(${i}, 'day', this.value)`, 'e.g., 18 or 16-17 for ranges', '')}
                 </div>
             `) +
             AdminCommon.templates.textInput('Image URL', r.image, `updateResult(${i}, 'image', this.value)`, 'https://example.com/image.jpg') +
@@ -104,9 +124,9 @@ function render() {
 
 function updateResult(index, field, value) {
     AdminCommon.updateItem(index, field, value);
-    // Resort after update if date-related field was changed
-    if (field === 'month' || field === 'day') {
-        sortResultsByDate();
+    // Resort after update if any date-related field was changed
+    if (field === 'month' || field === 'day' || field === 'dateText') {
+        sortResultsByDateDescending();
         render();
     }
 }

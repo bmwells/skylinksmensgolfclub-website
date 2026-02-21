@@ -78,37 +78,55 @@
             document.querySelectorAll('.event-details')[index].classList.toggle('expanded');
         }
 
-        // Function to sort results by month and day (most recent first)
-        function sortResultsByDate(results) {
+        // Function to parse date from result object
+        function parseDateFromResult(result) {
+            // Extract year from dateText
+            let year = new Date().getFullYear(); // Default to current year
+            
+            if (result.dateText) {
+                // Look for 4-digit year in dateText
+                const yearMatch = result.dateText.match(/\b(20\d{2})\b/);
+                if (yearMatch) {
+                    year = parseInt(yearMatch[1]);
+                }
+            }
+            
+            // Get month and day
+            const monthAbbr = result.month ? result.month.substring(0, 3).toLowerCase() : '';
+            const dayText = result.day || '1';
+            
+            // Handle date ranges (e.g., "16-17")
+            let day = 1;
+            if (dayText.includes('-')) {
+                // If it's a range, use the first day for sorting
+                day = parseInt(dayText.split('-')[0]) || 1;
+            } else {
+                day = parseInt(dayText) || 1;
+            }
+            
+            // Month mapping (3-letter abbreviations)
+            const monthMap = {
+                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+            };
+            
+            const monthIndex = monthMap[monthAbbr] !== undefined ? monthMap[monthAbbr] : 0;
+            
+            // Create date object for comparison
+            return new Date(year, monthIndex, day);
+        }
+
+        // Function to sort results by date (most recent first - DESCENDING)
+        function sortResultsByDateDescending(results) {
             // Create a copy to avoid mutating the original array
             const sortedResults = [...results];
             
-            // Month mapping for sorting (3-letter abbreviations)
-            const monthOrder = {
-                'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-                'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
-            };
-            
             sortedResults.sort((a, b) => {
-                // Get month abbreviations (first 3 letters, lowercase)
-                const monthA = a.month ? a.month.substring(0, 3).toLowerCase() : '';
-                const monthB = b.month ? b.month.substring(0, 3).toLowerCase() : '';
+                const dateA = parseDateFromResult(a);
+                const dateB = parseDateFromResult(b);
                 
-                // Get day numbers
-                const dayA = parseInt(a.day) || 0;
-                const dayB = parseInt(b.day) || 0;
-                
-                // Get month order numbers
-                const monthOrderA = monthOrder[monthA] || 0;
-                const monthOrderB = monthOrder[monthB] || 0;
-                
-                // If same month, compare by day (higher day = more recent)
-                if (monthOrderA === monthOrderB) {
-                    return dayB - dayA; // Descending day order
-                }
-                
-                // Compare by month order (descending - higher month number = more recent)
-                return monthOrderB - monthOrderA;
+                // Sort descending (most recent first)
+                return dateB - dateA;
             });
             
             return sortedResults;
@@ -117,8 +135,8 @@
         fetch('/api/results')
             .then(res => res.json())
             .then(results => {
-                // Sort the results before displaying
-                const sortedResults = sortResultsByDate(results);
+                // Sort the results with most recent first (considering year)
+                const sortedResults = sortResultsByDateDescending(results);
                 
                 const list = document.querySelector('.event-list');
                 list.innerHTML = '';
