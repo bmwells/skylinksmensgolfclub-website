@@ -1,6 +1,110 @@
 // server/stripeWebhook.js
 const { connectDB } = require('../db');
 const { ObjectId } = require('mongodb');
+const nodemailer = require('nodemailer');
+
+// Create reusable transporter object using Gmail
+const createTransporter = () => {
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD
+        }
+    });
+};
+
+// Function to send admin notification email for new membership
+async function sendAdminMembershipNotification(memberData, session) {
+    try {
+        const mailOptions = {
+            from: process.env.GMAIL_USER,
+            to: process.env.GMAIL_USER, // Only sending to yourself (admin)
+            subject: `NEW MEMBERSHIP PURCHASED - #${memberData.entryNum} - ${memberData.firstName} ${memberData.lastName}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #2a5c3d 0%, #1e7b4b 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">New Membership Purchase</h1>
+                        <p style="color: #e0e0e0; margin: 10px 0 0;">Skylinks Men's Golf Club</p>
+                    </div>
+                    
+                    <div style="background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+                        <h2 style="color: #2a5c3d; margin-top: 0;">Member Details</h2>
+                        
+                        <div style="background: white; padding: 20px; border-radius: 8px; margin: 25px 0; border: 1px solid #2a5c3d; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="color: #2a5c3d; margin-top: 0; border-bottom: 2px solid #2a5c3d; padding-bottom: 10px;">Membership Information</h3>
+                            
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 10px 0; width: 40%; color: #666;"><strong>Entry Number:</strong></td>
+                                    <td style="padding: 10px 0;"><span style="background: #2a5c3d; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">#${memberData.entryNum}</span></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>Full Name:</strong></td>
+                                    <td style="padding: 10px 0;">${memberData.firstName} ${memberData.lastName}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>Email:</strong></td>
+                                    <td style="padding: 10px 0;"><a href="mailto:${memberData.email}" style="color: #2a5c3d;">${memberData.email}</a></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>Phone:</strong></td>
+                                    <td style="padding: 10px 0;">${memberData.phoneNum || 'Not provided'}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>GHIN Number:</strong></td>
+                                    <td style="padding: 10px 0;">${memberData.ghin || 'Not provided'}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>Membership Type:</strong></td>
+                                    <td style="padding: 10px 0;">${memberData.membershipType}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>Payment Date:</strong></td>
+                                    <td style="padding: 10px 0;">${new Date(memberData.membershipPaidDate).toLocaleDateString()} at ${new Date(memberData.membershipPaidDate).toLocaleTimeString()}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>Payment Status:</strong></td>
+                                    <td style="padding: 10px 0;"><span style="background: #4CAF50; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;">PAID</span></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #666;"><strong>Stripe Session ID:</strong></td>
+                                    <td style="padding: 10px 0;"><code style="background: #f0f0f0; padding: 3px 6px; border-radius: 3px;">${memberData.stripeSessionId}</code></td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <h4 style="color: #2a5c3d; margin: 0 0 10px;">📋 Summary</h4>
+                            <p style="margin: 5px 0;"><strong>Action:</strong> ${memberData.membershipType.includes('Renewal') ? 'Membership Renewal' : 'New Member Registration'}</p>
+                            <p style="margin: 5px 0;"><strong>Member since:</strong> ${new Date(memberData.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        
+                        <hr style="border: 1px solid #e0e0e0; margin: 30px 0;">
+                        
+                        <p style="font-size: 14px; color: #666; line-height: 1.5;">
+                            This is an automated notification from the Skylinks Men's Golf Club website.<br>
+                            <strong>No action required</strong> - this membership has been automatically processed and recorded.
+                        </p>
+                        
+                        <p style="font-size: 12px; color: #999; margin-top: 30px; text-align: center;">
+                            © ${new Date().getFullYear()} Skylinks Men's Golf Club<br>
+                            ${new Date().toLocaleString()}
+                        </p>
+                    </div>
+                </div>
+            `
+        };
+        
+        const transporter = createTransporter();
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✅ Admin notification email sent for member #${memberData.entryNum}, Message ID: ${info.messageId}`);
+        
+    } catch (error) {
+        console.error('❌ Error sending admin notification email:', error);
+        // Don't throw - we don't want to fail the webhook if email fails
+    }
+}
 
 async function handleCompletedPayment(session) {
     try {
@@ -316,6 +420,18 @@ async function handleCompletedPayment(session) {
                                 { _id: existingMember._id },
                                 { $set: updates }
                             );
+                            console.log(`✅ Updated existing member: ${fullName}`);
+                            
+                            // Send admin notification for membership renewal/update
+                            await sendAdminMembershipNotification({
+                                ...existingMember,
+                                ...updates,
+                                email: email,
+                                membershipType: metadata[`item_${i}_name`] || 'Membership Renewal',
+                                stripeSessionId: session.id,
+                                membershipPaidDate: new Date(session.created * 1000),
+                                createdAt: existingMember.createdAt
+                            }, session);
                         }
                         
                         continue; // Skip creating new member
@@ -348,6 +464,12 @@ async function handleCompletedPayment(session) {
                     const result = await membersCollection.insertOne(newMember);
                     
                     console.log(`✅ New member created with ID: ${result.insertedId}`);
+                    
+                    // Send admin notification for new member
+                    await sendAdminMembershipNotification({
+                        ...newMember,
+                        _id: result.insertedId
+                    }, session);
                     
                 } catch (error) {
                     console.error('❌ ERROR processing membership purchase:', error);
