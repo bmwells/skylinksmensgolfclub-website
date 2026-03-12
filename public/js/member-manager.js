@@ -219,7 +219,7 @@ function render() {
         
         <div class="compact-input">
           <label>Handicap Index</label>
-          <input value="${AdminCommon.escapeHtml(member.index || '')}" oninput="updateMember(${memberIndex}, 'index', this.value)" placeholder="12.4">
+          <input value="${AdminCommon.escapeHtml(member.index || '')}" oninput="updateMember(${memberIndex}, 'index', this.value)" placeholder="">
         </div>
         
         <div class="compact-input">
