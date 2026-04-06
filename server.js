@@ -189,6 +189,114 @@ app.use('/api', genericRoutes);
 app.use('/api', contactRoutes);
 
 // --------------------
+// FIX: Explicit route for join-the-club
+// --------------------
+app.get('/api/join-the-club', async (req, res) => {
+    try {
+        const { readData } = require('./db');
+        const data = await readData('join-the-club');
+        
+        // Ensure the response has the expected structure
+        if (!data || Object.keys(data).length === 0) {
+            // Return default structure if no data exists
+            return res.json({
+                joinTheClub: {
+                    hero: {
+                        eyebrow: "Join Today",
+                        title: "Become Part of *Skylinks*",
+                        tagline: "Experience championship golf, build lasting friendships, and compete in exciting events throughout the season.",
+                        ctaText: "Explore Membership",
+                        ctaUrl: "/tournament-entry/new-membership"
+                    },
+                    about: {
+                        label: "About Our Club",
+                        title: "More Than Just Golf",
+                        paragraphs: [
+                            "Skylinks Men's Golf Club has been bringing together golf enthusiasts for over 30 years. Our members enjoy access to one of Southern California's premier municipal courses, along with a vibrant community of golfers who share a passion for the game.",
+                            "Whether you're a scratch golfer or just starting out, you'll find a welcoming environment and opportunities to improve your game while creating lasting memories."
+                        ],
+                        stats: [
+                            { number: "30+", label: "Years Established" },
+                            { number: "200+", label: "Active Members" },
+                            { number: "25+", label: "Annual Events" }
+                        ]
+                    },
+                    benefits: {
+                        label: "Member Benefits",
+                        title: "Why Join Skylinks?",
+                        intro: "Our members enjoy exclusive benefits and opportunities throughout the year.",
+                        items: [
+                            {
+                                icon: "🏌️",
+                                title: "Tournament Access",
+                                description: "Participate in club championships, monthly events, and special tournaments.",
+                                highlight: "25+ events yearly"
+                            },
+                            {
+                                icon: "📊",
+                                title: "GHIN Handicap",
+                                description: "Official USGA handicap tracking included with membership.",
+                                highlight: "Included"
+                            },
+                            {
+                                icon: "🤝",
+                                title: "Community",
+                                description: "Connect with fellow golfers at social events and weekly games.",
+                                highlight: "200+ members"
+                            },
+                            {
+                                icon: "🏆",
+                                title: "Awards & Recognition",
+                                description: "Compete for club trophies and year-end honors.",
+                                highlight: "Annual banquet"
+                            }
+                        ]
+                    },
+                    howToJoin: {
+                        label: "Simple Process",
+                        title: "How to Join",
+                        intro: "Becoming a member is easy. Follow these simple steps to start your journey with Skylinks.",
+                        steps: [
+                            {
+                                number: "01",
+                                title: "Choose Your Membership",
+                                description: "Select between New Membership or Membership Renewal options."
+                            },
+                            {
+                                number: "02",
+                                title: "Complete Registration",
+                                description: "Fill out your personal information and golf preferences."
+                            },
+                            {
+                                number: "03",
+                                title: "Submit Payment",
+                                description: "Pay securely online to activate your membership."
+                            }
+                        ]
+                    },
+                    cta: {
+                        title: "Ready to Join?",
+                        description: "Start your membership application today and become part of the Skylinks community.",
+                        buttonText: "Join Now",
+                        buttonUrl: "/tournament-entry/new-membership"
+                    }
+                }
+            });
+        }
+        
+        // If data exists but doesn't have joinTheClub wrapper, add it
+        if (!data.joinTheClub && data.hero) {
+            return res.json({ joinTheClub: data });
+        }
+        
+        res.json(data);
+    } catch (error) {
+        console.error('Error fetching join-the-club data:', error);
+        res.status(500).json({ error: 'Failed to load join the club content' });
+    }
+});
+
+// --------------------
 // HEALTH CHECK ENDPOINT
 // --------------------
 app.get('/api/health', async (req, res) => {
@@ -467,6 +575,7 @@ if (isLocal) {
         console.log(`  New Membership: http://localhost:${PORT}/tournament-entry/new-membership`);
         console.log(`  Tournament Details (example): http://localhost:${PORT}/tournament-entry/tournament123`);
         console.log(`\nAPI: http://localhost:${PORT}/api/health`);
+        console.log(`  Join Club API: http://localhost:${PORT}/api/join-the-club`);
         console.log(`Debug: http://localhost:${PORT}/api/debug/files`);
         console.log(`Env Check: http://localhost:${PORT}/api/check-env`);
         console.log(`Webhook Test: http://localhost:${PORT}/api/webhook-test`);

@@ -18,6 +18,7 @@ const ARRAY_COLLECTIONS = new Set([
 // Collections that store ONE document (object semantics)
 const SINGLE_DOC_COLLECTIONS = new Set([
     'who-we-are',
+    'join-the-club',
     'presidents-letter'
 ]);
 

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <title>Join the Club - Skylinks Men's Golf Club</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+        :root {
+            --green-deep: #1a3a2a;
+            --green-mid: #2d5a3d;
+            --green-light: #4a8c5c;
+            --gold: #c9a84c;
+            --gold-light: #e8c870;
+            --cream: #f7f3eb;
+            --text-dark: #1a2218;
+            --text-mid: #3d4f38;
+            --text-light: #6b7f65;
+            --white: #ffffff;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .page-wrapper {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+       /* Hero Section - Full Width */
+        .hero {
+            background: var(--green-deep);
+            padding: 60px 5% 50px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            min-height: auto;
+            height: auto;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 50% at 85% 50%, rgba(201,168,76,0.12) 0%, transparent 70%),
+                        radial-gradient(ellipse 40% 60% at 10% 80%, rgba(74,140,92,0.18) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-eyebrow {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.2;
+            position: relative;
+            margin-bottom: 16px;
+            max-width: 700px;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--gold-light);
+        }
+
+        .hero-tagline {
+            font-size: clamp(15px, 1.8vw, 17px);
+            font-weight: 300;
+            color: rgba(255,255,255,0.78);
+            line-height: 1.5;
+            max-width: 600px;
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--green-deep);
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.04em;
+            padding: 12px 28px;
+            text-decoration: none;
+            position: relative;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .hero-cta:hover {
+            background: var(--gold-light);
+            transform: translateY(-1px);
+        }
+
+        .divider-bar {
+            height: 5px;
+            background: linear-gradient(90deg, var(--gold) 0%, var(--green-light) 60%, var(--green-deep) 100%);
+            width: 100%;
+        }
+        
+        /* About Section - Full Width */
+        .about {
+            padding: 70px 5% 60px;
+            background: var(--white);
+            width: 100%;
+        }
+        
+        .about-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--green-light);
+            margin-bottom: 12px;
+        }
+        
+        .about h2, .benefits h2, .how-to-join h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(28px, 4vw, 34px);
+            font-weight: 600;
+            color: var(--green-deep);
+            line-height: 1.22;
+            margin-bottom: 22px;
+            max-width: 800px;
+        }
+        
+        .about p {
+            font-size: 16.5px;
+            line-height: 1.75;
+            color: var(--text-mid);
+            max-width: 800px;
+            margin-bottom: 18px;
+        }
+        
+        .stat-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0;
+            margin-top: 36px;
+            border-top: 1px solid rgba(74,140,92,0.15);
+            border-bottom: 1px solid rgba(74,140,92,0.15);
+        }
+        
+        .stat {
+            flex: 1;
+            min-width: 150px;
+            padding: 22px 24px;
+            border-right: 1px solid rgba(74,140,92,0.15);
+        }
+        
+        .stat:last-child {
+            border-right: none;
+        }
+        
+        .stat-num {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--green-deep);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .stat-desc {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+        
+        /* Benefits Section - Full Width */
+        .benefits {
+            padding: 70px 5% 80px;
+            background: var(--cream);
+            width: 100%;
+        }
+        
+        .benefits-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .benefits h2 {
+            margin-bottom: 8px;
+            color: var(--green-deep);
+        }
+        
+        .benefits .intro {
+            font-size: 16.5px;
+            color: var(--text-mid);
+            margin-bottom: 48px;
+            max-width: 800px;
+            line-height: 1.65;
+        }
+        
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        
+        .benefit-card {
+            background: var(--white);
+            padding: 32px 28px 30px;
+            border-left: 3px solid var(--gold);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .benefit-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .benefit-card h3 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--green-deep);
+            margin-bottom: 12px;
+        }
+        
+        .benefit-card p {
+            font-size: 15px;
+            line-height: 1.68;
+            color: var(--text-mid);
+            flex-grow: 1;
+            margin-bottom: 16px;
+        }
+        
+        .benefit-card .highlight {
+            display: inline-block;
+            background: var(--green-deep);
+            color: var(--gold-light);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            padding: 5px 12px;
+            margin-top: auto;
+            align-self: flex-start;
+        }
+        
+        /* How To Join Section - Full Width */
+        .how-to-join {
+            padding: 70px 5% 80px;
+            background: var(--green-deep);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .how-to-join::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 50% 70% at 90% 20%, rgba(201,168,76,0.1) 0%, transparent 60%);
+        }
+        
+        .how-to-join-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .how-to-join .section-label {
+            color: var(--gold);
+            position: relative;
+        }
+        
+        .how-to-join h2 {
+            color: var(--white);
+            margin-bottom: 14px;
+            position: relative;
+        }
+        
+        .how-to-join .intro {
+            font-size: 16.5px;
+            color: rgba(255,255,255,0.72);
+            line-height: 1.65;
+            max-width: 800px;
+            margin-bottom: 48px;
+            position: relative;
+        }
+        
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            max-width: 800px;
+            position: relative;
+        }
+        
+        .step {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+        }
+        
+        .step-num {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(32px, 4vw, 38px);
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1;
+            min-width: 60px;
+            opacity: 0.9;
+        }
+        
+        .step-body h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 8px;
+            letter-spacing: 0.01em;
+        }
+        
+        .step-body p {
+            font-size: 15px;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.6;
+        }
+        
+        /* CTA Section - Full Width */
+        .cta-block {
+            background: var(--gold);
+            padding: 70px 5% 80px;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .cta-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .cta-block h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(28px, 4vw, 36px);
+            font-weight: 700;
+            color: var(--green-deep);
+            margin-bottom: 16px;
+        }
+        
+        .cta-block p {
+            font-size: 18px;
+            color: rgba(26,58,42,0.85);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .cta-main {
+            display: inline-block;
+            background: var(--green-deep);
+            color: var(--white);
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.05em;
+            padding: 16px 40px;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.15s;
+        }
+        
+        .cta-main:hover {
+            background: var(--green-mid);
+            transform: translateY(-1px);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 5% 50px;
+            }
+            
+            .about, .benefits, .how-to-join {
+                padding: 50px 5% 60px;
+            }
+            
+            .stat-row {
+                flex-direction: column;
+            }
+            
+            .stat {
+                border-right: none;
+                border-bottom: 1px solid rgba(74,140,92,0.15);
+                text-align: center;
+            }
+            
+            .stat:last-child {
+                border-bottom: none;
+            }
+            
+            .benefit-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .step {
+                gap: 16px;
+                padding: 20px 0;
+            }
+            
+            .step-num {
+                min-width: 45px;
+                font-size: 32px;
+            }
+            
+            .step-body h3 {
+                font-size: 16px;
+            }
+            
+            .cta-block {
+                padding: 50px 5% 60px;
+            }
+            
+            .cta-block p {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .about h2, .benefits h2, .how-to-join h2 {
+                font-size: 28px;
+            }
+            
+            .benefit-card {
+                padding: 24px 20px;
+            }
+            
+            .step {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .step-num {
+                margin-bottom: 4px;
+            }
+            
+            .cta-main {
+                padding: 14px 32px;
+                font-size: 15px;
+            }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 80px 20px;
+            font-size: 18px;
+            color: var(--text-mid);
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 80px 20px;
+            font-size: 18px;
+            color: #c0392b;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER INJECTION -->
+    <div id="header-placeholder"></div>
+
+    <!-- Dynamic Content -->
+    <div id="dynamic-content">
+        <div class="loading">Loading content...</div>
+    </div>
+
+    <!-- FOOTER INJECTION -->
+    <div id="footer-placeholder"></div>
+
+    <script src="/js/menu.js"></script>
+    <script src="/js/cart-count.js"></script>
+
+    <script>
+        // Load header + footer
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("header-placeholder").innerHTML = html;
+                if (typeof initMenu === 'function') initMenu();
+            })
+            .catch(err => console.error('Header load error:', err));
+
+        fetch("/footer.html")
+            .then(res => res.text())
+            .then(html => document.getElementById("footer-placeholder").innerHTML = html)
+            .catch(err => console.error('Footer load error:', err));
+
+        // Load join the club content from API
+        async function loadJoinTheClubContent() {
+            const container = document.getElementById('dynamic-content');
+            
+            try {
+                const response = await fetch('/api/join-the-club');
+                const data = await response.json();
+                
+                // Extract joinTheClub data
+                const jtc = data.joinTheClub || data || {};
+                
+                // Build HTML with full-width structure
+                let html = '<div class="page-wrapper">';
+                
+                // Hero Section
+                if (jtc.hero && (jtc.hero.eyebrow || jtc.hero.title || jtc.hero.tagline)) {
+                    html += `
+                        <section class="hero">
+                            <div class="hero-content">
+                                ${jtc.hero.eyebrow ? `<p class="hero-eyebrow">${escapeHtml(jtc.hero.eyebrow)}</p>` : ''}
+                                ${jtc.hero.title ? `<h1>${escapeHtml(jtc.hero.title).replace(/\*(.*?)\*/g, '<em>$1</em>')}</h1>` : ''}
+                                ${jtc.hero.tagline ? `<p class="hero-tagline">${escapeHtml(jtc.hero.tagline)}</p>` : ''}
+                                ${jtc.hero.ctaText && jtc.hero.ctaUrl ? `<a href="${escapeHtml(jtc.hero.ctaUrl)}" class="hero-cta">${escapeHtml(jtc.hero.ctaText)}</a>` : ''}
+                            </div>
+                        </section>
+                        <div class="divider-bar"></div>
+                    `;
+                }
+                
+                // About Section
+                if (jtc.about && (jtc.about.label || jtc.about.title || (jtc.about.paragraphs && jtc.about.paragraphs.length) || (jtc.about.stats && jtc.about.stats.length))) {
+                    html += `<section class="about">
+                        <div class="about-content">
+                            ${jtc.about.label ? `<p class="section-label">${escapeHtml(jtc.about.label)}</p>` : ''}
+                            ${jtc.about.title ? `<h2>${escapeHtml(jtc.about.title)}</h2>` : ''}
+                            ${jtc.about.paragraphs && jtc.about.paragraphs.length ? jtc.about.paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('') : ''}
+                            ${jtc.about.stats && jtc.about.stats.length ? `<div class="stat-row">${jtc.about.stats.map(stat => `<div class="stat">${stat.number ? `<div class="stat-num">${escapeHtml(stat.number)}</div>` : ''}${stat.label ? `<div class="stat-desc">${escapeHtml(stat.label)}</div>` : ''}</div>`).join('')}</div>` : ''}
+                        </div>
+                    </section>`;
+                }
+                
+                // Benefits Section
+                if (jtc.benefits && (jtc.benefits.label || jtc.benefits.title || jtc.benefits.intro || (jtc.benefits.items && jtc.benefits.items.length))) {
+                    html += `<section class="benefits">
+                        <div class="benefits-content">
+                            ${jtc.benefits.label ? `<p class="section-label">${escapeHtml(jtc.benefits.label)}</p>` : ''}
+                            ${jtc.benefits.title ? `<h2>${escapeHtml(jtc.benefits.title)}</h2>` : ''}
+                            ${jtc.benefits.intro ? `<p class="intro">${escapeHtml(jtc.benefits.intro)}</p>` : ''}
+                            ${jtc.benefits.items && jtc.benefits.items.length ? `<div class="benefit-grid">${jtc.benefits.items.map(item => `<div class="benefit-card">${item.icon ? `<span class="benefit-icon">${escapeHtml(item.icon)}</span>` : ''}${item.title ? `<h3>${escapeHtml(item.title)}</h3>` : ''}${item.description ? `<p>${escapeHtml(item.description)}</p>` : ''}${item.highlight ? `<span class="highlight">${escapeHtml(item.highlight)}</span>` : ''}</div>`).join('')}</div>` : ''}
+                        </div>
+                    </section>`;
+                }
+                
+                // How To Join Section
+                if (jtc.howToJoin && (jtc.howToJoin.label || jtc.howToJoin.title || jtc.howToJoin.intro || (jtc.howToJoin.steps && jtc.howToJoin.steps.length))) {
+                    html += `<section class="how-to-join">
+                        <div class="how-to-join-content">
+                            ${jtc.howToJoin.label ? `<p class="section-label">${escapeHtml(jtc.howToJoin.label)}</p>` : ''}
+                            ${jtc.howToJoin.title ? `<h2>${escapeHtml(jtc.howToJoin.title)}</h2>` : ''}
+                            ${jtc.howToJoin.intro ? `<p class="intro">${escapeHtml(jtc.howToJoin.intro)}</p>` : ''}
+                            ${jtc.howToJoin.steps && jtc.howToJoin.steps.length ? `<div class="steps">${jtc.howToJoin.steps.map(step => `<div class="step">${step.number ? `<div class="step-num">${escapeHtml(step.number)}</div>` : ''}<div class="step-body">${step.title ? `<h3>${escapeHtml(step.title)}</h3>` : ''}${step.description ? `<p>${escapeHtml(step.description)}</p>` : ''}</div></div>`).join('')}</div>` : ''}
+                        </div>
+                    </section>`;
+                }
+                
+                // CTA Section
+                if (jtc.cta && (jtc.cta.title || jtc.cta.description || (jtc.cta.buttonText && jtc.cta.buttonUrl))) {
+                    html += `<section class="cta-block">
+                        <div class="cta-content">
+                            ${jtc.cta.title ? `<h2>${escapeHtml(jtc.cta.title)}</h2>` : ''}
+                            ${jtc.cta.description ? `<p>${escapeHtml(jtc.cta.description)}</p>` : ''}
+                            ${jtc.cta.buttonText && jtc.cta.buttonUrl ? `<a href="${escapeHtml(jtc.cta.buttonUrl)}" class="cta-main">${escapeHtml(jtc.cta.buttonText)}</a>` : ''}
+                        </div>
+                    </section>`;
+                }
+                
+                html += `</div>`;
+                
+                // If no sections were rendered, show empty state
+                if (html === '<div class="page-wrapper"></div>') {
+                    container.innerHTML = '<div class="error-message">No content available. Please check back later.</div>';
+                } else {
+                    container.innerHTML = html;
+                }
+                
+            } catch (error) {
+                console.error('Error loading join the club content:', error);
+                container.innerHTML = '<div class="error-message">Error loading content. Please try again later.</div>';
+            }
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Load content when page is ready
+        document.addEventListener('DOMContentLoaded', loadJoinTheClubContent);
+    </script>
+
+</body>
+</html>

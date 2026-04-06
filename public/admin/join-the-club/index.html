@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Join the Club Editor - Skylinks Admin</title>
+<link rel="stylesheet" href="/css/admin.css">
+<script src="/js/admin-common.js"></script>
+<style>
+  .benefits-grid-editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 15px;
+  }
+  .benefit-card-editor {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid #c9a84c;
+  }
+  .steps-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  .step-editor {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  .step-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #c9a84c;
+    min-width: 50px;
+  }
+  .stat-row-editor {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  .stat-editor {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Join the Club Editor</h1>
+  <div>
+    <button onclick="AdminCommon.checkUnsavedChanges()">← Back to Admin</button>
+    <button onclick="AdminCommon.saveWithAlert()" style="background: #28a745; margin-left: 10px;">💾 Save Changes</button>
+  </div>
+</div>
+
+<div id="editor-container" style="padding: 20px;">
+  <div id="loading">Loading content...</div>
+</div>
+
+<script>
+let content = null;
+
+async function init() {
+  if (AdminCommon.init('join-the-club', {})) {
+    await loadContent();
+  }
+}
+
+async function loadContent() {
+  try {
+    await AdminCommon.load();
+    // Ensure joinTheClub exists
+    if (!AdminCommon.data.joinTheClub) {
+      AdminCommon.data.joinTheClub = {
+        hero: { eyebrow: '', title: '', tagline: '', ctaText: '', ctaUrl: '' },
+        about: { label: '', title: '', paragraphs: [], stats: [] },
+        benefits: { label: '', title: '', intro: '', items: [] },
+        howToJoin: { label: '', title: '', intro: '', steps: [] },
+        cta: { title: '', description: '', buttonText: '', buttonUrl: '' }
+      };
+    }
+    render();
+    AdminCommon.setupInputListeners();
+  } catch (err) {
+    alert('Error loading content: ' + err.message);
+  }
+}
+
+function render() {
+  const container = document.getElementById('editor-container');
+  const jtc = AdminCommon.data.joinTheClub;
+  
+  let html = `
+    <!-- Hero Section -->
+    <div class="card">
+      <h2>Hero Section</h2>
+      ${AdminCommon.templates.formRow(`
+        <div style="flex:2;">${AdminCommon.templates.textInput('Eyebrow', jtc.hero?.eyebrow || '', 'updateHero("eyebrow", this.value)')}</div>
+        <div style="flex:3;">${AdminCommon.templates.textInput('Title', jtc.hero?.title || '', 'updateHero("title", this.value)')}</div>
+      `)}
+      ${AdminCommon.templates.textareaInput('Tagline', jtc.hero?.tagline || '', 'updateHero("tagline", this.value)', 'Short description under title')}
+      ${AdminCommon.templates.formRow(`
+        <div style="flex:1;">${AdminCommon.templates.textInput('CTA Button Text', jtc.hero?.ctaText || '', 'updateHero("ctaText", this.value)')}</div>
+        <div style="flex:2;">${AdminCommon.templates.textInput('CTA Button URL', jtc.hero?.ctaUrl || '', 'updateHero("ctaUrl", this.value)')}</div>
+      `)}
+    </div>
+
+    <!-- About Section -->
+    <div class="card">
+      <h2>About Section</h2>
+      ${AdminCommon.templates.formRow(`
+        <div style="flex:1;">${AdminCommon.templates.textInput('Label', jtc.about?.label || '', 'updateAbout("label", this.value)')}</div>
+        <div style="flex:2;">${AdminCommon.templates.textInput('Title', jtc.about?.title || '', 'updateAbout("title", this.value)')}</div>
+      `)}
+      <h4>Paragraphs</h4>
+      <div id="about-paragraphs"></div>
+      <button onclick="addAboutParagraph()" style="margin-top:10px;">+ Add Paragraph</button>
+      
+      <h4 style="margin-top:20px;">Stats</h4>
+      <div id="about-stats" class="stat-row-editor"></div>
+      <button onclick="addAboutStat()" style="margin-top:10px;">+ Add Stat</button>
+    </div>
+
+    <!-- Benefits Section -->
+    <div class="card">
+      <h2>Benefits Section</h2>
+      ${AdminCommon.templates.formRow(`
+        <div style="flex:1;">${AdminCommon.templates.textInput('Label', jtc.benefits?.label || '', 'updateBenefits("label", this.value)')}</div>
+        <div style="flex:2;">${AdminCommon.templates.textInput('Title', jtc.benefits?.title || '', 'updateBenefits("title", this.value)')}</div>
+      `)}
+      ${AdminCommon.templates.textareaInput('Intro', jtc.benefits?.intro || '', 'updateBenefits("intro", this.value)', 'Introductory text above benefits grid')}
+      <h4>Benefit Items</h4>
+      <div id="benefits-items" class="benefits-grid-editor"></div>
+      <button onclick="addBenefitItem()" style="margin-top:10px;">+ Add Benefit</button>
+    </div>
+
+    <!-- How To Join Section -->
+    <div class="card">
+      <h2>How To Join Section</h2>
+      ${AdminCommon.templates.formRow(`
+        <div style="flex:1;">${AdminCommon.templates.textInput('Label', jtc.howToJoin?.label || '', 'updateHowToJoin("label", this.value)')}</div>
+        <div style="flex:2;">${AdminCommon.templates.textInput('Title', jtc.howToJoin?.title || '', 'updateHowToJoin("title", this.value)')}</div>
+      `)}
+      ${AdminCommon.templates.textareaInput('Intro', jtc.howToJoin?.intro || '', 'updateHowToJoin("intro", this.value)', 'Introductory text above steps')}
+      <h4>Steps</h4>
+      <div id="howtojoin-steps" class="steps-editor"></div>
+      <button onclick="addHowToJoinStep()" style="margin-top:10px;">+ Add Step</button>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="card">
+      <h2>Call to Action Section</h2>
+      ${AdminCommon.templates.textInput('Title', jtc.cta?.title || '', 'updateCTA("title", this.value)')}
+      ${AdminCommon.templates.textareaInput('Description', jtc.cta?.description || '', 'updateCTA("description", this.value)', 'Descriptive text above button')}
+      ${AdminCommon.templates.formRow(`
+        <div style="flex:1;">${AdminCommon.templates.textInput('Button Text', jtc.cta?.buttonText || '', 'updateCTA("buttonText", this.value)')}</div>
+        <div style="flex:2;">${AdminCommon.templates.textInput('Button URL', jtc.cta?.buttonUrl || '', 'updateCTA("buttonUrl", this.value)')}</div>
+      `)}
+    </div>
+  `;
+  
+  container.innerHTML = html;
+  
+  // Render about paragraphs
+  const paragraphsContainer = document.getElementById('about-paragraphs');
+  if (paragraphsContainer) {
+    const paragraphs = jtc.about?.paragraphs || [];
+    paragraphsContainer.innerHTML = paragraphs.map((p, idx) => `
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <input type="text" value="${AdminCommon.escapeHtml(p)}" style="flex:1;" oninput="updateAboutParagraph(${idx}, this.value)">
+        <button onclick="removeAboutParagraph(${idx})" style="background:#dc3545;">✕</button>
+      </div>
+    `).join('');
+  }
+  
+  // Render about stats
+  const statsContainer = document.getElementById('about-stats');
+  if (statsContainer) {
+    const stats = jtc.about?.stats || [];
+    statsContainer.innerHTML = stats.map((stat, idx) => `
+      <div class="stat-editor">
+        <input type="text" value="${AdminCommon.escapeHtml(stat.number || '')}" placeholder="Number" style="width:100%; margin-bottom:8px;" oninput="updateAboutStat(${idx}, 'number', this.value)">
+        <input type="text" value="${AdminCommon.escapeHtml(stat.label || '')}" placeholder="Label" style="width:100%;" oninput="updateAboutStat(${idx}, 'label', this.value)">
+        <button onclick="removeAboutStat(${idx})" style="margin-top:8px; background:#dc3545;">Remove</button>
+      </div>
+    `).join('');
+  }
+  
+  // Render benefit items
+  const benefitsContainer = document.getElementById('benefits-items');
+  if (benefitsContainer) {
+    const items = jtc.benefits?.items || [];
+    benefitsContainer.innerHTML = items.map((item, idx) => `
+      <div class="benefit-card-editor">
+        <input type="text" value="${AdminCommon.escapeHtml(item.icon || '')}" placeholder="Icon (emoji)" style="width:60px; margin-bottom:8px;" oninput="updateBenefitItem(${idx}, 'icon', this.value)">
+        <input type="text" value="${AdminCommon.escapeHtml(item.title || '')}" placeholder="Title" style="width:100%; margin-bottom:8px;" oninput="updateBenefitItem(${idx}, 'title', this.value)">
+        <textarea placeholder="Description" style="width:100%; margin-bottom:8px;" oninput="updateBenefitItem(${idx}, 'description', this.value)">${AdminCommon.escapeHtml(item.description || '')}</textarea>
+        <input type="text" value="${AdminCommon.escapeHtml(item.highlight || '')}" placeholder="Highlight (optional)" style="width:100%; margin-bottom:8px;" oninput="updateBenefitItem(${idx}, 'highlight', this.value)">
+        <button onclick="removeBenefitItem(${idx})" style="background:#dc3545;">Remove</button>
+      </div>
+    `).join('');
+  }
+  
+  // Render how-to-join steps
+  const stepsContainer = document.getElementById('howtojoin-steps');
+  if (stepsContainer) {
+    const steps = jtc.howToJoin?.steps || [];
+    stepsContainer.innerHTML = steps.map((step, idx) => `
+      <div class="step-editor">
+        <div class="step-number">
+          <input type="text" value="${AdminCommon.escapeHtml(step.number || '')}" placeholder="01" style="width:50px; font-size:28px; font-weight:bold;" oninput="updateHowToJoinStep(${idx}, 'number', this.value)">
+        </div>
+        <div style="flex:1;">
+          <input type="text" value="${AdminCommon.escapeHtml(step.title || '')}" placeholder="Title" style="width:100%; margin-bottom:8px;" oninput="updateHowToJoinStep(${idx}, 'title', this.value)">
+          <textarea placeholder="Description" style="width:100%;" oninput="updateHowToJoinStep(${idx}, 'description', this.value)">${AdminCommon.escapeHtml(step.description || '')}</textarea>
+          <button onclick="removeHowToJoinStep(${idx})" style="margin-top:8px; background:#dc3545;">Remove Step</button>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// Hero functions
+function updateHero(field, value) {
+  if (!AdminCommon.data.joinTheClub.hero) AdminCommon.data.joinTheClub.hero = {};
+  AdminCommon.data.joinTheClub.hero[field] = value;
+  AdminCommon.markUnsaved();
+}
+
+// About functions
+function updateAbout(field, value) {
+  if (!AdminCommon.data.joinTheClub.about) AdminCommon.data.joinTheClub.about = {};
+  AdminCommon.data.joinTheClub.about[field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function updateAboutParagraph(idx, value) {
+  if (!AdminCommon.data.joinTheClub.about.paragraphs) AdminCommon.data.joinTheClub.about.paragraphs = [];
+  AdminCommon.data.joinTheClub.about.paragraphs[idx] = value;
+  AdminCommon.markUnsaved();
+}
+
+function addAboutParagraph() {
+  if (!AdminCommon.data.joinTheClub.about.paragraphs) AdminCommon.data.joinTheClub.about.paragraphs = [];
+  AdminCommon.data.joinTheClub.about.paragraphs.push('');
+  AdminCommon.markUnsaved();
+  render();
+}
+
+function removeAboutParagraph(idx) {
+  AdminCommon.data.joinTheClub.about.paragraphs.splice(idx, 1);
+  AdminCommon.markUnsaved();
+  render();
+}
+
+function updateAboutStat(idx, field, value) {
+  if (!AdminCommon.data.joinTheClub.about.stats) AdminCommon.data.joinTheClub.about.stats = [];
+  if (!AdminCommon.data.joinTheClub.about.stats[idx]) AdminCommon.data.joinTheClub.about.stats[idx] = {};
+  AdminCommon.data.joinTheClub.about.stats[idx][field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function addAboutStat() {
+  if (!AdminCommon.data.joinTheClub.about.stats) AdminCommon.data.joinTheClub.about.stats = [];
+  AdminCommon.data.joinTheClub.about.stats.push({ number: '', label: '' });
+  AdminCommon.markUnsaved();
+  render();
+}
+
+function removeAboutStat(idx) {
+  AdminCommon.data.joinTheClub.about.stats.splice(idx, 1);
+  AdminCommon.markUnsaved();
+  render();
+}
+
+// Benefits functions
+function updateBenefits(field, value) {
+  if (!AdminCommon.data.joinTheClub.benefits) AdminCommon.data.joinTheClub.benefits = {};
+  AdminCommon.data.joinTheClub.benefits[field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function updateBenefitItem(idx, field, value) {
+  if (!AdminCommon.data.joinTheClub.benefits.items) AdminCommon.data.joinTheClub.benefits.items = [];
+  if (!AdminCommon.data.joinTheClub.benefits.items[idx]) AdminCommon.data.joinTheClub.benefits.items[idx] = {};
+  AdminCommon.data.joinTheClub.benefits.items[idx][field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function addBenefitItem() {
+  if (!AdminCommon.data.joinTheClub.benefits.items) AdminCommon.data.joinTheClub.benefits.items = [];
+  AdminCommon.data.joinTheClub.benefits.items.push({ icon: '', title: '', description: '', highlight: '' });
+  AdminCommon.markUnsaved();
+  render();
+}
+
+function removeBenefitItem(idx) {
+  AdminCommon.data.joinTheClub.benefits.items.splice(idx, 1);
+  AdminCommon.markUnsaved();
+  render();
+}
+
+// How To Join functions
+function updateHowToJoin(field, value) {
+  if (!AdminCommon.data.joinTheClub.howToJoin) AdminCommon.data.joinTheClub.howToJoin = {};
+  AdminCommon.data.joinTheClub.howToJoin[field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function updateHowToJoinStep(idx, field, value) {
+  if (!AdminCommon.data.joinTheClub.howToJoin.steps) AdminCommon.data.joinTheClub.howToJoin.steps = [];
+  if (!AdminCommon.data.joinTheClub.howToJoin.steps[idx]) AdminCommon.data.joinTheClub.howToJoin.steps[idx] = {};
+  AdminCommon.data.joinTheClub.howToJoin.steps[idx][field] = value;
+  AdminCommon.markUnsaved();
+}
+
+function addHowToJoinStep() {
+  if (!AdminCommon.data.joinTheClub.howToJoin.steps) AdminCommon.data.joinTheClub.howToJoin.steps = [];
+  AdminCommon.data.joinTheClub.howToJoin.steps.push({ number: '', title: '', description: '' });
+  AdminCommon.markUnsaved();
+  render();
+}
+
+function removeHowToJoinStep(idx) {
+  AdminCommon.data.joinTheClub.howToJoin.steps.splice(idx, 1);
+  AdminCommon.markUnsaved();
+  render();
+}
+
+// CTA functions
+function updateCTA(field, value) {
+  if (!AdminCommon.data.joinTheClub.cta) AdminCommon.data.joinTheClub.cta = {};
+  AdminCommon.data.joinTheClub.cta[field] = value;
+  AdminCommon.markUnsaved();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
