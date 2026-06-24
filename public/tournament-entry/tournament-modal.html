@@ -163,6 +163,16 @@
                         <input id="modal-ghin2" placeholder="" maxlength="8" pattern="\d{1,8}" />
                     </div>
                 </div>
+
+                <!-- Pay for Player checkbox -->
+                <div class="row">
+                    <div class="col" style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="checkbox" id="pay-player2" name="pay-player2" style="width: 18px; height: 18px;">
+                        <label for="pay-player2" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
+                            Pay for Player  
+                        </label>
+                    </div>
+                </div>
             </div>
             
             <!-- Player 3 -->
@@ -199,6 +209,16 @@
                         <input id="modal-ghin3" placeholder="" maxlength="8" pattern="\d{1,8}" />
                     </div>
                 </div>
+
+                <!-- Pay for Player checkbox -->
+                <div class="row">
+                    <div class="col" style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="checkbox" id="pay-player3" name="pay-player3" style="width: 18px; height: 18px;">
+                        <label for="pay-player3" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
+                            Pay for Player
+                        </label>
+                    </div>
+                </div>
             </div>
             
             <!-- Player 4 -->
@@ -233,6 +253,16 @@
                     <div class="col">
                         <label for="modal-ghin4">GHIN #</label>
                         <input id="modal-ghin4" placeholder="" maxlength="8" pattern="\d{1,8}" />
+                    </div>
+                </div>
+
+                <!-- Pay for Player checkbox -->
+                <div class="row">
+                    <div class="col" style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="checkbox" id="pay-player4" name="pay-player4" style="width: 18px; height: 18px;">
+                        <label for="pay-player4" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
+                            Pay for Player
+                        </label>
                     </div>
                 </div>
             </div>
@@ -377,6 +407,19 @@ function setupTournamentNameValidation() {
         }
     });
 }
+
+// Update fee display for additional players
+function updatePlayerFees(fee) {
+    for (let i = 2; i <= 4; i++) {
+        const span = document.getElementById(`player-fee-display${i}`);
+        if (span) {
+            span.textContent = '$' + parseFloat(fee).toFixed(2);
+        }
+    }
+}
+
+// Expose globally
+window.updatePlayerFees = updatePlayerFees;
 
 // Initialize when modal is shown
 document.addEventListener('DOMContentLoaded', function() {

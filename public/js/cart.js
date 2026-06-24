@@ -473,9 +473,13 @@ async function renderCart() {
                 details.push(`Roulette: $${roulettePrice}`);
             }
             
-            // Additional players
+            // Additional players with pay status
             if (item.form.additionalPlayers && item.form.additionalPlayers.length > 0) {
-                details.push(`Additional Players: ${item.form.additionalPlayers.length}`);
+                const playerNames = item.form.additionalPlayers.map(p => {
+                    const paid = p.payForPlayer ? ' (paid)' : '';
+                    return p.name + paid;
+                }).join(', ');
+                details.push(`Additional Players: ${playerNames}`);
             }
             
             // Add tournament ID if available
@@ -604,6 +608,11 @@ function openTournamentEditModal(item, tournamentData = null) {
             modalContainer.innerHTML = modifiedHtml;
             document.body.appendChild(modalContainer);
             
+            // Pass tournament data to the modal's script
+            if (tournamentData && typeof window.setTournamentDataForEditModal === 'function') {
+                window.setTournamentDataForEditModal(tournamentData);
+            }
+            
             // Fill form values
             document.getElementById("modal-name").value = item.form.name || "";
             document.getElementById("modal-email").value = item.form.email || "";
@@ -622,7 +631,7 @@ function openTournamentEditModal(item, tournamentData = null) {
                 document.getElementById("cart-option").value = item.form.cartOption || "";
             }
             
-            // Fill additional players
+            // Fill additional players with pay status
             for (let i = 0; i < 3; i++) {
                 const playerIndex = i + 2;
                 const player = item.form.additionalPlayers ? item.form.additionalPlayers[i] : null;
@@ -636,6 +645,12 @@ function openTournamentEditModal(item, tournamentData = null) {
                     document.getElementById(`modal-phone${playerIndex}`).value = formatPhoneNumber(playerPhoneValue);
                     
                     document.getElementById(`modal-ghin${playerIndex}`).value = player.ghin || "";
+                    
+                    // Set pay for player checkbox
+                    const payCheckbox = document.getElementById(`pay-player${playerIndex}`);
+                    if (payCheckbox) {
+                        payCheckbox.checked = player.payForPlayer || false;
+                    }
                 }
             }
             
@@ -929,23 +944,31 @@ function saveTournamentEditModal() {
             }
         }
         
-        // Get additional players
+        // Get additional players with pay status
         const additionalPlayers = [];
+        let additionalPlayersTotalFee = 0;
+        const basePrice = parseFloat(item.basePrice || (item.form.tournamentPrice || 0));
         for (let i = 2; i <= 4; i++) {
             const nameInput = document.getElementById(`modal-name${i}`);
             if (nameInput && nameInput.value) {
-                additionalPlayers.push({
+                const payCheckbox = document.getElementById(`pay-player${i}`);
+                const playerData = {
                     name: nameInput.value,
                     email: document.getElementById(`modal-email${i}`).value,
                     phone: document.getElementById(`modal-phone${i}`).value,
-                    ghin: document.getElementById(`modal-ghin${i}`).value
-                });
+                    ghin: document.getElementById(`modal-ghin${i}`).value,
+                    payForPlayer: payCheckbox ? payCheckbox.checked : false
+                };
+                additionalPlayers.push(playerData);
+                if (playerData.payForPlayer) {
+                    additionalPlayersTotalFee += basePrice;
+                }
             }
         }
         updatedForm.additionalPlayers = additionalPlayers;
         
         // Calculate base price (tournament price without add-ons)
-        const basePrice = parseFloat(item.basePrice || (item.form.tournamentPrice || 0));
+        // basePrice is already stored in item, but we use it from the form's tournamentPrice or the item's basePrice
         
         // Get add-on prices from item data
         const roulettePrice = parseFloat(item.roulettePrice || 30);
@@ -968,7 +991,7 @@ function saveTournamentEditModal() {
         
         updatedForm.addons = addons;
         updatedForm.addonsTotal = addonsTotal;
-        totalPrice += addonsTotal + cartOptionAddedPrice;
+        totalPrice += addonsTotal + cartOptionAddedPrice + additionalPlayersTotalFee;
         
         updateCartItem(editingItemId, { 
             form: updatedForm,

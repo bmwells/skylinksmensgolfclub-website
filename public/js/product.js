@@ -452,6 +452,10 @@
             updateModalPrices();
             // Show/hide options based on tournament data
             updateModalBasedOnTournament();
+            // Update player fee displays
+            if (typeof window.updatePlayerFees === 'function') {
+                window.updatePlayerFees(tournamentData.price);
+            }
         }
 
         // Initialize autocomplete if needed
@@ -800,22 +804,16 @@
         
         formData.addons = addons;
         formData.addonsTotal = addonsTotal;
-        totalPrice += addonsTotal + cartOptionAddedPrice;
         
-        // Store tournament info
-        formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
-        formData.tournamentPrice = tournamentData ? tournamentData.price : 0;
-        formData.cartOptionEnabled = tournamentData ? tournamentData.cartOption : false;
-        formData.sidePotOptionEnabled = tournamentData ? (tournamentData.sidePotOption !== false) : false;
-        formData.rouletteOptionEnabled = tournamentData ? (tournamentData.rouletteOption !== false) : false;
-        
-        // Additional players
+        // Additional players - collect and add fees for those paid
         const additionalPlayers = [];
+        let additionalPlayersTotalFee = 0;
         for (let i = 2; i <= 4; i++) {
             const playerNameInput = document.getElementById(`modal-name${i}`);
             const playerEmailInput = document.getElementById(`modal-email${i}`);
             const playerPhoneInput = document.getElementById(`modal-phone${i}`);
             const playerGhinInput = document.getElementById(`modal-ghin${i}`);
+            const payCheckbox = document.getElementById(`pay-player${i}`);
             
             if (playerNameInput && playerNameInput.value.trim()) {
                 // Format player name properly
@@ -825,15 +823,33 @@
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                     .join(' ');
                 
-                additionalPlayers.push({
+                const playerData = {
                     name: playerFormattedName,
                     email: playerEmailInput ? playerEmailInput.value.trim() : '',
                     phone: playerPhoneInput ? playerPhoneInput.value.trim() : '',
-                    ghin: playerGhinInput ? playerGhinInput.value.trim() : ''
-                });
+                    ghin: playerGhinInput ? playerGhinInput.value.trim() : '',
+                    payForPlayer: payCheckbox ? payCheckbox.checked : false
+                };
+                
+                additionalPlayers.push(playerData);
+                
+                // Add fee if paid
+                if (playerData.payForPlayer) {
+                    additionalPlayersTotalFee += basePrice;
+                }
             }
         }
         formData.additionalPlayers = additionalPlayers;
+        
+        // Update total price with add-ons, cart option, and additional player fees
+        totalPrice += addonsTotal + cartOptionAddedPrice + additionalPlayersTotalFee;
+        
+        // Store tournament info
+        formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
+        formData.tournamentPrice = tournamentData ? tournamentData.price : 0;
+        formData.cartOptionEnabled = tournamentData ? tournamentData.cartOption : false;
+        formData.sidePotOptionEnabled = tournamentData ? (tournamentData.sidePotOption !== false) : false;
+        formData.rouletteOptionEnabled = tournamentData ? (tournamentData.rouletteOption !== false) : false;
     }
 
     // Generate a unique cart item ID
@@ -1287,6 +1303,10 @@
                 document.getElementById('member-modal-backdrop').classList.contains('active')) {
                 updateModalPrices();
                 updateModalBasedOnTournament();
+                // Update player fee displays
+                if (typeof window.updatePlayerFees === 'function') {
+                    window.updatePlayerFees(data.price);
+                }
             }
             
             // Update current product with dynamic data if it's a tournament
