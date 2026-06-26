@@ -164,7 +164,7 @@ async function createExcelWorkbook(entries) {
     
     const worksheet = workbook.addWorksheet('Foursomes');
     
-    // Define the headers - REMOVED SidePot and Roulette between CartOption and PaymentAmount
+    // Define the headers 
     const headers = [
         'FoursomeNumber',
         'StartTime',
@@ -292,7 +292,7 @@ async function createExcelWorkbook(entries) {
  * @returns {string} CSV/TSV formatted text
  */
 function createCsvTsvText(entries, delimiter) {
-    // Define headers - REMOVED SidePot and Roulette between CartOption and PaymentAmount
+    // Define headers
     const headers = [
         'FoursomeNumber',
         'StartTime',
