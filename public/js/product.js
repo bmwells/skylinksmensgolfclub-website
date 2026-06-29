@@ -907,6 +907,14 @@
             }
             formData.additionalPlayers = additionalPlayers;
             formData.player2SidePots = player2SidePotsAdded;
+
+            // --- Notes ---
+            const notesInput = document.getElementById('modal-notes');
+            if (notesInput) {
+                formData.notes = notesInput.value.trim();
+            } else {
+                formData.notes = '';
+            }
             
             // Update total price: base price + addons (includes Player 1 & Player 2 side pots) + cart option + additional player fees
             totalPrice = basePrice + addonsTotal + cartOptionAddedPrice + additionalPlayersTotalFee;

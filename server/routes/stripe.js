@@ -202,6 +202,9 @@ router.post('/create-checkout-session', async (req, res) => {
                     metadata[`item_${index}_ap`] = JSON.stringify(additionalPlayers);
                 }
                 
+                // Store notes
+                metadata[`item_${index}_notes`] = form.notes || '';
+                
             } else if (item.type === 'membership') {
                 const form = item.form || {};
                 
@@ -283,6 +286,7 @@ router.get('/checkout-session/:sessionId', async (req, res) => {
                         if (session.metadata[`item_${i}_ap`]) {
                             item.additionalPlayers = JSON.parse(session.metadata[`item_${i}_ap`]);
                         }
+                        item.notes = session.metadata[`item_${i}_notes`] || '';
                     } catch (e) {
                         console.error('Error parsing player data:', e);
                     }

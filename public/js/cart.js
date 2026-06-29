@@ -412,6 +412,10 @@ async function renderCart() {
                 }).join(', ');
                 details.push(`Additional Players: ${playerDetails}`);
             }
+            // Add notes if present
+            if (item.form.notes) {
+                details.push(`Notes: ${item.form.notes}`);
+            }
             if (item.tournamentId) {
                 details.push(`Tournament: ${item.tournamentId}`);
             }
@@ -636,6 +640,12 @@ function openTournamentEditModal(item, tournamentData = null) {
                         }
                     }
                 }
+            }
+
+            // Fill notes
+            const notesInput = document.getElementById('modal-notes');
+            if (notesInput) {
+                notesInput.value = item.form.notes || '';
             }
 
             const roulettePriceEl = document.getElementById('roulette-price');
@@ -1026,6 +1036,14 @@ function saveTournamentEditModal() {
     updatedForm.player2SidePots = player2SidePotsAdded;
     updatedForm.addons = addons;
     updatedForm.addonsTotal = addonsTotal;
+
+    // Capture notes
+    const notesInput = document.getElementById('modal-notes');
+    if (notesInput) {
+        updatedForm.notes = notesInput.value.trim();
+    } else {
+        updatedForm.notes = '';
+    }
     
     const totalPrice = basePrice + addonsTotal + cartOptionAddedPrice + additionalPlayersTotalFee;
     

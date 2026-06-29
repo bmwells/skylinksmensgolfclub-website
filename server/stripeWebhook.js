@@ -213,7 +213,8 @@ async function handleCompletedPayment(session) {
                         player1: null,
                         player2: null,
                         player3: null,
-                        player4: null
+                        player4: null,
+                        notes: metadata[`item_${i}_notes`] || '' // <-- added notes field
                     };
                     
                     console.log('\n=== Creating Player Objects ===');

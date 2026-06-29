@@ -445,6 +445,24 @@ function renderFoursome(foursome, tournamentId, sortedIndex) {
     // Get the foursome ID - always use _id from database
     const foursomeId = getFoursomeId(foursome);
     
+    // Build notes display
+    let notesHtml = '';
+    if (foursome.notes && foursome.notes.trim() !== '') {
+        notesHtml = `
+            <div class="notes-section">
+                <span class="notes-label">📝 Notes:</span>
+                <span class="notes-content">${escapeHtml(foursome.notes)}</span>
+            </div>
+        `;
+    } else {
+        notesHtml = `
+            <div class="notes-section">
+                <span class="notes-label">📝 Notes:</span>
+                <span class="notes-empty">No notes</span>
+            </div>
+        `;
+    }
+    
     return `
         <div class="foursome-container" 
              data-foursome-id="${foursomeId}" 
@@ -481,6 +499,9 @@ function renderFoursome(foursome, tournamentId, sortedIndex) {
                 </div>
             </div>
             
+            <!-- Notes Section -->
+            ${notesHtml}
+            
             <div class="player-grid">
                 ${renderPlayerRow(1, player1, tournamentId, foursomeId)}
                 ${renderPlayerRow(2, player2, tournamentId, foursomeId)}
@@ -489,6 +510,14 @@ function renderFoursome(foursome, tournamentId, sortedIndex) {
             </div>
         </div>
     `;
+}
+
+// Helper function to escape HTML to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Helper function to format name as "R. Aldana"
@@ -1253,12 +1282,19 @@ function fillEditFoursomeModal(foursome) {
         // Reset to default
         cartOptionSelect.value = '';
     }
+
+    // Set notes
+    const notesTextarea = document.getElementById('editNotes');
+    if (notesTextarea) {
+        notesTextarea.value = foursome.notes || '';
+    }
     
     console.log('Form values set:', {
         startTime: startTimeSelect.value,
         cartOption: cartOptionSelect.value,
         sidePot: document.getElementById('editSidePot').checked,
-        roulette: document.getElementById('editRoulette').checked
+        roulette: document.getElementById('editRoulette').checked,
+        notes: notesTextarea ? notesTextarea.value : ''
     });
 }
 
@@ -1287,6 +1323,9 @@ function resetEditFoursomeModal() {
     // Clear dropdowns
     document.getElementById('editCartOption').value = '';
     document.getElementById('editStartTime').value = '';
+    
+    // Clear notes
+    document.getElementById('editNotes').value = '';
     
     // Clear selected member
     selectedMember = null;
@@ -1325,13 +1364,14 @@ async function saveFoursomeChanges() {
         return;
     }
     
-    // Get form values - REMOVED customer email and name references
+    // Get form values
     const startTimeSelect = document.getElementById('editStartTime');
     const cartOptionSelect = document.getElementById('editCartOption');
     const sidePotCheckbox = document.getElementById('editSidePot');
     const rouletteCheckbox = document.getElementById('editRoulette');
+    const notesTextarea = document.getElementById('editNotes');
     
-    if (!startTimeSelect || !cartOptionSelect || !sidePotCheckbox || !rouletteCheckbox) {
+    if (!startTimeSelect || !cartOptionSelect || !sidePotCheckbox || !rouletteCheckbox || !notesTextarea) {
         console.error('Form elements not found!');
         alert('Error: Could not find form elements.');
         return;
@@ -1341,8 +1381,9 @@ async function saveFoursomeChanges() {
     const cartOption = cartOptionSelect.value;
     const sidePot = sidePotCheckbox.checked;
     const roulette = rouletteCheckbox.checked;
+    const notes = notesTextarea.value.trim();
     
-    console.log('Form values:', { startTime, cartOption, sidePot, roulette });
+    console.log('Form values:', { startTime, cartOption, sidePot, roulette, notes });
     
     // Validate required fields - ONLY START TIME IS REQUIRED
     if (!startTime) {
@@ -1408,7 +1449,8 @@ async function saveFoursomeChanges() {
         const updateData = {
             startTime: startTime,
             cartOption: cartOption, // This can be empty string
-            player1: player1Data
+            player1: player1Data,
+            notes: notes // Include notes
         };
         
         console.log('Sending foursome update:', updateData);
@@ -1534,6 +1576,8 @@ function selectEditMember(member) {
     // Set side pot and roulette to false for new member (they can be set later)
     document.getElementById('editSidePot').checked = false;
     document.getElementById('editRoulette').checked = false;
+    
+    // Clear notes if any (they will be loaded from the foursome data)
 }
 
 // Import/Export Functions

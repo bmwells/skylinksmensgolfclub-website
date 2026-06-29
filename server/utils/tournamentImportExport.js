@@ -38,6 +38,7 @@ async function parseExcelFile(fileBuffer) {
             startTime: row.getCell('StartTime')?.value || '',
             customerEmail: row.getCell('CustomerEmail')?.value || '',
             customerName: row.getCell('CustomerName')?.value || '',
+            notes: row.getCell('Notes')?.value?.toString() || '', // NEW: Import notes
             updatedAt: new Date()
         };
         
@@ -114,6 +115,7 @@ function parseCsvTsvFile(fileBuffer, delimiter) {
             startTime: row.StartTime || '',
             customerEmail: row.CustomerEmail || '',
             customerName: row.CustomerName || '',
+            notes: row.Notes || '', // NEW: Import notes from CSV/TSV
             updatedAt: new Date()
         };
         
@@ -174,6 +176,7 @@ async function createExcelWorkbook(entries) {
         'CreatedAt',
         'CustomerEmail',
         'CustomerName',
+        'Notes', // NEW: Notes column
         // Player 1
         'Player1Name',
         'Player1Email',
@@ -232,6 +235,7 @@ async function createExcelWorkbook(entries) {
         row.push(entry.createdAt ? new Date(entry.createdAt).toISOString() : ''); // CreatedAt
         row.push(entry.customerEmail || ''); // CustomerEmail
         row.push(entry.customerName || ''); // CustomerName
+        row.push(entry.notes || ''); // NEW: Notes column
         
         // Process each player
         for (let i = 1; i <= 4; i++) {
@@ -302,6 +306,7 @@ function createCsvTsvText(entries, delimiter) {
         'CreatedAt',
         'CustomerEmail',
         'CustomerName',
+        'Notes', // NEW: Notes column
         // Player 1
         'Player1Name',
         'Player1Email',
@@ -359,6 +364,7 @@ function createCsvTsvText(entries, delimiter) {
         row.push(entry.createdAt ? new Date(entry.createdAt).toISOString() : ''); // CreatedAt
         row.push(entry.customerEmail || ''); // CustomerEmail
         row.push(entry.customerName || ''); // CustomerName
+        row.push(entry.notes || ''); // NEW: Notes column
         
         // Process each player
         for (let i = 1; i <= 4; i++) {

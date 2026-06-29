@@ -125,11 +125,11 @@ router.get('/:tournamentId', requireAdmin, async (req, res) => {
     }
 });
 
-// Update foursome details (Player 1, start time, cart option, etc.)
+// Update foursome details (Player 1, start time, cart option, notes, etc.)
 router.put('/foursome/:tournamentId/:entryId', requireAdmin, async (req, res) => {
     try {
         const { tournamentId, entryId } = req.params;
-        const { player1, startTime, cartOption, sidePot, roulette } = req.body;
+        const { player1, startTime, cartOption, sidePot, roulette, notes } = req.body;
         
         const db = await connectDB();
         const collection = db.collection('tournament-registrations');
@@ -202,6 +202,7 @@ router.put('/foursome/:tournamentId/:entryId', requireAdmin, async (req, res) =>
         if (cartOption !== undefined) updateData.cartOption = cartOption;
         if (sidePot !== undefined) updateData.sidePot = sidePot;
         if (roulette !== undefined) updateData.roulette = roulette;
+        if (notes !== undefined) updateData.notes = notes;
         
         // Update the entry
         await collection.updateOne(
@@ -367,7 +368,8 @@ router.post('/:tournamentId', requireAdmin, async (req, res) => {
             cartOption: '',
             startTime: 'Doesn\'t Matter',
             sidePot: false,
-            roulette: false
+            roulette: false,
+            notes: '' // Ensure notes field exists
         };
         
         const result = await collection.insertOne(emptyRegistration);

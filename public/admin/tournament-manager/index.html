@@ -36,6 +36,28 @@
         height: 36px; /* Same height as the edit button */
         visibility: hidden;
     }
+    
+    /* Notes styling */
+    .notes-section {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border-left: 3px solid #007bff;
+    }
+    .notes-section .notes-label {
+        font-weight: 600;
+        color: #495057;
+        margin-right: 8px;
+    }
+    .notes-section .notes-content {
+        color: #212529;
+        word-wrap: break-word;
+    }
+    .notes-section .notes-empty {
+        color: #6c757d;
+        font-style: italic;
+    }
 </style>
 </head>
 <body>
@@ -49,10 +71,8 @@
 </div>
 
 <div id="main-content">
-    <!-- In the tournament-header div, update the buttons: -->
     <div class="tournament-header">
         <div class="tournament-tabs" id="tournament-tabs">
-            <!-- Tabs will be populated dynamically -->
             <div class="loading">Loading tournaments...</div>
         </div>
         
@@ -64,10 +84,7 @@
         <button id="addFoursomeButton" class="add-foursome-btn" onclick="addEmptyFoursome()">+ Add Foursome</button>
     </div>
     
-    <!-- Add this section below the tournament-header div -->
-    <div id="current-tournament-title" class="current-tournament-title">
-        <!-- Title will be populated dynamically -->
-    </div>
+    <div id="current-tournament-title" class="current-tournament-title"></div>
     
     <div id="tournament-content">
         <div id="tournament-loading" class="loading">
@@ -150,6 +167,12 @@
                         <span>Roulette</span>
                     </label>
                 </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Notes:</label>
+                <textarea id="editNotes" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 4px; resize: vertical;" placeholder="Optional notes for this foursome..."></textarea>
             </div>
         </div>
         
@@ -286,7 +309,6 @@
 <script src="/js/tournament-manager.js"></script>
 
 <script>
-// Simple save and refresh function
 function saveAndRefresh() {
     if (window.currentTournament) {
         localStorage.setItem('activeTournamentTab', window.currentTournament);
