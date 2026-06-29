@@ -164,13 +164,25 @@
                     </div>
                 </div>
 
-                <!-- Pay for Player checkbox -->
+                <!-- Pay for Player and Side Pots checkboxes -->
                 <div class="row">
-                    <div class="col" style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
-                        <input type="checkbox" id="pay-player2" name="pay-player2" style="width: 18px; height: 18px;">
-                        <label for="pay-player2" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
-                            Pay for Player  
-                        </label>
+                    <div class="col" style="display: flex; align-items: center; gap: 20px; margin-top: 5px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="pay-player2" name="pay-player2" style="width: 18px; height: 18px;">
+                            <label for="pay-player2" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
+                                Pay for Player  
+                            </label>
+                        </div>
+                        <!-- Player 2 Side Pots Checkbox - CONDITIONAL -->
+                        <div id="player2-sidepot-container" style="display: none; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="player2-sidepots" name="player2-sidepots" style="width: 18px; height: 18px;">
+                            <label for="player2-sidepots" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
+                                Side Pots (<span id="player2-sidepot-price">$25</span>)
+                            </label>
+                            <button type="button" class="info-icon" data-tooltip="Gross, Net Skins & Polies" aria-label="Side pots information">
+                                &#9432;
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -417,9 +429,6 @@ function updatePlayerFees(fee) {
         }
     }
 }
-
-// Expose globally
-window.updatePlayerFees = updatePlayerFees;
 
 // Initialize when modal is shown
 document.addEventListener('DOMContentLoaded', function() {

@@ -456,6 +456,8 @@
             if (typeof window.updatePlayerFees === 'function') {
                 window.updatePlayerFees(tournamentData.price);
             }
+            // Update Player 2 Side Pots visibility
+            updatePlayer2SidePotVisibility();
         }
 
         // Initialize autocomplete if needed
@@ -480,6 +482,42 @@
             const firstInput = backdrop.querySelector('input');
             if (firstInput) firstInput.focus();
         }, 150);
+    }
+
+    // Update Player 2 Side Pots visibility based on tournament data
+    function updatePlayer2SidePotVisibility() {
+        const container = document.getElementById('player2-sidepot-container');
+        const priceSpan = document.getElementById('player2-sidepot-price');
+        const checkbox = document.getElementById('player2-sidepots');
+        
+        if (!container) {
+            console.log('Player 2 sidepot container not found');
+            return;
+        }
+        
+        // Check if tournament data has side pots enabled
+        const sidePotEnabled = tournamentData && tournamentData.sidePotOption !== false;
+        const sidePotPrice = tournamentData && tournamentData.sidePot ? 
+            parseFloat(tournamentData.sidePot) : 25;
+        
+        console.log('Player 2 Side Pots visibility:', sidePotEnabled, 'price:', sidePotPrice);
+        
+        if (sidePotEnabled) {
+            container.style.display = 'flex';
+            if (priceSpan) {
+                priceSpan.textContent = '$' + sidePotPrice.toFixed(2);
+            }
+            // Ensure checkbox is unchecked when shown
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        } else {
+            container.style.display = 'none';
+            // Uncheck the checkbox if hidden
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        }
     }
 
     // Update modal display based on tournament options
@@ -523,12 +561,16 @@
                 addonContainer.style.display = 'none';
             }
         }
+        
+        // Update Player 2 Side Pots visibility
+        updatePlayer2SidePotVisibility();
     }
 
     function updateModalPrices() {
         // Update price displays in modal with dynamic data
         const roulettePriceEl = document.getElementById('roulette-price');
         const sidePotPriceEl = document.getElementById('side-pot-price');
+        const player2SidePotPriceEl = document.getElementById('player2-sidepot-price');
         const rouletteCheckbox = document.getElementById('roulette');
         const sidePotsCheckbox = document.getElementById('side-pots');
         
@@ -541,6 +583,9 @@
             }
             if (sidePotPriceEl) {
                 sidePotPriceEl.textContent = '$' + sidePotPrice.toFixed(2);
+            }
+            if (player2SidePotPriceEl) {
+                player2SidePotPriceEl.textContent = '$' + sidePotPrice.toFixed(2);
             }
             if (rouletteCheckbox) {
                 rouletteCheckbox.value = roulettePrice;
@@ -569,6 +614,9 @@
         if (step1 && step2) {
             step1.style.display = 'none';
             step2.style.display = 'block';
+            
+            // Update Player 2 Side Pots visibility when step 2 is shown
+            updatePlayer2SidePotVisibility();
             
             // Focus first input in step 2
             setTimeout(() => {
@@ -713,175 +761,194 @@
     }
 
     function buildCartItem() {
-    const nameInput = document.getElementById('modal-name');
-    const emailInput = document.getElementById('modal-email');
-    const phoneInput = document.getElementById('modal-phone');
-    const ghinInput = document.getElementById('modal-ghin');
-    
-    // Format name properly
-    let formattedName = nameInput.value.trim();
-    formattedName = formattedName
-        .split(/\s+/)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
+        const nameInput = document.getElementById('modal-name');
+        const emailInput = document.getElementById('modal-email');
+        const phoneInput = document.getElementById('modal-phone');
+        const ghinInput = document.getElementById('modal-ghin');
+        
+        // Format name properly
+        let formattedName = nameInput.value.trim();
+        formattedName = formattedName
+            .split(/\s+/)
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
 
-    // Calculate total price based on product type
-    let totalPrice;
-    let basePrice;
-    
-    if (currentProduct.type === 'tournament') {
-        // Tournament pricing
-        totalPrice = tournamentData ? parseFloat(tournamentData.price) : 0;
-        basePrice = tournamentData ? parseFloat(tournamentData.price) : 0;
-    } else {
-        // Membership pricing - use the product's price from PRODUCTS object
-        totalPrice = currentProduct.price;
-        basePrice = currentProduct.price;
-    }
+        // Calculate total price based on product type
+        let totalPrice;
+        let basePrice;
         
-    let formData = {
-        name: formattedName,
-        email: emailInput ? emailInput.value.trim() : '',
-        phone: phoneInput ? phoneInput.value.trim() : '',
-        ghin: ghinInput ? ghinInput.value.trim() : ''
-    };
-    
-    // Tournament-specific data
-    if (currentProduct.type === 'tournament') {
-        const sidePotsCheckbox = document.getElementById('side-pots');
-        const rouletteCheckbox = document.getElementById('roulette');
-        const startingTimeSelect = document.getElementById('starting-time');
-        const cartOptionSelect = document.getElementById('cart-option');
-        
-        // Only include side pots if option is enabled and checkbox exists
-        if (sidePotsCheckbox && tournamentData && tournamentData.sidePotOption !== false) {
-            formData.sidePots = sidePotsCheckbox.checked;
+        if (currentProduct.type === 'tournament') {
+            // Tournament pricing
+            totalPrice = tournamentData ? parseFloat(tournamentData.price) : 0;
+            basePrice = tournamentData ? parseFloat(tournamentData.price) : 0;
         } else {
-            formData.sidePots = false;
+            // Membership pricing - use the product's price from PRODUCTS object
+            totalPrice = currentProduct.price;
+            basePrice = currentProduct.price;
         }
-        
-        // Only include roulette if option is enabled and checkbox exists
-        if (rouletteCheckbox && tournamentData && tournamentData.rouletteOption !== false) {
-            formData.roulette = rouletteCheckbox.checked;
-        } else {
-            formData.roulette = false;
-        }
-        
-        formData.startingTime = startingTimeSelect ? startingTimeSelect.value : '';
-        
-        // Add cart option if enabled
-        let cartOptionAddedPrice = 0;
-        if (tournamentData && tournamentData.cartOption === true && cartOptionSelect) {
-            formData.cartOption = cartOptionSelect.value;
-            // Add $9 if cart option is "Cart"
-            if (cartOptionSelect.value === 'Cart') {
-                cartOptionAddedPrice = 9.00;
-                formData.cartOptionAddedPrice = cartOptionAddedPrice;
-            }
-        }
-        
-        // Calculate add-ons with dynamic prices
-        let addons = [];
-        let addonsTotal = 0;
-        
-        // Get add-on prices from tournament data
-        const sidePotPrice = tournamentData && tournamentData.sidePot ? 
-            parseFloat(tournamentData.sidePot) : 25;
-        const roulettePrice = tournamentData && tournamentData.roulette ? 
-            parseFloat(tournamentData.roulette) : 30;
-        
-        // Only add side pots if option is enabled and selected
-        if (tournamentData && tournamentData.sidePotOption !== false && formData.sidePots) {
-            addons.push({ name: 'Side Pots', price: sidePotPrice });
-            addonsTotal += sidePotPrice;
-        }
-        
-        // Only add roulette if option is enabled and selected
-        if (tournamentData && tournamentData.rouletteOption !== false && formData.roulette) {
-            addons.push({ name: 'Roulette', price: roulettePrice });
-            addonsTotal += roulettePrice;
-        }
-        
-        formData.addons = addons;
-        formData.addonsTotal = addonsTotal;
-        
-        // Additional players - collect and add fees for those paid
-        const additionalPlayers = [];
-        let additionalPlayersTotalFee = 0;
-        for (let i = 2; i <= 4; i++) {
-            const playerNameInput = document.getElementById(`modal-name${i}`);
-            const playerEmailInput = document.getElementById(`modal-email${i}`);
-            const playerPhoneInput = document.getElementById(`modal-phone${i}`);
-            const playerGhinInput = document.getElementById(`modal-ghin${i}`);
-            const payCheckbox = document.getElementById(`pay-player${i}`);
             
-            if (playerNameInput && playerNameInput.value.trim()) {
-                // Format player name properly
-                let playerFormattedName = playerNameInput.value.trim();
-                playerFormattedName = playerFormattedName
-                    .split(/\s+/)
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ');
-                
-                const playerData = {
-                    name: playerFormattedName,
-                    email: playerEmailInput ? playerEmailInput.value.trim() : '',
-                    phone: playerPhoneInput ? playerPhoneInput.value.trim() : '',
-                    ghin: playerGhinInput ? playerGhinInput.value.trim() : '',
-                    payForPlayer: payCheckbox ? payCheckbox.checked : false
-                };
-                
-                additionalPlayers.push(playerData);
-                
-                // Add fee if paid
-                if (playerData.payForPlayer) {
-                    additionalPlayersTotalFee += basePrice;
+        let formData = {
+            name: formattedName,
+            email: emailInput ? emailInput.value.trim() : '',
+            phone: phoneInput ? phoneInput.value.trim() : '',
+            ghin: ghinInput ? ghinInput.value.trim() : ''
+        };
+        
+        // Tournament-specific data
+        if (currentProduct.type === 'tournament') {
+            const sidePotsCheckbox = document.getElementById('side-pots');
+            const rouletteCheckbox = document.getElementById('roulette');
+            const startingTimeSelect = document.getElementById('starting-time');
+            const cartOptionSelect = document.getElementById('cart-option');
+            const player2SidePotsCheckbox = document.getElementById('player2-sidepots');
+            
+            // Only include side pots if option is enabled and checkbox exists
+            if (sidePotsCheckbox && tournamentData && tournamentData.sidePotOption !== false) {
+                formData.sidePots = sidePotsCheckbox.checked;
+            } else {
+                formData.sidePots = false;
+            }
+            
+            // Only include roulette if option is enabled and checkbox exists
+            if (rouletteCheckbox && tournamentData && tournamentData.rouletteOption !== false) {
+                formData.roulette = rouletteCheckbox.checked;
+            } else {
+                formData.roulette = false;
+            }
+            
+            formData.startingTime = startingTimeSelect ? startingTimeSelect.value : '';
+            
+            // Add cart option if enabled
+            let cartOptionAddedPrice = 0;
+            if (tournamentData && tournamentData.cartOption === true && cartOptionSelect) {
+                formData.cartOption = cartOptionSelect.value;
+                // Add $9 if cart option is "Cart"
+                if (cartOptionSelect.value === 'Cart') {
+                    cartOptionAddedPrice = 9.00;
+                    formData.cartOptionAddedPrice = cartOptionAddedPrice;
                 }
             }
+            
+            // Calculate add-ons with dynamic prices
+            let addons = [];
+            let addonsTotal = 0;
+            
+            // Get add-on prices from tournament data
+            const sidePotPrice = tournamentData && tournamentData.sidePot ? 
+                parseFloat(tournamentData.sidePot) : 25;
+            const roulettePrice = tournamentData && tournamentData.roulette ? 
+                parseFloat(tournamentData.roulette) : 30;
+            
+            // Player 1 Side Pots - ONLY add if checked
+            if (tournamentData && tournamentData.sidePotOption !== false && formData.sidePots) {
+                addons.push({ name: 'Side Pots (Player 1)', price: sidePotPrice });
+                addonsTotal += sidePotPrice;
+            }
+            
+            // Player 1 Roulette - ONLY add if checked
+            if (tournamentData && tournamentData.rouletteOption !== false && formData.roulette) {
+                addons.push({ name: 'Roulette (Player 1)', price: roulettePrice });
+                addonsTotal += roulettePrice;
+            }
+            
+            formData.addons = addons;
+            formData.addonsTotal = addonsTotal;
+            
+            // Additional players - collect and add fees for those paid
+            const additionalPlayers = [];
+            let additionalPlayersTotalFee = 0;
+            let player2SidePotsAdded = false;
+            
+            for (let i = 2; i <= 4; i++) {
+                const playerNameInput = document.getElementById(`modal-name${i}`);
+                const playerEmailInput = document.getElementById(`modal-email${i}`);
+                const playerPhoneInput = document.getElementById(`modal-phone${i}`);
+                const playerGhinInput = document.getElementById(`modal-ghin${i}`);
+                const payCheckbox = document.getElementById(`pay-player${i}`);
+                
+                if (playerNameInput && playerNameInput.value.trim()) {
+                    // Format player name properly
+                    let playerFormattedName = playerNameInput.value.trim();
+                    playerFormattedName = playerFormattedName
+                        .split(/\s+/)
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                        .join(' ');
+                    
+                    // Check if this is Player 2 and side pots checkbox is checked
+                    let playerSidePots = false;
+                    if (i === 2 && player2SidePotsCheckbox && tournamentData && tournamentData.sidePotOption !== false) {
+                        playerSidePots = player2SidePotsCheckbox.checked;
+                        if (playerSidePots) {
+                            player2SidePotsAdded = true;
+                            // Add side pot fee for Player 2 - add to addonsTotal only
+                            const player2SidePotPrice = tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : 25;
+                            // Add to addonsTotal, NOT to additionalPlayersTotalFee
+                            addons.push({ name: 'Side Pots (Player 2)', price: player2SidePotPrice });
+                            addonsTotal += player2SidePotPrice;
+                        }
+                    }
+                    
+                    const playerData = {
+                        name: playerFormattedName,
+                        email: playerEmailInput ? playerEmailInput.value.trim() : '',
+                        phone: playerPhoneInput ? playerPhoneInput.value.trim() : '',
+                        ghin: playerGhinInput ? playerGhinInput.value.trim() : '',
+                        payForPlayer: payCheckbox ? payCheckbox.checked : false,
+                        sidePots: playerSidePots // Store side pots flag for Player 2
+                    };
+                    
+                    additionalPlayers.push(playerData);
+                    
+                    // Add fee if paid (only base price, not side pots)
+                    if (playerData.payForPlayer) {
+                        additionalPlayersTotalFee += basePrice;
+                    }
+                }
+            }
+            formData.additionalPlayers = additionalPlayers;
+            formData.player2SidePots = player2SidePotsAdded;
+            
+            // Update total price: base price + addons (includes Player 1 & Player 2 side pots) + cart option + additional player fees
+            totalPrice = basePrice + addonsTotal + cartOptionAddedPrice + additionalPlayersTotalFee;
+            
+            // Store tournament info
+            formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
+            formData.tournamentPrice = tournamentData ? tournamentData.price : 0;
+            formData.cartOptionEnabled = tournamentData ? tournamentData.cartOption : false;
+            formData.sidePotOptionEnabled = tournamentData ? (tournamentData.sidePotOption !== false) : false;
+            formData.rouletteOptionEnabled = tournamentData ? (tournamentData.rouletteOption !== false) : false;
         }
-        formData.additionalPlayers = additionalPlayers;
-        
-        // Update total price with add-ons, cart option, and additional player fees
-        totalPrice += addonsTotal + cartOptionAddedPrice + additionalPlayersTotalFee;
-        
-        // Store tournament info
-        formData.tournamentTitle = tournamentData ? tournamentData.title : currentProduct.name;
-        formData.tournamentPrice = tournamentData ? tournamentData.price : 0;
-        formData.cartOptionEnabled = tournamentData ? tournamentData.cartOption : false;
-        formData.sidePotOptionEnabled = tournamentData ? (tournamentData.sidePotOption !== false) : false;
-        formData.rouletteOptionEnabled = tournamentData ? (tournamentData.rouletteOption !== false) : false;
+
+        // Generate a unique cart item ID
+        const cartItemId = "cart_item_" + Math.random().toString(36).substr(2, 9);
+
+        // Get image for product - use tournament's imageUrl if available
+        const productImage = currentProduct.type === 'tournament' && tournamentData && tournamentData.imageUrl ? 
+            tournamentData.imageUrl : getImageForProduct(currentProduct);
+
+        return {
+            id: cartItemId,
+            productId: currentProduct.id,
+            tournamentId: tournamentData ? tournamentData.id : null,
+            name: tournamentData ? tournamentData.title : currentProduct.name,
+            price: totalPrice,
+            basePrice: basePrice, // Store base price separately for calculations
+            image: productImage,
+            type: currentProduct.type,
+            quantity: 1,
+            form: formData,
+            roulettePrice: currentProduct.type === 'tournament' ? 
+                (tournamentData && tournamentData.roulette ? parseFloat(tournamentData.roulette) : 30) : null,
+            sidePotPrice: currentProduct.type === 'tournament' ? 
+                (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : 25) : null,
+            cartOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
+                tournamentData.cartOption : false,
+            sidePotOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
+                (tournamentData.sidePotOption !== false) : false,
+            rouletteOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
+                (tournamentData.rouletteOption !== false) : false
+        };
     }
-
-    // Generate a unique cart item ID
-    const cartItemId = "cart_item_" + Math.random().toString(36).substr(2, 9);
-
-    // Get image for product - use tournament's imageUrl if available
-    const productImage = currentProduct.type === 'tournament' && tournamentData && tournamentData.imageUrl ? 
-        tournamentData.imageUrl : getImageForProduct(currentProduct);
-
-    return {
-        id: cartItemId,
-        productId: currentProduct.id,
-        tournamentId: tournamentData ? tournamentData.id : null,
-        name: tournamentData ? tournamentData.title : currentProduct.name,
-        price: totalPrice, // Now correctly set for both memberships and tournaments
-        basePrice: basePrice, // Store base price separately for calculations
-        image: productImage,
-        type: currentProduct.type,
-        quantity: 1,
-        form: formData,
-        roulettePrice: currentProduct.type === 'tournament' ? 
-            (tournamentData && tournamentData.roulette ? parseFloat(tournamentData.roulette) : 30) : null,
-        sidePotPrice: currentProduct.type === 'tournament' ? 
-            (tournamentData && tournamentData.sidePot ? parseFloat(tournamentData.sidePot) : 25) : null,
-        cartOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
-            tournamentData.cartOption : false,
-        sidePotOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
-            (tournamentData.sidePotOption !== false) : false,
-        rouletteOptionEnabled: currentProduct.type === 'tournament' && tournamentData ? 
-            (tournamentData.rouletteOption !== false) : false
-    };
-}
 
     function showAddToCartFeedback() {
         const openBtn = document.getElementById('open-member-modal');
@@ -1307,6 +1374,8 @@
                 if (typeof window.updatePlayerFees === 'function') {
                     window.updatePlayerFees(data.price);
                 }
+                // Update Player 2 Side Pots visibility
+                updatePlayer2SidePotVisibility();
             }
             
             // Update current product with dynamic data if it's a tournament
@@ -1337,6 +1406,8 @@
         // Expose tournament validation function
         validateTournamentPlayer1: validateTournamentPlayer1,
         // Expose membership validation function
-        validateMembershipPlayer1: validateMembershipPlayer1
+        validateMembershipPlayer1: validateMembershipPlayer1,
+        // Expose Player 2 Side Pots visibility function
+        updatePlayer2SidePotVisibility: updatePlayer2SidePotVisibility
     };
 })();

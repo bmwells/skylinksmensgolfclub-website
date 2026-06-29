@@ -7,9 +7,8 @@
     <link rel="stylesheet" href="/css/product.css" />
 
     <script>
-        // Store tooltip state globally
-        let activeTooltip = null;
-        let activeTooltipButton = null;
+        // NOTE: activeTooltip and activeTooltipButton are already declared globally in cart.js
+        // Do NOT redeclare them here - just use the global ones
         
         // Store tournament data for this modal
         let tournamentData = null;
@@ -38,14 +37,10 @@
                     this.setSelectionRange(newCursorPosition, newCursorPosition);
                 });
                 
-                // Only allow numbers and navigation keys
                 input.addEventListener('keydown', function(e) {
-                    // Allow navigation keys, delete, backspace, tab
                     if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
                         return;
                     }
-                    
-                    // Allow numbers only
                     if (!/\d/.test(e.key)) {
                         e.preventDefault();
                     }
@@ -59,15 +54,10 @@
                 input.addEventListener('input', () => {
                     input.value = input.value.replace(/\D/g, '').slice(0, 8);
                 });
-                
-                // Only allow numbers and navigation keys
                 input.addEventListener('keydown', function(e) {
-                    // Allow navigation keys, delete, backspace, tab
                     if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
                         return;
                     }
-                    
-                    // Allow numbers only
                     if (!/\d/.test(e.key)) {
                         e.preventDefault();
                     }
@@ -75,43 +65,25 @@
             });
         }
         
-        // Enhanced name validation for all name inputs in edit modal
         function setupEditModalNameValidation() {
             const nameInputs = document.querySelectorAll('#edit-modal-form input[id*="name"]');
-            
             nameInputs.forEach(input => {
-                // Real-time character filtering
                 input.addEventListener('input', function(e) {
-                    // Get current value and cursor position
                     const cursorPos = this.selectionStart;
                     const originalValue = this.value;
-                    
-                    // Remove any characters that aren't allowed
-                    // Allow: letters, spaces, hyphens, apostrophes
                     let newValue = originalValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'\-\s]/g, '');
-                    
-                    // Remove extra spaces (only allow single spaces between words)
                     newValue = newValue.replace(/\s+/g, ' ').trim();
-                    
-                    // Limit to two words maximum
                     const words = newValue.split(' ');
                     if (words.length > 2) {
                         newValue = words.slice(0, 2).join(' ');
                     }
-                    
-                    // Update value if changed
                     if (newValue !== originalValue) {
                         this.value = newValue;
-                        
-                        // Restore cursor position (adjust for removed characters)
                         const diff = newValue.length - originalValue.length;
                         this.setSelectionRange(cursorPos + diff, cursorPos + diff);
                     }
                 });
-                
-                // Prevent typing invalid characters
                 input.addEventListener('keydown', function(e) {
-                    // Allow control keys
                     if (e.ctrlKey || e.metaKey || 
                         e.key === 'Backspace' || e.key === 'Delete' || 
                         e.key === 'Tab' || e.key === 'Enter' || 
@@ -120,14 +92,10 @@
                         e.key === 'Home' || e.key === 'End') {
                         return;
                     }
-                    
-                    // Only allow: letters, space, hyphen, apostrophe
                     const allowedChars = /^[A-Za-zÀ-ÖØ-öø-ÿ'\- ]$/;
                     if (!allowedChars.test(e.key)) {
                         e.preventDefault();
                     }
-                    
-                    // Prevent more than one space in a row
                     if (e.key === ' ') {
                         const cursorPos = this.selectionStart;
                         const beforeCursor = this.value.substring(0, cursorPos);
@@ -136,17 +104,11 @@
                         }
                     }
                 });
-                
-                // For required name fields, enforce exactly two words on blur
                 if (input.hasAttribute('required')) {
                     input.addEventListener('blur', function() {
                         const words = this.value.trim().split(/\s+/);
-                        
                         if (words.length !== 2) {
-                            // Show error
                             this.style.borderColor = '#ff4444';
-                            
-                            // Create or update error message
                             let errorMsg = this.parentNode.querySelector('.name-error');
                             if (!errorMsg) {
                                 errorMsg = document.createElement('div');
@@ -156,7 +118,6 @@
                                 errorMsg.style.marginTop = '5px';
                                 this.parentNode.appendChild(errorMsg);
                             }
-                            
                             if (words.length === 1) {
                                 errorMsg.textContent = 'Please enter both first and last name';
                             } else if (words.length > 2) {
@@ -165,7 +126,6 @@
                                 errorMsg.textContent = 'Name is required';
                             }
                         } else {
-                            // Clear error
                             this.style.borderColor = '#ddd';
                             const errorMsg = this.parentNode.querySelector('.name-error');
                             if (errorMsg) {
@@ -173,8 +133,6 @@
                             }
                         }
                     });
-                    
-                    // Clear error on focus
                     input.addEventListener('focus', function() {
                         this.style.borderColor = '#ddd';
                         const errorMsg = this.parentNode.querySelector('.name-error');
@@ -186,99 +144,60 @@
             });
         }
 
-        // Function to create and show tooltip
         function showTooltip(event, text) {
             const button = event.currentTarget;
-            
-            // If clicking the same button again, close the tooltip
-            if (activeTooltipButton === button && activeTooltip) {
-                activeTooltip.remove();
-                activeTooltip = null;
-                activeTooltipButton = null;
+            if (window.activeTooltipButton === button && window.activeTooltip) {
+                if (window.activeTooltip.parentNode) {
+                    window.activeTooltip.remove();
+                }
+                window.activeTooltip = null;
+                window.activeTooltipButton = null;
                 return;
             }
-            
-            // Remove any existing tooltips
             const existingTooltips = document.querySelectorAll('.tooltip-popup');
             existingTooltips.forEach(tooltip => tooltip.remove());
-            
-            // Create new tooltip
             const tooltip = document.createElement('div');
             tooltip.className = 'tooltip-popup';
             tooltip.textContent = text;
-            
-            // Get the button that was clicked
-            const rect = button.getBoundingClientRect(); // Viewport-relative position
-            
-            // Position tooltip relative to viewport (ignores scroll)
-            // Place tooltip below the button
-            const topPosition = rect.bottom + 10; // 10px below button (viewport coordinates)
-            
-            // Adjust horizontal positioning to center tooltip under button
-            const tooltipWidth = 300; // max-width
+            const rect = button.getBoundingClientRect();
+            const topPosition = rect.bottom + 10;
+            const tooltipWidth = 300;
             const buttonCenter = rect.left + (rect.width / 2);
-            const adjustedLeft = Math.max(
-                10, 
-                Math.min(
-                    buttonCenter - (tooltipWidth / 2), 
-                    window.innerWidth - tooltipWidth - 10
-                )
-            );
-            
+            const adjustedLeft = Math.max(10, Math.min(buttonCenter - (tooltipWidth / 2), window.innerWidth - tooltipWidth - 10));
             tooltip.style.top = `${topPosition}px`;
             tooltip.style.left = `${adjustedLeft}px`;
-            
             document.body.appendChild(tooltip);
-            
-            // Store references to active tooltip
-            activeTooltip = tooltip;
-            activeTooltipButton = button;
-            
-            // Function to close tooltip
+            window.activeTooltip = tooltip;
+            window.activeTooltipButton = button;
             function closeTooltip() {
                 if (tooltip.parentNode) {
                     tooltip.remove();
-                    activeTooltip = null;
-                    activeTooltipButton = null;
+                    window.activeTooltip = null;
+                    window.activeTooltipButton = null;
                 }
-                // Remove event listeners
                 document.removeEventListener('pointerdown', handleOutsideClick, true);
                 document.removeEventListener('keydown', handleEscapeKey);
             }
-            
-            // Handle click outside
             function handleOutsideClick(e) {
                 if (!tooltip.contains(e.target) && e.target !== button) {
                     closeTooltip();
                 }
             }
-            
-            // Handle escape key
             function handleEscapeKey(e) {
                 if (e.key === 'Escape') {
                     closeTooltip();
                 }
             }
-            
-            // Add event listeners
             document.addEventListener('pointerdown', handleOutsideClick, true);
             document.addEventListener('keydown', handleEscapeKey);
-            
-            // Auto-close after 5 seconds
             setTimeout(closeTooltip, 5000);
-            
-            // Prevent the button click from closing the tooltip immediately
             event.stopPropagation();
         }
 
         function setupEditModalTooltips() {
-            // Add click handlers to info icons in the edit modal
             document.querySelectorAll('.info-icon').forEach(icon => {
-                // Remove existing listeners by cloning
                 const newIcon = icon.cloneNode(true);
                 icon.parentNode.replaceChild(newIcon, icon);
-                
-                // Add click listener
                 newIcon.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -290,14 +209,14 @@
             });
         }
         
-        // Update modal display based on tournament options
         function updateEditModalBasedOnTournament() {
-            if (!tournamentData) return;
-            
-            // Show/hide cart option dropdown based on tournament data
+            if (!tournamentData) {
+                console.log('No tournament data available');
+                return;
+            }
+            console.log('Updating edit modal based on tournament data:', tournamentData);
             const cartOptionContainer = document.getElementById('cart-option-container');
             const cartOptionSelect = document.getElementById('cart-option');
-            
             if (cartOptionContainer && cartOptionSelect) {
                 if (tournamentData.cartOption === true) {
                     cartOptionContainer.style.display = 'block';
@@ -305,20 +224,14 @@
                     cartOptionContainer.style.display = 'none';
                 }
             }
-            
-            // Show/hide addon options container based on tournament options
             const addonContainer = document.getElementById('addon-options-container');
             if (addonContainer) {
-                const hasSidePotOption = tournamentData.sidePotOption !== false; // Default to true if not set
-                const hasRouletteOption = tournamentData.rouletteOption !== false; // Default to true if not set
-                
+                const hasSidePotOption = tournamentData.sidePotOption !== false;
+                const hasRouletteOption = tournamentData.rouletteOption !== false;
                 if (hasSidePotOption || hasRouletteOption) {
                     addonContainer.style.display = 'block';
-                    
-                    // Show/hide individual options
                     const sidePotContainer = document.getElementById('side-pot-option-container');
                     const rouletteContainer = document.getElementById('roulette-option-container');
-                    
                     if (sidePotContainer) {
                         sidePotContainer.style.display = hasSidePotOption ? 'flex' : 'none';
                     }
@@ -329,38 +242,64 @@
                     addonContainer.style.display = 'none';
                 }
             }
-            
-            // Update player fee displays
+            updatePlayer2SidePotVisibility();
             updatePlayerFees(tournamentData.price);
         }
         
-        // Update prices in edit modal
+        function updatePlayer2SidePotVisibility() {
+            const container = document.getElementById('player2-sidepot-container');
+            const priceSpan = document.getElementById('player2-sidepot-price');
+            const checkbox = document.getElementById('player2-sidepots');
+            if (!container) {
+                console.log('Player 2 sidepot container not found');
+                return;
+            }
+            const sidePotEnabled = tournamentData && tournamentData.sidePotOption !== false;
+            const sidePotPrice = tournamentData && tournamentData.sidePot ?
+                parseFloat(tournamentData.sidePot) : 25;
+            if (sidePotEnabled) {
+                container.style.display = 'flex';
+                if (priceSpan) {
+                    priceSpan.textContent = '$' + sidePotPrice.toFixed(2);
+                }
+            } else {
+                container.style.display = 'none';
+                if (checkbox) {
+                    checkbox.checked = false;
+                }
+            }
+        }
+        
         function updateEditModalPrices() {
-            // Update price displays in modal with dynamic data
             const roulettePriceEl = document.getElementById('roulette-price');
             const sidePotPriceEl = document.getElementById('side-pot-price');
-            
+            const player2SidePotPriceEl = document.getElementById('player2-sidepot-price');
             if (tournamentData) {
                 const roulettePrice = parseFloat(tournamentData.roulette) || 30;
                 const sidePotPrice = parseFloat(tournamentData.sidePot) || 25;
-                
                 if (roulettePriceEl) {
                     roulettePriceEl.textContent = '$' + roulettePrice.toFixed(2);
                 }
                 if (sidePotPriceEl) {
                     sidePotPriceEl.textContent = '$' + sidePotPrice.toFixed(2);
                 }
+                if (player2SidePotPriceEl) {
+                    player2SidePotPriceEl.textContent = '$' + sidePotPrice.toFixed(2);
+                }
             }
         }
         
-        // Set tournament data for edit modal
         function setTournamentDataForEditModal(data) {
+            console.log('setTournamentDataForEditModal called with data:', data);
             tournamentData = data;
             updateEditModalPrices();
             updateEditModalBasedOnTournament();
+            setTimeout(function() {
+                updatePlayer2SidePotVisibility();
+                console.log('Player 2 side pots visibility forced update');
+            }, 100);
         }
 
-        // Update fee display for additional players
         function updatePlayerFees(fee) {
             for (let i = 2; i <= 4; i++) {
                 const span = document.getElementById(`player-fee-display${i}`);
@@ -370,7 +309,9 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // === INITIALIZATION - runs immediately when script loads ===
+        function initializeEditModal() {
+            console.log('Edit modal initializing...');
             setupPhoneFormatting();
             setupGHINFormatting();
             setupEditModalNameValidation();
@@ -380,72 +321,53 @@
                 initMemberAutocomplete();
             }
             
-            // Fix for top save button - prevent double submission
-            const topSaveBtn = document.getElementById('modal-save-top');
-            const bottomSaveBtn = document.getElementById('modal-save');
+            // Prevent form submission - we handle saves manually
             const form = document.getElementById('edit-modal-form');
-            
-            if (topSaveBtn && bottomSaveBtn && form) {
-                // Change top button to type="button" to prevent form submission
-                topSaveBtn.type = 'button';
-                
-                // When top button is clicked, trigger form validation and submission
-                topSaveBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    
-                    // First, trigger form validation
-                    if (form.checkValidity()) {
-                        // If form is valid, submit it programmatically
-                        form.requestSubmit(bottomSaveBtn);
-                    } else {
-                        // If form is invalid, show validation messages
-                        form.reportValidity();
-                    }
-                });
-                
-                // Add form submission handler
+            if (form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    // Handle the form submission
-                    console.log('Form submitted with data:', {
-                        name: document.getElementById('modal-name').value,
-                        email: document.getElementById('modal-email').value,
-                        phone: document.getElementById('modal-phone').value,
-                        ghin: document.getElementById('modal-ghin').value,
-                    });
+                    e.stopPropagation();
+                    console.log('Form submit prevented - use Save buttons instead');
+                    return false;
                 });
             }
             
-            // Add cancel button handler
-            const cancelBtn = document.getElementById('modal-close-2');
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', function() {
-                    // Close the modal - in a real implementation, you would have a modal close function
-                    console.log('Modal cancelled');
-                    // document.getElementById('edit-modal').style.display = 'none';
-                });
+            if (window.tournamentDataForEditModal) {
+                console.log('Tournament data found from global variable:', window.tournamentDataForEditModal);
+                setTournamentDataForEditModal(window.tournamentDataForEditModal);
             }
             
-            // Check if tournament data is passed from parent window
             if (window.opener && window.opener.tournamentData) {
+                console.log('Tournament data found from opener:', window.opener.tournamentData);
                 setTournamentDataForEditModal(window.opener.tournamentData);
             }
-        });
+            
+            console.log('Edit modal initialization complete');
+        }
+
+        // Run initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeEditModal);
+        } else {
+            initializeEditModal();
+        }
         
-        // Make the setTournamentData function available globally
+        // Make functions available globally
         window.setTournamentDataForEditModal = setTournamentDataForEditModal;
         window.updatePlayerFees = updatePlayerFees;
+        window.updatePlayer2SidePotVisibility = updatePlayer2SidePotVisibility;
+        window.tournamentDataForEditModal = null;
+        
+        console.log('Edit modal script loaded - functions registered globally');
     </script>
     
     <style>
-        /* Name error styling */
         .name-error {
             color: #ff4444;
             font-size: 0.85rem;
             margin-top: 5px;
         }
         
-        /* Top save button styling */
         .top-save-button {
             position: absolute;
             top: 20px;
@@ -523,7 +445,6 @@
                 <label for="side-pots" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
                     Side Pots (<span id="side-pot-price">$25</span>)
                 </label>
-                <!-- ADDED INFO BUTTON -->
                 <button type="button" class="info-icon" data-tooltip="Gross, Net Skins & Polies" aria-label="Side pots information">
                     &#9432;
                 </button>
@@ -535,7 +456,6 @@
                 <label for="roulette" style="margin-left: 8px; font-weight: normal; font-size: 0.95rem;">
                     Roulette (<span id="roulette-price">$30</span>)
                 </label>
-                <!-- ADDED INFO BUTTON -->
                 <button type="button" class="info-icon" data-tooltip="Holes 1-3, 4-6, 7-9, 10-12, 13-15, 16-18. First 6, Middle 6, Last 6, Front 9, Back 9, Easiest 4 Holes, and Hardest 4 Holes." aria-label="Roulette information">
                     &#9432;
                 </button>
@@ -596,13 +516,25 @@
             </div>
         </div>
 
-        <!-- Pay for Player checkbox -->
+        <!-- Pay for Player and Side Pots checkboxes - positioned side by side like main modal -->
         <div class="row">
-            <div class="col" style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
-                <input type="checkbox" id="pay-player2" name="pay-player2" style="width: 18px; height: 18px;">
-                <label for="pay-player2" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
-                    Pay for Player
-                </label>
+            <div class="col" style="display: flex; align-items: center; gap: 20px; margin-top: 5px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="pay-player2" name="pay-player2" style="width: 18px; height: 18px;">
+                    <label for="pay-player2" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
+                        Pay for Player
+                    </label>
+                </div>
+                <!-- Player 2 Side Pots Checkbox - CONDITIONAL - positioned next to Pay for Player -->
+                <div id="player2-sidepot-container" style="display: none; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="player2-sidepots" name="player2-sidepots" style="width: 18px; height: 18px;">
+                    <label for="player2-sidepots" style="font-weight: normal; font-size: 0.95rem; margin: 0;">
+                        Side Pots (<span id="player2-sidepot-price">$25</span>)
+                    </label>
+                    <button type="button" class="info-icon" data-tooltip="Gross, Net Skins & Polies" aria-label="Side pots information">
+                        &#9432;
+                    </button>
+                </div>
             </div>
         </div>
     </div>
