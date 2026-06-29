@@ -102,6 +102,11 @@ router.post('/create-checkout-session', async (req, res) => {
                             
                             if (player.ghin) formattedName += `, ${player.ghin}`;
                             
+                            // Add sidepot indicator for Player 2
+                            if (idx === 0 && player.sidePots) {
+                                formattedName += `, +SP`;
+                            }
+                            
                             playerList.push(formattedName);
                         }
                     });
@@ -123,18 +128,18 @@ router.post('/create-checkout-session', async (req, res) => {
                 }
             }
 
-        return {
-            price_data: {
-                currency: 'usd',
-                product_data: {
-                    name: productName,
-                    description: description || 'Player details',
+            return {
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: productName,
+                        description: description || 'Player details',
+                    },
+                    unit_amount: Math.round(item.price * 100),
                 },
-                unit_amount: Math.round(item.price * 100),
-            },
-            quantity: 1,
-        };
-    });
+                quantity: 1,
+            };
+        });
 
         // Prepare metadata
         const metadata = {
@@ -161,17 +166,24 @@ router.post('/create-checkout-session', async (req, res) => {
                     roulette: (form.roulette || false).toString()
                 };
                 
-                // Create minimal additional players array
+                // Create minimal additional players array - FIXED to include sidePots for Player 2
                 const additionalPlayers = [];
                 if (form.additionalPlayers && form.additionalPlayers.length > 0) {
-                    form.additionalPlayers.forEach((player) => {
-                        // Minimal player data
-                        additionalPlayers.push({
+                    form.additionalPlayers.forEach((player, playerIndex) => {
+                        // Player data with sidePots included (only for Player 2)
+                        const playerData = {
                             name: player.name || '',
                             email: player.email || '',
                             phone: player.phone || '',
                             ghin: player.ghin || ''
-                        });
+                        };
+                        
+                        // Only include sidePots for Player 2 (index 0)
+                        if (playerIndex === 0) {
+                            playerData.sidePots = (player.sidePots || false).toString();
+                        }
+                        
+                        additionalPlayers.push(playerData);
                     });
                 }
                 

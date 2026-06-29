@@ -152,12 +152,10 @@ async function handleCompletedPayment(session) {
                         }
                     });
                     
-                    // Parse player data - USING CORRECT METADATA KEYS
+                    // Parse player data
                     let mainPlayer = {};
                     let additionalPlayers = [];
                     
-                    // Get the data using the correct keys from stripe.js
-                    // mp = main player, ap = additional players
                     const mainPlayerData = metadata[`item_${i}_mp`];
                     const additionalPlayersData = metadata[`item_${i}_ap`];
                     
@@ -190,6 +188,7 @@ async function handleCompletedPayment(session) {
                             }
                             additionalPlayers.forEach((player, idx) => {
                                 console.log(`  Player ${idx + 2}:`, player);
+                                console.log(`    sidePots: ${player.sidePots}, payForPlayer: ${player.payForPlayer}`);
                             });
                         } catch (parseError) {
                             console.error('❌ Error parsing additionalPlayers JSON:', parseError);
@@ -199,7 +198,7 @@ async function handleCompletedPayment(session) {
                         console.log('⚠️ No additionalPlayers data found (item_${i}_ap missing)');
                     }
                     
-                    // Create registration object WITHOUT top-level sidePot/roulette
+                    // Create registration object
                     const registration = {
                         tournamentId: tournamentId,
                         stripeSessionId: session.id,
@@ -209,7 +208,6 @@ async function handleCompletedPayment(session) {
                         updatedAt: new Date(session.created * 1000),
                         cartOption: mainPlayer.cartOption || '',
                         startTime: mainPlayer.startingTime || 'Doesn\'t Matter',
-                        // REMOVED: sidePot and roulette from top level
                         customerEmail: session.customer_email || metadata.customerEmail || '',
                         customerName: metadata.customerName || '',
                         player1: null,
@@ -227,41 +225,50 @@ async function handleCompletedPayment(session) {
                             email: mainPlayer.email || '',
                             phoneNum: mainPlayer.phone || mainPlayer.phoneNum || '',
                             ghin: mainPlayer.ghin ? parseInt(mainPlayer.ghin) : null,
-                            entryNum: null, // Not in metadata from stripe.js
-                            index: '', // Not in metadata from stripe.js
-                            // ONLY player1 gets sidePot/roulette from their data
+                            entryNum: null,
+                            index: '',
                             sidePot: mainPlayer.sidePots === 'true' || mainPlayer.sidePot === true,
                             roulette: mainPlayer.roulette === 'true' || mainPlayer.roulette === true,
                             memberId: null
                         };
-                        console.log(`  sidePot: ${registration.player1.sidePot}, roulette: ${registration.player1.roulette}`);
+                        console.log(`  Player1 sidePot: ${registration.player1.sidePot}, roulette: ${registration.player1.roulette}`);
                     } else {
                         console.log('⚠️ Could not create player1 - missing data in mainPlayer object');
                         console.log('Main player object:', mainPlayer);
                     }
                     
-                    // Add additional players with sidePot/roulette AUTOMATICALLY FALSE
+                    // Add additional players
                     if (additionalPlayers && additionalPlayers.length > 0) {
-                        console.log(`Processing ${additionalPlayers.length} additional players (sidePot/roulette always false)`);
+                        console.log(`Processing ${additionalPlayers.length} additional players`);
                         
                         for (let j = 0; j < Math.min(additionalPlayers.length, 3); j++) {
                             const playerKey = `player${j + 2}`;
                             const player = additionalPlayers[j];
                             
                             if (player && (player.name || player.fullName)) {
+                                // Only Player 2 (j === 0) can have sidePots
+                                let playerSidePots = false;
+                                if (j === 0) {
+                                    // This is Player 2 - read sidePots from metadata
+                                    playerSidePots = player.sidePots === true || player.sidePots === 'true';
+                                    console.log(`  Player 2 sidePots from metadata: ${playerSidePots}`);
+                                } else {
+                                    // Player 3 and 4 never have sidePots
+                                    console.log(`  Player ${j + 2} sidePots: false (only Player 2 can have sidePots)`);
+                                }
+                                
                                 registration[playerKey] = {
                                     name: player.name || player.fullName || '',
                                     email: player.email || '',
                                     phoneNum: player.phone || player.phoneNum || '',
                                     ghin: player.ghin ? parseInt(player.ghin) : null,
-                                    entryNum: null, // Not in metadata from stripe.js
-                                    index: '', // Not in metadata from stripe.js
-                                    // Additional players ALWAYS have false for sidePot/roulette
-                                    sidePot: false,
-                                    roulette: false,
+                                    entryNum: null,
+                                    index: '',
+                                    sidePot: playerSidePots,
+                                    roulette: false, // Roulette is only for player1
                                     memberId: null
                                 };
-                                console.log(`  sidePot: false, roulette: false (auto-set for additional players)`);
+                                console.log(`  ${playerKey} sidePot: ${playerSidePots}, roulette: false`);
                             } else if (player) {
                                 console.log(`⚠️ Player ${j + 2} has no name data:`, player);
                                 registration[playerKey] = null;
@@ -285,12 +292,10 @@ async function handleCompletedPayment(session) {
                     }
                     
                     // Try to match players with members
-                    // Match player1 if exists
                     if (registration.player1) {
                         const member = await findMember(membersCollection, registration.player1);
                         if (member) {
                             registration.player1.memberId = member._id;
-                            // Update entryNum and index from member data
                             registration.player1.entryNum = member.entryNum || null;
                             registration.player1.index = member.index || '';
                         } else {
@@ -298,14 +303,12 @@ async function handleCompletedPayment(session) {
                         }
                     }
                     
-                    // Match additional players if they exist
                     for (let j = 2; j <= 4; j++) {
                         const playerKey = `player${j}`;
                         if (registration[playerKey]) {
                             const member = await findMember(membersCollection, registration[playerKey]);
                             if (member) {
                                 registration[playerKey].memberId = member._id;
-                                // Update entryNum and index from member data
                                 registration[playerKey].entryNum = member.entryNum || null;
                                 registration[playerKey].index = member.index || '';
                                 console.log(`  Updated ${playerKey} entryNum:`, member.entryNum);
