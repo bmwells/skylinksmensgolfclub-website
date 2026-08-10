@@ -8,26 +8,262 @@
     <title>President's Letter - Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <style>        
-        /* Ensure no space between header and first section */
+        /* Reset & base */
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             padding: 0;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f5f7fa;
+            color: #1e2b3c;
         }
 
-        #header-placeholder + main {
-            margin-top: 0;
+        #header-placeholder + main { margin-top: 0; }
+        .presidents-letter-page { margin-top: 0; }
+
+        /* Letter container */
+        .content-width--wide {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
 
-        /* Fix for header spacing */
-        .presidents-letter-page {
-            margin-top: 0;
+        .letter-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            padding: 2rem 2rem 2rem 2.5rem;
+            margin-bottom: 2.5rem;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(0,0,0,0.02);
         }
-        
-        /* Loading state */
+        .letter-text-container {
+            flex: 2;
+            min-width: 280px;
+        }
+        .letter-image-container {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .letter-image {
+            width: 100%;
+            max-width: 260px;
+            height: auto;
+            border-radius: 20px;
+            object-fit: cover;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+            background: #eef2f6;
+        }
+        .letter-content h2 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #0b2a41;
+            letter-spacing: -0.01em;
+            border-bottom: 3px solid #d4e0ed;
+            padding-bottom: 0.6rem;
+        }
+        .letter-content p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin: 0 0 1rem 0;
+            color: #1f3448;
+        }
+        .letter-content ul {
+            padding-left: 1.5rem;
+            margin: 0.75rem 0 1.25rem 0;
+        }
+        .letter-content ul li {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 0.25rem;
+            list-style-type: disc;
+        }
+        .signature {
+            margin-top: 2rem;
+            padding-top: 1.2rem;
+            border-top: 2px solid #e6edf6;
+        }
+        .signature-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0b2a41;
+        }
+        .signature-role {
+            font-size: 1rem;
+            color: #4a657f;
+            font-weight: 400;
+        }
+
+        /* Collapsible older posts */
+        .letter-grid.collapsed {
+            cursor: pointer;
+            padding: 0.75rem 2rem 0.75rem 2.5rem;
+            background: #f8faff;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: background 0.15s, box-shadow 0.15s;
+            border: 1px solid #e9eef4;
+            margin-bottom: 1rem;
+            gap: 0;
+            display: flex;
+            align-items: center;
+        }
+        .letter-grid.collapsed .letter-text-container {
+            flex: 1;
+        }
+        .letter-grid.collapsed .letter-image-container {
+            display: none;
+        }
+        .letter-grid.collapsed .letter-content h2 {
+            font-size: 1.25rem;
+            border-bottom: none;
+            padding-bottom: 0;
+            margin: 0.25rem 0;
+            font-weight: 600;
+            color: #1a3b57;
+        }
+        .letter-grid.collapsed .letter-content p,
+        .letter-grid.collapsed .letter-content ul,
+        .letter-grid.collapsed .signature {
+            display: none;
+        }
+        .letter-grid.collapsed .letter-content {
+            display: flex;
+            align-items: center;
+        }
+        .letter-grid.collapsed .letter-content h2 {
+            margin: 0;
+        }
+        /* expand toggle button */
+        .expand-toggle {
+            margin-left: auto;
+            background: #dce5f0;
+            border: none;
+            border-radius: 40px;
+            padding: 0.4rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1f3b57;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            background: #e3ecf7;
+            letter-spacing: 0.3px;
+        }
+        .letter-grid.collapsed .expand-toggle {
+            background: #d0ddea;
+            color: #1c344d;
+        }
+        .expand-toggle:hover {
+            background: #c8d8ea;
+        }
+        .letter-grid:not(.collapsed) .expand-toggle {
+            background: #eef3f9;
+            border: 1px solid #ccdbea;
+            padding: 0.3rem 1rem;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.2rem;
+        }
+        .letter-grid:not(.collapsed) {
+            position: relative;
+        }
+        .letter-grid:not(.collapsed) .expand-toggle {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.5rem;
+        }
+        .letter-grid:not(.collapsed) .letter-text-container {
+            padding-right: 1.5rem;
+        }
+
+        /* Loading / empty */
         .loading {
             text-align: center;
             padding: 4rem;
-            color: #666;
+            color: #4a657f;
+            font-size: 1.1rem;
+        }
+
+        /* Print styles: show all letters in full, no toggle */
+        @media print {
+            .expand-toggle { display: none !important; }
+            .letter-grid.collapsed {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                padding: 2rem 2rem 2rem 2.5rem !important;
+                background: #fff !important;
+                border-radius: 24px !important;
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 2rem !important;
+                cursor: default !important;
+            }
+            .letter-grid.collapsed .letter-image-container {
+                display: flex !important;
+            }
+            .letter-grid.collapsed .letter-content p,
+            .letter-grid.collapsed .letter-content ul,
+            .letter-grid.collapsed .signature {
+                display: block !important;
+            }
+            .letter-grid.collapsed .letter-content h2 {
+                font-size: 1.9rem !important;
+                border-bottom: 3px solid #d4e0ed !important;
+                padding-bottom: 0.6rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+            .letter-grid.collapsed .letter-content {
+                display: block !important;
+            }
+            .letter-grid.collapsed .letter-text-container {
+                flex: 2 !important;
+            }
+            .letter-grid:not(.collapsed) .expand-toggle {
+                display: none !important;
+            }
+            .letter-grid:not(.collapsed) .letter-text-container {
+                padding-right: 0 !important;
+            }
+            .letter-grid:not(.collapsed) {
+                position: static !important;
+            }
+            body { background: white; }
+            .content-width--wide { padding: 1rem; }
+        }
+
+        /* responsive */
+        @media (max-width: 680px) {
+            .letter-grid:not(.collapsed) {
+                padding: 1.5rem 1rem;
+                flex-direction: column;
+            }
+            .letter-grid:not(.collapsed) .expand-toggle {
+                position: relative;
+                top: auto;
+                right: auto;
+                align-self: flex-start;
+                margin-top: 0.5rem;
+            }
+            .letter-grid.collapsed {
+                padding: 0.6rem 1rem 0.6rem 1.2rem;
+                flex-wrap: nowrap;
+            }
+            .letter-grid.collapsed .letter-content h2 {
+                font-size: 1rem;
+            }
+            .letter-image {
+                max-width: 180px;
+            }
         }
     </style>
 </head>
@@ -37,14 +273,12 @@
     <div id="header-placeholder"></div>
 
     <main class="presidents-letter-page">
-    <!-- President's Letter Section -->
-    <section class="full-bleed-section letter-section">
-        <div class="content-width--wide" id="letters-container">
-            <!-- Letters will be loaded dynamically here -->
-            <div class="loading" id="loading">Loading president's letters...</div>
-        </div>
-    </section>
-</main>
+        <section class="full-bleed-section letter-section">
+            <div class="content-width--wide" id="letters-container">
+                <div class="loading" id="loading">Loading president's letters...</div>
+            </div>
+        </section>
+    </main>
 
     <!-- FOOTER INJECTION -->
     <div id="footer-placeholder"></div>
@@ -54,67 +288,97 @@
     <script src="/js/cart-count.js"></script>
 
     <script>
-        // Load header + footer on page
+        // Load header + footer
         fetch("/header.html")
             .then(res => res.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                if (typeof initMenu === 'function') {
-                    initMenu();
-                }
+                if (typeof initMenu === 'function') initMenu();
             });
-
         fetch("/footer.html")
             .then(res => res.text())
-            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+            .then(html => document.getElementById("footer-placeholder").innerHTML = html);
 
-        // Load president's letters from API
+        // ---------- PRESIDENT LETTERS ----------
         async function loadPresidentsLetters() {
             try {
                 const response = await fetch('/api/presidents-letter');
                 const data = await response.json();
-                
                 const container = document.getElementById('letters-container');
                 container.innerHTML = '';
-                
+
                 if (!data.letters || data.letters.length === 0) {
                     container.innerHTML = '<p>No president\'s letters available.</p>';
                     return;
                 }
-                
-                // Store president info
+
                 const president = data.president || {
                     name: 'Ted Lewandowski',
                     imageUrl: 'https://res.cloudinary.com/doha9yjng/image/upload/v1767697872/PresidentTed_latsk6.webp',
                     role: 'President, Skylinks Men\'s Golf Club'
                 };
-                
-                // Create each letter
-                data.letters.forEach(letter => {
-                    const letterElement = createLetterElement(letter, president);
-                    container.appendChild(letterElement);
+
+                // Sort letters: newest first (by year/month)
+                const sorted = [...data.letters].sort((a, b) => {
+                    const dateA = new Date(`${a.month || 'Jan'} ${a.year || 2000}`);
+                    const dateB = new Date(`${b.month || 'Jan'} ${b.year || 2000}`);
+                    return dateB - dateA;
                 });
+
+                sorted.forEach((letter, index) => {
+                    const el = createLetterElement(letter, president, index === 0);
+                    container.appendChild(el);
+                });
+
+                // Attach toggle events after render
+                document.querySelectorAll('.expand-toggle').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const grid = this.closest('.letter-grid');
+                        if (!grid) return;
+                        const isCollapsed = grid.classList.contains('collapsed');
+                        if (isCollapsed) {
+                            grid.classList.remove('collapsed');
+                            this.textContent = 'Minimize ▲';
+                        } else {
+                            grid.classList.add('collapsed');
+                            this.textContent = 'Expand ▼';
+                        }
+                    });
+                });
+
+                // Click on collapsed grid toggles as well (for better UX)
+                document.querySelectorAll('.letter-grid.collapsed').forEach(grid => {
+                    grid.addEventListener('click', function(e) {
+                        // ignore if click on button (already handled)
+                        if (e.target.closest('.expand-toggle')) return;
+                        const btn = this.querySelector('.expand-toggle');
+                        if (btn) btn.click();
+                    });
+                });
+
             } catch (error) {
                 console.error('Error loading president\'s letters:', error);
-                document.getElementById('letters-container').innerHTML = 
+                document.getElementById('letters-container').innerHTML =
                     '<p>Error loading president\'s letters. Please try again later.</p>';
             }
         }
 
-        function createLetterElement(letter, president) {
-            const letterGrid = document.createElement('div');
-            letterGrid.className = 'letter-grid';
-            
-            // Parse content - handle bullet points and new lines
+        function createLetterElement(letter, president, isNewest) {
+            const grid = document.createElement('div');
+            grid.className = 'letter-grid';
+            if (!isNewest) {
+                grid.classList.add('collapsed');
+            }
+
             const content = parseLetterContent(letter.content || '');
-            
-            // Create letter HTML
-            letterGrid.innerHTML = `
-                <div class="letter-text-container">                        
+
+            // Build inner HTML
+            grid.innerHTML = `
+                <div class="letter-text-container">
                     <div class="letter-content">
                         <h2><strong>President's Letter – ${letter.month || ''} ${letter.year || ''}</strong></h2>
                         ${content}
-                        
                         <div class="signature">
                             <div class="signature-name">${president.name}</div>
                             <div class="signature-role">President, Skylinks Men's Golf Club</div>
@@ -127,23 +391,20 @@
                          class="letter-image"
                          loading="lazy">
                 </div>
+                <button class="expand-toggle">${isNewest ? 'Minimize ▲' : 'Expand ▼'}</button>
             `;
-            
-            return letterGrid;
+
+            return grid;
         }
 
         function parseLetterContent(content) {
             if (!content) return '';
-            
-            // Split by lines
             const lines = content.split('\n');
             let html = '';
             let inList = false;
-            
+
             lines.forEach(line => {
                 const trimmed = line.trim();
-                
-                // Check if line starts with a bullet point
                 if (trimmed.startsWith('* ')) {
                     if (!inList) {
                         html += '<ul>';
@@ -151,31 +412,22 @@
                     }
                     html += `<li>${trimmed.substring(2)}</li>`;
                 } else {
-                    // Close list if we were in one
                     if (inList) {
                         html += '</ul>';
                         inList = false;
                     }
-                    
-                    // Add paragraph (skip empty lines)
                     if (trimmed) {
                         html += `<p>${line}</p>`;
                     } else if (line === '') {
-                        // Add empty paragraph for spacing
                         html += '<p>&nbsp;</p>';
                     }
                 }
             });
-            
-            // Close list if still open
-            if (inList) {
-                html += '</ul>';
-            }
-            
+            if (inList) html += '</ul>';
             return html;
         }
 
-        // Load president's letters when page is ready
+        // Start
         document.addEventListener('DOMContentLoaded', loadPresidentsLetters);
     </script>
 

@@ -7,7 +7,237 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <title>Meeting Minutes - Skylinks Men's Golf Club</title>
     <link rel="stylesheet" href="/css/styles.css" />
-   
+    <style>
+        /* Reset & base */
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f5f7fa;
+            color: #1e2b3c;
+        }
+
+        #header-placeholder + .meeting-minutes-container { margin-top: 0; }
+
+        .meeting-minutes-container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 90px 1.5rem 3rem;
+        }
+
+        /* Each meeting card */
+        .meeting-card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            padding: 2rem 2.5rem 2.5rem 2.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .meeting-card.collapsed {
+            padding: 0.85rem 2.5rem 0.85rem 2.5rem;
+            cursor: pointer;
+            background: #fafcff;
+            border-radius: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border: 1px solid #e9eef4;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+        }
+
+        .meeting-card.collapsed .meeting-header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            border-bottom: none;
+            padding: 0;
+            color: #1a3b57;
+        }
+        .meeting-card.collapsed .minutes-content,
+        .meeting-card.collapsed .meeting-header .toggle-btn {
+            display: none;
+        }
+        .meeting-card.collapsed .meeting-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+            gap: 1rem;
+        }
+        .meeting-card.collapsed .meeting-header .toggle-btn {
+            display: inline-block;
+            margin-left: auto;
+            background: #dce5f0;
+            border: none;
+            border-radius: 40px;
+            padding: 0.3rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1f3b57;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .meeting-card.collapsed .meeting-header .toggle-btn:hover {
+            background: #c8d8ea;
+        }
+
+        /* Expanded card toggle button */
+        .meeting-card:not(.collapsed) .toggle-btn {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.8rem;
+            background: #eef3f9;
+            border: 1px solid #ccdbea;
+            border-radius: 40px;
+            padding: 0.3rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1f3b57;
+            cursor: pointer;
+            transition: background 0.15s;
+            z-index: 2;
+        }
+        .meeting-card:not(.collapsed) .toggle-btn:hover {
+            background: #dce8f5;
+        }
+
+        .meeting-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+            border-bottom: 2px solid #e6edf6;
+            padding-bottom: 0.5rem;
+        }
+        .meeting-header h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin: 0;
+            color: #0b2a41;
+            letter-spacing: -0.01em;
+        }
+
+        .minutes-content {
+            margin-top: 0.5rem;
+        }
+        .minutes-section {
+            margin-bottom: 1.8rem;
+        }
+        .minutes-section h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2a4b6e;
+            letter-spacing: 0.4px;
+            margin: 0 0 0.5rem 0;
+            border-bottom: 1px solid #eef2f7;
+            padding-bottom: 0.3rem;
+        }
+        .attendees-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem 1.2rem;
+            padding: 0.25rem 0 0.25rem 0.3rem;
+        }
+        .attendee-item {
+            font-size: 1rem;
+            padding: 0.1rem 0;
+            color: #1f3448;
+        }
+        .minutes-section ul {
+            padding-left: 1.4rem;
+            margin: 0.3rem 0 0.2rem 0;
+        }
+        .minutes-section ul li {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 0.2rem;
+        }
+        .minutes-section p {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin: 0.3rem 0;
+        }
+        .next-meeting {
+            margin-top: 2rem;
+            padding-top: 1.2rem;
+            border-top: 2px solid #e6edf6;
+        }
+        .next-meeting h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2a4b6e;
+            letter-spacing: 0.4px;
+            margin: 0 0 0.5rem 0;
+        }
+        .next-meeting p {
+            margin: 0.2rem 0;
+            font-size: 0.98rem;
+        }
+
+        /* Loading */
+        #loading {
+            text-align: center;
+            padding: 4rem;
+            color: #4a657f;
+            font-size: 1.1rem;
+        }
+
+        /* Print: show all full, hide toggles */
+        @media print {
+            .toggle-btn { display: none !important; }
+            .meeting-card.collapsed {
+                padding: 2rem 2.5rem 2.5rem 2.5rem !important;
+                background: #fff !important;
+                border-radius: 28px !important;
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 2rem !important;
+                display: block !important;
+                cursor: default !important;
+            }
+            .meeting-card.collapsed .meeting-header h1 {
+                font-size: 1.9rem !important;
+                border-bottom: 2px solid #e6edf6 !important;
+                padding-bottom: 0.5rem !important;
+                margin-bottom: 1.2rem !important;
+                width: 100%;
+            }
+            .meeting-card.collapsed .minutes-content,
+            .meeting-card.collapsed .meeting-header .toggle-btn {
+                display: block !important;
+            }
+            .meeting-card.collapsed .meeting-header {
+                display: block !important;
+            }
+            .meeting-card:not(.collapsed) .toggle-btn {
+                display: none !important;
+            }
+            body { background: white; }
+            .meeting-minutes-container { max-width: 100%; padding: 0 1rem; }
+        }
+
+        /* responsive */
+        @media (max-width: 600px) {
+            .meeting-card:not(.collapsed) { padding: 1.5rem 1.2rem; }
+            .meeting-card:not(.collapsed) .toggle-btn {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 0.5rem;
+                align-self: flex-start;
+            }
+            .meeting-card.collapsed { padding: 0.6rem 1.2rem; }
+            .meeting-card.collapsed .meeting-header h1 { font-size: 1rem; }
+        }
+    </style>
 </head>
 <body>
 
@@ -16,7 +246,6 @@
 
     <!-- Main Content -->
     <div class="meeting-minutes-container" id="meetings-container">
-        <!-- Meetings will be loaded dynamically here -->
         <div id="loading">Loading meeting minutes...</div>
     </div>
 
@@ -28,90 +257,120 @@
     <script src="/js/cart-count.js"></script>
 
     <script>
-        // Load header + footer on page
+        // Load header + footer
         fetch("/header.html")
             .then(res => res.text())
             .then(html => {
                 document.getElementById("header-placeholder").innerHTML = html;
-                initMenu(); // initialize after header loads
+                if (typeof initMenu === 'function') initMenu();
             });
-
         fetch("/footer.html")
             .then(res => res.text())
-            .then(html => (document.getElementById("footer-placeholder").innerHTML = html));
+            .then(html => document.getElementById("footer-placeholder").innerHTML = html);
 
-        // Load meeting minutes from API
+        // ---------- MEETING MINUTES ----------
         async function loadMeetingMinutes() {
             try {
                 const response = await fetch('/api/meeting-minutes');
                 const meetings = await response.json();
-                
                 const container = document.getElementById('meetings-container');
                 container.innerHTML = '';
-                
+
                 if (!meetings || meetings.length === 0) {
                     container.innerHTML = '<p>No meeting minutes available.</p>';
                     return;
                 }
-                
-                meetings.forEach(meeting => {
-                    const meetingElement = createMeetingElement(meeting);
-                    container.appendChild(meetingElement);
+
+                // Sort: newest first (by date)
+                const sorted = [...meetings].sort((a, b) => {
+                    const dateA = new Date(a.date || '2000-01-01');
+                    const dateB = new Date(b.date || '2000-01-01');
+                    return dateB - dateA;
                 });
+
+                sorted.forEach((meeting, index) => {
+                    const card = createMeetingElement(meeting, index === 0);
+                    container.appendChild(card);
+                });
+
+                // Attach toggle events
+                document.querySelectorAll('.toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const card = this.closest('.meeting-card');
+                        if (!card) return;
+                        const isCollapsed = card.classList.contains('collapsed');
+                        if (isCollapsed) {
+                            card.classList.remove('collapsed');
+                            this.textContent = 'Minimize ▲';
+                        } else {
+                            card.classList.add('collapsed');
+                            this.textContent = 'Expand ▼';
+                        }
+                    });
+                });
+
+                // Click on collapsed card toggles (except button)
+                document.querySelectorAll('.meeting-card.collapsed').forEach(card => {
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.toggle-btn')) return;
+                        const btn = this.querySelector('.toggle-btn');
+                        if (btn) btn.click();
+                    });
+                });
+
             } catch (error) {
                 console.error('Error loading meeting minutes:', error);
-                document.getElementById('meetings-container').innerHTML = 
+                document.getElementById('meetings-container').innerHTML =
                     '<p>Error loading meeting minutes. Please try again later.</p>';
             }
         }
 
-        function createMeetingElement(meeting) {
-            const meetingDiv = document.createElement('div');
-            
-            // Meeting header
+        function createMeetingElement(meeting, isNewest) {
+            const card = document.createElement('div');
+            card.className = 'meeting-card';
+            if (!isNewest) card.classList.add('collapsed');
+
+            // --- HEADER ---
             const headerDiv = document.createElement('div');
             headerDiv.className = 'meeting-header';
-            headerDiv.innerHTML = `<h1>${meeting.title || 'General Meeting'} ${meeting.date || ''}</h1>`;
-            
-            // Minutes content
+            const title = meeting.title || 'General Meeting';
+            const date = meeting.date || '';
+            headerDiv.innerHTML = `
+                <h1>${title} ${date}</h1>
+                <button class="toggle-btn">${isNewest ? 'Minimize ▲' : 'Expand ▼'}</button>
+            `;
+
+            // --- CONTENT ---
             const contentDiv = document.createElement('div');
             contentDiv.className = 'minutes-content';
-            
-            // Add entries
+
             if (meeting.entries && meeting.entries.length > 0) {
                 meeting.entries.forEach(entry => {
                     if (entry.type === 'attendance') {
-                        const sectionDiv = document.createElement('div');
-                        sectionDiv.className = 'minutes-section';
-                        sectionDiv.innerHTML = `<h4>IN ATTENDANCE</h4>`;
-                        
+                        const section = document.createElement('div');
+                        section.className = 'minutes-section';
+                        section.innerHTML = `<h4>IN ATTENDANCE</h4>`;
                         if (entry.attendees && entry.attendees.length > 0) {
-                            const attendeesDiv = document.createElement('div');
-                            attendeesDiv.className = 'attendees-list';
-                            
-                            entry.attendees.forEach(attendee => {
-                                if (attendee.trim()) {
-                                    const attendeeDiv = document.createElement('div');
-                                    attendeeDiv.className = 'attendee-item';
-                                    attendeeDiv.textContent = attendee;
-                                    attendeesDiv.appendChild(attendeeDiv);
+                            const list = document.createElement('div');
+                            list.className = 'attendees-list';
+                            entry.attendees.forEach(name => {
+                                if (name && name.trim()) {
+                                    const item = document.createElement('div');
+                                    item.className = 'attendee-item';
+                                    item.textContent = name.trim();
+                                    list.appendChild(item);
                                 }
                             });
-                            
-                            sectionDiv.appendChild(attendeesDiv);
+                            section.appendChild(list);
                         }
-                        
-                        contentDiv.appendChild(sectionDiv);
+                        contentDiv.appendChild(section);
                     } else if (entry.type === 'general') {
-                        const sectionDiv = document.createElement('div');
-                        sectionDiv.className = 'minutes-section';
-                        
-                        // Parse content (bullet points separated by newlines)
-                        let content = entry.content || '';
-                        let title = entry.title || '';
-                        
-                        sectionDiv.innerHTML = `<h4>${title.toUpperCase()}</h4>`;
-                        
+                        const section = document.createElement('div');
+                        section.className = 'minutes-section';
+                        const titleText = entry.title || '';
+                        section.innerHTML = `<h4>${titleText.toUpperCase()}</h4>`;
+                        const content = entry.content || '';
                         if (content.includes('\n')) {
                             const ul = document.createElement('ul');
                             content.split('\n').forEach(line => {
@@ -121,38 +380,35 @@
                                     ul.appendChild(li);
                                 }
                             });
-                            sectionDiv.appendChild(ul);
+                            section.appendChild(ul);
                         } else if (content.trim()) {
                             const p = document.createElement('p');
                             p.textContent = content.trim();
-                            sectionDiv.appendChild(p);
+                            section.appendChild(p);
                         }
-                        
-                        contentDiv.appendChild(sectionDiv);
+                        contentDiv.appendChild(section);
                     }
                 });
             }
-            
-            // Add next meeting section
+
+            // Next meeting
             if (meeting.nextMeeting && (meeting.nextMeeting.date || meeting.nextMeeting.location || meeting.nextMeeting.time)) {
-                const nextMeetingDiv = document.createElement('div');
-                nextMeetingDiv.className = 'next-meeting';
-                nextMeetingDiv.innerHTML = `
-                    <h4>NEXT MEETING</h4>
-                    ${meeting.nextMeeting.date ? `<p><strong>Date:</strong> ${meeting.nextMeeting.date}</p>` : ''}
-                    ${meeting.nextMeeting.location ? `<p><strong>Location:</strong> ${meeting.nextMeeting.location}</p>` : ''}
-                    ${meeting.nextMeeting.time ? `<p><strong>Time:</strong> ${meeting.nextMeeting.time}</p>` : ''}
-                `;
-                contentDiv.appendChild(nextMeetingDiv);
+                const next = document.createElement('div');
+                next.className = 'next-meeting';
+                let html = `<h4>NEXT MEETING</h4>`;
+                if (meeting.nextMeeting.date) html += `<p><strong>Date:</strong> ${meeting.nextMeeting.date}</p>`;
+                if (meeting.nextMeeting.location) html += `<p><strong>Location:</strong> ${meeting.nextMeeting.location}</p>`;
+                if (meeting.nextMeeting.time) html += `<p><strong>Time:</strong> ${meeting.nextMeeting.time}</p>`;
+                next.innerHTML = html;
+                contentDiv.appendChild(next);
             }
-            
-            meetingDiv.appendChild(headerDiv);
-            meetingDiv.appendChild(contentDiv);
-            
-            return meetingDiv;
+
+            card.appendChild(headerDiv);
+            card.appendChild(contentDiv);
+            return card;
         }
 
-        // Load meeting minutes when page is ready
+        // Start
         document.addEventListener('DOMContentLoaded', loadMeetingMinutes);
     </script>
 
