@@ -5,7 +5,7 @@ const path = require('path');
 const Stripe = require('stripe');
 const cors = require('cors');
 const fs = require('fs');
-const sanitizeHtml = require('sanitize-html');
+const xss = require('xss'); // REPLACED: sanitize-html with xss
 
 const { connectDB } = require('./db');
 
@@ -115,40 +115,50 @@ app.get('/api/webhook', (req, res) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// HTML sanitization middleware for rich text content
+// HTML sanitization middleware for rich text content using xss
 app.use((req, res, next) => {
     // Only process POST/PUT requests that might contain schedule data
     if ((req.method === 'POST' || req.method === 'PUT') && 
         (req.path.includes('/api/schedule') || req.path.includes('/api/tournaments'))) {
         
-        // Configure sanitization options
-        const sanitizeOptions = {
-            allowedTags: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 
-                          'ul', 'ol', 'li', 'span', 'div', 'blockquote'],
-            allowedAttributes: {
+        // Configure xss options - allow safe HTML tags and styles
+        const xssOptions = {
+            whiteList: {
+                'p': ['style'],
+                'br': [],
+                'b': [],
+                'i': [],
+                'u': [],
+                'strong': [],
+                'em': [],
+                'ul': [],
+                'ol': [],
+                'li': ['style'],
                 'span': ['style'],
                 'div': ['style'],
-                'p': ['style']
+                'blockquote': ['style']
             },
-            allowedStyles: {
-                '*': {
-                    'color': [/^#([0-9a-f]{3}){1,2}$/i, /^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/],
-                    'font-size': [/^\d+(?:px|pt|em|%)?$/]
+            css: {
+                whiteList: {
+                    'color': true,
+                    'font-size': true
                 }
-            }
+            },
+            stripIgnoreTag: false,
+            stripIgnoreTagBody: ['script']
         };
         
         if (req.body && Array.isArray(req.body)) {
             // If it's an array of events
             req.body = req.body.map(event => {
                 if (event.detailsHtml) {
-                    event.detailsHtml = sanitizeHtml(event.detailsHtml, sanitizeOptions);
+                    event.detailsHtml = xss(event.detailsHtml, xssOptions);
                 }
                 return event;
             });
         } else if (req.body && req.body.detailsHtml) {
             // If it's a single event object
-            req.body.detailsHtml = sanitizeHtml(req.body.detailsHtml, sanitizeOptions);
+            req.body.detailsHtml = xss(req.body.detailsHtml, xssOptions);
         }
     }
     next();
@@ -356,6 +366,7 @@ app.get('/api/health', async (req, res) => {
             richTextSupport: {
                 enabled: true,
                 sanitization: true,
+                library: 'xss',
                 allowedTags: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 
                              'ul', 'ol', 'li', 'span', 'div', 'blockquote']
             }
@@ -631,7 +642,7 @@ if (isLocal) {
         console.log(`Debug: http://localhost:${PORT}/api/debug/files`);
         console.log(`Env Check: http://localhost:${PORT}/api/check-env`);
         console.log(`\n📝 Rich Text Support: Enabled`);
-        console.log(`  HTML Sanitization: Active`);
+        console.log(`  HTML Sanitization: Active (using xss library)`);
         console.log(`  Allowed HTML Tags: p, br, b, i, u, strong, em, ul, ol, li, span, div, blockquote`);
     });
 }
