@@ -158,7 +158,7 @@
             return parsedDate;
         }
 
-        // NEW: Sanitize HTML to prevent XSS attacks
+        // Sanitize HTML to prevent XSS attacks
         function sanitizeHtml(html) {
             if (!html) return '';
             
@@ -263,7 +263,7 @@
             const eventItem = document.createElement('div');
             eventItem.className = 'event-item';
             
-            // UPDATED: Use detailsHtml if available, otherwise fall back to details array
+            // Use detailsHtml if available, otherwise fall back to details array
             let detailsHtml = '';
             
             if (event.detailsHtml) {
@@ -274,6 +274,48 @@
                 detailsHtml = parseDetails(event.details);
             } else {
                 detailsHtml = '<p>No details available.</p>';
+            }
+            
+            // Build the details HTML with optional rules URL
+            let detailsContent = detailsHtml;
+            
+            // Add entry fee and format
+            if (event.entryFee) {
+                detailsContent += `<p><strong>Entry Fee:</strong> ${event.entryFee}</p>`;
+            }
+            
+            if (event.format) {
+                detailsContent += `<p><strong>Format:</strong> ${event.format}</p>`;
+            }
+            
+            // Add Rules URL as a link
+            if (event.rulesUrl) {
+                detailsContent += `
+                    <div class="rules-link">
+                        <a href="${event.rulesUrl}" target="_blank">📋 Tournament Rules</a>
+                    </div>
+                `;
+            }
+            
+            // Add Google Calendar link
+            if (event.googleCalendarLink) {
+                detailsContent += `
+                    <div class="calendar-links">
+                        <a href="${event.googleCalendarLink}" target="_blank">📅 Google Calendar</a>
+                    </div>
+                `;
+            }
+            
+            // Add signup deadline
+            if (event.signupDeadline) {
+                detailsContent += `
+                    <div class="signup-deadline">
+                        <strong>Sign up deadline:</strong> 
+                        <span class="${event.isPastDeadline ? 'date-crossed' : 'date-open'}">
+                            ${event.signupDeadline}
+                        </span>
+                    </div>
+                `;
             }
             
             eventItem.innerHTML = `
@@ -299,22 +341,7 @@
                 </div>
                 <div class="event-details">
                     <div class="details-content">
-                        ${detailsHtml}
-                        ${event.entryFee ? `<p><strong>Entry Fee:</strong> ${event.entryFee}</p>` : ''}
-                        ${event.format ? `<p><strong>Format:</strong> ${event.format}</p>` : ''}
-                        ${event.googleCalendarLink ? `
-                            <div class="calendar-links">
-                                <a href="${event.googleCalendarLink}" target="_blank">Google Calendar</a>
-                            </div>
-                        ` : ''}
-                        ${event.signupDeadline ? `
-                            <div class="signup-deadline">
-                                <strong>Sign up deadline:</strong> 
-                                <span class="${event.isPastDeadline ? 'date-crossed' : 'date-open'}">
-                                    ${event.signupDeadline}
-                                </span>
-                            </div>
-                        ` : ''}
+                        ${detailsContent}
                     </div>
                 </div>
             `;

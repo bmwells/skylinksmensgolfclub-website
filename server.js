@@ -115,7 +115,7 @@ app.get('/api/webhook', (req, res) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// NEW: HTML sanitization middleware for rich text content
+// HTML sanitization middleware for rich text content
 app.use((req, res, next) => {
     // Only process POST/PUT requests that might contain schedule data
     if ((req.method === 'POST' || req.method === 'PUT') && 

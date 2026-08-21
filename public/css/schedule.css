@@ -290,6 +290,37 @@
             margin: 3rem 0;
             opacity: 0.5;
         }
+
+        /* Rules link styling */
+        .rules-link {
+            margin: 10px 0;
+        }
+
+        .rules-link a {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #0066cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .rules-link a:hover {
+            background: #0052a3;
+            text-decoration: none;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .rules-link a {
+                background: #2b6eb0;
+            }
+            .rules-link a:hover {
+                background: #1f5a94;
+            }
+        }
         
         @media (max-width: 768px) {
             .hero-section {

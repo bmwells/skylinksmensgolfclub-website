@@ -460,6 +460,15 @@ function render() {
         </div>
       </div>
 
+      <!-- Rules URL field -->
+      <div class="form-row">
+        <div style="flex:2;">
+          <div class="input-group"><label>Rules URL</label>
+            <input value="${AdminCommon.escapeHtml(event.rulesUrl || '')}" oninput="updateEvent(${index}, 'rulesUrl', this.value)" placeholder="URL for rules PDF">
+          </div>
+        </div>
+      </div>
+
       <div class="input-group">
         <div class="status-selector">
           <button onclick="setEventStatus(${index}, 'upcoming')" class="status-upcoming-btn ${event.status === 'upcoming' ? 'active' : ''}">🟢 Upcoming</button>
@@ -503,6 +512,9 @@ function render() {
         <div>Status: ${event.status === 'upcoming' ? '🟢 Upcoming' : '⚫ Past'}</div>
         <div>Display: ${AdminCommon.escapeHtml(displayMonth)} ${AdminCommon.escapeHtml(displayDay)}</div>
         <div>Time: ${AdminCommon.escapeHtml(event.timeRange)}</div>
+        <div>Entry Fee: ${AdminCommon.escapeHtml(event.entryFee || 'N/A')}</div>
+        <div>Format: ${AdminCommon.escapeHtml(event.format || 'N/A')}</div>
+        ${event.rulesUrl ? `<div>Rules: <a href="${AdminCommon.escapeHtml(event.rulesUrl)}" target="_blank">View Rules</a></div>` : ''}
         <div class="preview-details" style="margin-top:8px; border-top:1px solid #dee2e6; padding-top:8px;"></div>
       </div>
     `;
@@ -593,7 +605,8 @@ function addEvent() {
     signupDeadline: 'midnight Tuesday before the event',
     isPastDeadline: false,
     entryFee: '$84 + $25 side pots',
-    format: 'Individual Stroke Play'
+    format: 'Individual Stroke Play',
+    rulesUrl: ''  
   });
   sortEventsByDate();
   render();
@@ -655,6 +668,8 @@ function loadEvents() {
         ev.detailsHtml = ev.details.map(line => `<p>${line}</p>`).join('');
       }
       if (!ev.detailsHtml) ev.detailsHtml = '<p></p>';
+      // Ensure rulesUrl exists
+      if (!ev.rulesUrl) ev.rulesUrl = '';
     });
     sortEventsByDate();
     render();

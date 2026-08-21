@@ -117,7 +117,7 @@
       </div>
     </div>
     
-    <!-- NEW: Side Pot and Roulette Option Toggles -->
+    <!-- Side Pot and Roulette Option Toggles -->
     <div class="form-row">
       <div style="flex: 1; display: flex; align-items: center; padding-top: 15px;">
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -538,9 +538,9 @@ async function confirmCreateTournament() {
             pinned: false,
             cartOption: true,
             roulette: 30,
-            rouletteOption: true, // NEW: Default to true
+            rouletteOption: true, 
             sidePot: 25,
-            sidePotOption: true, // NEW: Default to true
+            sidePotOption: true, 
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -852,8 +852,8 @@ function resetForm() {
     document.getElementById('tournament-price').value = '';
     document.getElementById('tournament-roulette').value = '';
     document.getElementById('tournament-side-pot').value = '';
-    document.getElementById('tournament-roulette-option').checked = true; // NEW: Default to true
-    document.getElementById('tournament-side-pot-option').checked = true; // NEW: Default to true
+    document.getElementById('tournament-roulette-option').checked = true; 
+    document.getElementById('tournament-side-pot-option').checked = true;
     document.getElementById('tournament-cart-option').checked = true;
     document.getElementById('tournament-active').checked = true;
     document.getElementById('tournament-active-page').checked = true;

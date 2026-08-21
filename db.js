@@ -57,7 +57,6 @@ async function connectDB() {
 /**
  * READ
  * MongoDB → frontend JSON (shape-preserving)
- * UPDATED: Ensures backward compatibility for rich text
  */
 async function readData(key) {
     try {
@@ -126,7 +125,6 @@ async function readData(key) {
 /**
  * WRITE
  * Frontend JSON → MongoDB
- * UPDATED: Handles rich text content
  */
 async function writeData(key, data) {
     try {
