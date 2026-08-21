@@ -5,7 +5,7 @@ const path = require('path');
 const Stripe = require('stripe');
 const cors = require('cors');
 const fs = require('fs');
-const xss = require('xss'); // REPLACED: sanitize-html with xss
+const xss = require('xss');
 
 const { connectDB } = require('./db');
 
@@ -121,31 +121,73 @@ app.use((req, res, next) => {
     if ((req.method === 'POST' || req.method === 'PUT') && 
         (req.path.includes('/api/schedule') || req.path.includes('/api/tournaments'))) {
         
-        // Configure xss options - allow safe HTML tags and styles
+        // Configure xss options - allow all common formatting tags
         const xssOptions = {
             whiteList: {
-                'p': ['style'],
+                // Text formatting
+                'p': ['style', 'align'],
                 'br': [],
                 'b': [],
                 'i': [],
                 'u': [],
                 'strong': [],
                 'em': [],
-                'ul': [],
-                'ol': [],
+                's': [],
+                'strike': [],
+                'sub': [],
+                'sup': [],
+                'small': [],
+                'big': [],
+                'font': ['size', 'color', 'face', 'style'],
+                'span': ['style', 'class'],
+                'div': ['style', 'align', 'class'],
+                'blockquote': ['style'],
+                'pre': ['style'],
+                'code': ['style'],
+                // Headings
+                'h1': ['style', 'align'],
+                'h2': ['style', 'align'],
+                'h3': ['style', 'align'],
+                'h4': ['style', 'align'],
+                'h5': ['style', 'align'],
+                'h6': ['style', 'align'],
+                // Lists
+                'ul': ['style'],
+                'ol': ['style'],
                 'li': ['style'],
-                'span': ['style'],
-                'div': ['style'],
-                'blockquote': ['style']
+                // Links
+                'a': ['href', 'target', 'style'],
+                // Tables (optional)
+                'table': ['style', 'border', 'cellpadding', 'cellspacing'],
+                'tr': ['style'],
+                'td': ['style', 'colspan', 'rowspan'],
+                'th': ['style', 'colspan', 'rowspan'],
+                // Media
+                'img': ['src', 'alt', 'width', 'height', 'style'],
+                // Other
+                'hr': ['style'],
+                'center': ['style']
             },
             css: {
                 whiteList: {
                     'color': true,
-                    'font-size': true
+                    'background-color': true,
+                    'font-size': true,
+                    'font-family': true,
+                    'font-weight': true,
+                    'font-style': true,
+                    'text-decoration': true,
+                    'text-align': true,
+                    'margin': true,
+                    'padding': true,
+                    'border': true,
+                    'width': true,
+                    'height': true,
+                    'display': true
                 }
             },
             stripIgnoreTag: false,
-            stripIgnoreTagBody: ['script']
+            stripIgnoreTagBody: ['script', 'style']
         };
         
         if (req.body && Array.isArray(req.body)) {
@@ -367,8 +409,7 @@ app.get('/api/health', async (req, res) => {
                 enabled: true,
                 sanitization: true,
                 library: 'xss',
-                allowedTags: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 
-                             'ul', 'ol', 'li', 'span', 'div', 'blockquote']
+                allowedTags: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'font', 'span', 'div', 'blockquote', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img']
             }
         });
     } catch (error) {
@@ -643,7 +684,7 @@ if (isLocal) {
         console.log(`Env Check: http://localhost:${PORT}/api/check-env`);
         console.log(`\n📝 Rich Text Support: Enabled`);
         console.log(`  HTML Sanitization: Active (using xss library)`);
-        console.log(`  Allowed HTML Tags: p, br, b, i, u, strong, em, ul, ol, li, span, div, blockquote`);
+        console.log(`  Allowed HTML Tags: p, br, b, i, u, strong, em, font, span, div, blockquote, h1-h6, ul, ol, li, a, img, table, tr, td, th`);
     });
 }
 
