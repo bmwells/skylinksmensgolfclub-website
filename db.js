@@ -1,4 +1,4 @@
-// db.js
+// db.js 
 const { MongoClient } = require('mongodb');
 
 const MONGO_URI = process.env.MONGODB_URI;
@@ -57,6 +57,7 @@ async function connectDB() {
 /**
  * READ
  * MongoDB → frontend JSON (shape-preserving)
+ * UPDATED: Ensures backward compatibility for rich text
  */
 async function readData(key) {
     try {
@@ -70,7 +71,38 @@ async function readData(key) {
         // ---------- ARRAY COLLECTIONS ----------
         if (ARRAY_COLLECTIONS.has(key)) {
             const docs = await collection.find({}).toArray();
-            return docs.map(({ _id, ...rest }) => rest);
+            const cleanedDocs = docs.map(({ _id, ...rest }) => rest);
+            
+            // Special handling for schedule collection - ensure rich text compatibility
+            if (key === 'schedule') {
+                return cleanedDocs.map(event => {
+                    // If detailsHtml doesn't exist but details array does, convert it
+                    if (!event.detailsHtml && event.details && Array.isArray(event.details)) {
+                        let html = event.details.map(line => {
+                            let trimmed = line.trim();
+                            if (trimmed.startsWith('•')) {
+                                return `<li>${trimmed.substring(1).trim()}</li>`;
+                            }
+                            return `<p>${line}</p>`;
+                        }).join('');
+                        
+                        if (html.includes('<li>') && !html.includes('<p>')) {
+                            html = `<ul>${html}</ul>`;
+                        }
+                        
+                        event.detailsHtml = html || '<p></p>';
+                    }
+                    
+                    // Ensure detailsHtml always exists
+                    if (!event.detailsHtml) {
+                        event.detailsHtml = '<p></p>';
+                    }
+                    
+                    return event;
+                });
+            }
+            
+            return cleanedDocs;
         }
 
         // ---------- SINGLE DOCUMENT COLLECTIONS ----------
@@ -94,7 +126,7 @@ async function readData(key) {
 /**
  * WRITE
  * Frontend JSON → MongoDB
- * (preserves original data model)
+ * UPDATED: Handles rich text content
  */
 async function writeData(key, data) {
     try {
@@ -111,6 +143,43 @@ async function writeData(key, data) {
                 throw new Error(`Expected array for ${key}`);
             }
 
+            // Special handling for schedule - ensure rich text data is preserved
+            if (key === 'schedule') {
+                // Validate and ensure all events have detailsHtml
+                const validatedData = data.map(event => {
+                    // If detailsHtml is missing but details exists, convert
+                    if (!event.detailsHtml && event.details && Array.isArray(event.details)) {
+                        let html = event.details.map(line => {
+                            let trimmed = line.trim();
+                            if (trimmed.startsWith('•')) {
+                                return `<li>${trimmed.substring(1).trim()}</li>`;
+                            }
+                            return `<p>${line}</p>`;
+                        }).join('');
+                        
+                        if (html.includes('<li>') && !html.includes('<p>')) {
+                            html = `<ul>${html}</ul>`;
+                        }
+                        
+                        event.detailsHtml = html || '<p></p>';
+                    }
+                    
+                    // Ensure detailsHtml always exists
+                    if (!event.detailsHtml) {
+                        event.detailsHtml = '<p></p>';
+                    }
+                    
+                    return event;
+                });
+                
+                await collection.deleteMany({});
+                if (validatedData.length) {
+                    await collection.insertMany(validatedData.map(item => ({ ...item })));
+                }
+                return { success: true };
+            }
+
+            // Default handling for other array collections
             await collection.deleteMany({});
             if (data.length) {
                 await collection.insertMany(data.map(item => ({ ...item })));

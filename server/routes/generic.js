@@ -1,4 +1,4 @@
-// server/routes/generic.js - UPDATED
+// server/routes/generic.js 
 const express = require('express');
 const router = express.Router();
 const { readData, writeData } = require('../../db');
@@ -115,7 +115,7 @@ router.get('/members/export', requireAdmin, async (req, res) => {
     }
 });
 
-// GENERIC DATA ROUTES
+// GENERIC DATA ROUTES - UPDATED with rich text support
 [
     'results',
     'meeting-minutes',
@@ -128,6 +128,41 @@ router.get('/members/export', requireAdmin, async (req, res) => {
     router.get(`/${key}`, async (req, res) => {
         try {
             const data = await readData(key);
+            
+            // For schedule, ensure backward compatibility with rich text
+            if (key === 'schedule' && Array.isArray(data)) {
+                // Ensure each event has detailsHtml field
+                const updatedData = data.map(event => {
+                    // If detailsHtml doesn't exist but details array does, convert it
+                    if (!event.detailsHtml && event.details && Array.isArray(event.details)) {
+                        // Convert details array to HTML
+                        let html = event.details.map(line => {
+                            let trimmed = line.trim();
+                            if (trimmed.startsWith('•')) {
+                                return `<li>${trimmed.substring(1).trim()}</li>`;
+                            }
+                            return `<p>${line}</p>`;
+                        }).join('');
+                        
+                        // Wrap in ul if all bullets
+                        if (html.includes('<li>') && !html.includes('<p>')) {
+                            html = `<ul>${html}</ul>`;
+                        }
+                        
+                        event.detailsHtml = html || '<p></p>';
+                    }
+                    
+                    // If detailsHtml doesn't exist at all, set default
+                    if (!event.detailsHtml) {
+                        event.detailsHtml = '<p></p>';
+                    }
+                    
+                    return event;
+                });
+                
+                return res.json(updatedData);
+            }
+            
             res.json(data);
         } catch (error) {
             console.error(`Error reading ${key}:`, error);
@@ -137,6 +172,37 @@ router.get('/members/export', requireAdmin, async (req, res) => {
 
     router.post(`/${key}`, requireAdmin, async (req, res) => {
         try {
+            // Log rich text saves for schedule
+            if (key === 'schedule' && Array.isArray(req.body)) {
+                console.log(`📝 Saving schedule with ${req.body.length} events (rich text enabled)`);
+                
+                // Validate that each event has detailsHtml
+                req.body.forEach((event, index) => {
+                    if (!event.detailsHtml && event.details) {
+                        console.log(`⚠️ Event ${index} missing detailsHtml, converting from details array`);
+                        // Convert details array to HTML
+                        let html = event.details.map(line => {
+                            let trimmed = line.trim();
+                            if (trimmed.startsWith('•')) {
+                                return `<li>${trimmed.substring(1).trim()}</li>`;
+                            }
+                            return `<p>${line}</p>`;
+                        }).join('');
+                        
+                        if (html.includes('<li>') && !html.includes('<p>')) {
+                            html = `<ul>${html}</ul>`;
+                        }
+                        
+                        event.detailsHtml = html || '<p></p>';
+                    }
+                    
+                    // Ensure detailsHtml always exists
+                    if (!event.detailsHtml) {
+                        event.detailsHtml = '<p></p>';
+                    }
+                });
+            }
+            
             await writeData(key, req.body);
             res.json({ success: true });
         } catch (error) {

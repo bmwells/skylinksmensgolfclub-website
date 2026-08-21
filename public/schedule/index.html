@@ -158,6 +158,33 @@
             return parsedDate;
         }
 
+        // NEW: Sanitize HTML to prevent XSS attacks
+        function sanitizeHtml(html) {
+            if (!html) return '';
+            
+            // Create a temporary div to sanitize
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
+            // Remove all script tags and event handlers
+            const scripts = temp.querySelectorAll('script, [onerror], [onload], [onclick], [onmouseover]');
+            scripts.forEach(el => {
+                if (el.tagName === 'SCRIPT') {
+                    el.remove();
+                } else {
+                    // Remove event handler attributes
+                    const attrs = Array.from(el.attributes);
+                    attrs.forEach(attr => {
+                        if (attr.name.startsWith('on')) {
+                            el.removeAttribute(attr.name);
+                        }
+                    });
+                }
+            });
+            
+            return temp.innerHTML;
+        }
+
         // Load schedule from API
         async function loadSchedule() {
             try {
@@ -236,8 +263,18 @@
             const eventItem = document.createElement('div');
             eventItem.className = 'event-item';
             
-            // Parse details into HTML
-            const detailsHtml = parseDetails(event.details || []);
+            // UPDATED: Use detailsHtml if available, otherwise fall back to details array
+            let detailsHtml = '';
+            
+            if (event.detailsHtml) {
+                // Sanitize the HTML from the admin editor
+                detailsHtml = sanitizeHtml(event.detailsHtml);
+            } else if (event.details && Array.isArray(event.details)) {
+                // Fallback for older events without detailsHtml
+                detailsHtml = parseDetails(event.details);
+            } else {
+                detailsHtml = '<p>No details available.</p>';
+            }
             
             eventItem.innerHTML = `
                 <div class="event-main" onclick="toggleEvent(${index})">
@@ -285,6 +322,7 @@
             return eventItem;
         }
 
+        // Keep parseDetails as fallback for backward compatibility
         function parseDetails(detailsArray) {
             if (!detailsArray || detailsArray.length === 0) return '';
             

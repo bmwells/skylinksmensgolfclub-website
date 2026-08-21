@@ -1,202 +1,278 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Schedule Editor - Skylinks Admin</title>
-<link rel="stylesheet" href="/css/admin.css">
-<script src="/js/admin-common.js"></script>
-<style>
+  <meta charset="UTF-8">
+  <title>Schedule Editor - Skylinks Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/js/admin-common.js"></script>
+  <style>
+    /* ----- general layout (kept from original) ----- */
     .status-selector {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
     }
-    
     .status-selector button {
-        background: #e9ecef;
-        color: #495057;
-        flex: 1;
+      background: #e9ecef;
+      color: #495057;
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
     }
-    
-    .status-selector button:hover {
-        background: #dee2e6;
-    }
-    
-    .status-selector button.active {
-        background: #0066cc;
-        color: white;
-    }
-    
-    .status-upcoming-btn.active {
-        background: #28a745 !important;
-    }
-    
-    .status-past-btn.active {
-        background: #ff8c00 !important; /* Orange instead of gray */
-        color: white !important;
-    }
-    
+    .status-selector button:hover { background: #dee2e6; }
+    .status-selector button.active { background: #0066cc; color: white; }
+    .status-upcoming-btn.active { background: #28a745 !important; }
+    .status-past-btn.active { background: #ff8c00 !important; color: white !important; }
+
     .event-preview {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 20px;
-        border: 1px solid #dee2e6;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border: 1px solid #dee2e6;
     }
-    
-    /* Dark mode styles for event preview */
     @media (prefers-color-scheme: dark) {
-        .event-preview {
-            background: #2d3748;
-            border-color: #4a5568;
-            color: #e2e8f0;
-        }
-        
-        .event-preview h4 {
-            color: #e2e8f0;
-        }
-        
-        .event-preview div {
-            color: #cbd5e0;
-        }
-        
-        /* Fix text input readability in dark mode */
-        .input-group label {
-            color: #e2e8f0;
-        }
-        
-        .form-row {
-            border-bottom-color: #4a5568;
-        }
-        
-        .section-header h3 {
-            color: #e2e8f0;
-        }
-        
-        /* Status selector buttons in dark mode */
-        .status-selector button {
-            background: #4a5568;
-            color: #e2e8f0;
-            border: 1px solid #718096;
-        }
-        
-        .status-selector button:hover {
-            background: #718096;
-        }
-        
-        .status-upcoming-btn.active {
-            background: #38a169 !important;
-            border-color: #38a169;
-        }
-        
-        .status-past-btn.active {
-            background: #ed8936 !important; /* Dark mode orange */
-            border-color: #ed8936;
-        }
-        
-        /* Text input styles for dark mode */
-        input[type="text"], textarea {
-            background: #2d3748;
-            border-color: #4a5568;
-            color: #e2e8f0;
-        }
-        
-        input[type="text"]:focus, textarea:focus {
-            border-color: #63b3ed;
-            background: #2d3748;
-            color: #e2e8f0;
-        }
-        
-        input[type="text"]::placeholder, textarea::placeholder {
-            color: #a0aec0;
-        }
-        
-        /* Delete button in dark mode */
-        .delete-btn {
-            background: #c53030;
-            color: white;
-        }
-        
-        .delete-btn:hover {
-            background: #e53e3e;
-        }
-        
-        /* Bullet point buttons in dark mode */
-        .bullet-point-btn {
-            background: #4a5568;
-            color: #e2e8f0;
-            border: 1px solid #718096;
-        }
-        
-        .bullet-point-btn:hover {
-            background: #718096;
-        }
-        
-        /* Select dropdown in dark mode */
-        select {
-            background: #2d3748;
-            border-color: #4a5568;
-            color: #e2e8f0;
-        }
-        
-        select option {
-            background: #2d3748;
-            color: #e2e8f0;
-        }
+      .event-preview {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+      }
+      .event-preview h4 { color: #e2e8f0; }
+      .event-preview div { color: #cbd5e0; }
+      .input-group label { color: #e2e8f0; }
+      .form-row { border-bottom-color: #4a5568; }
+      .section-header h3 { color: #e2e8f0; }
+      .status-selector button {
+        background: #4a5568;
+        color: #e2e8f0;
+        border-color: #718096;
+      }
+      .status-selector button:hover { background: #718096; }
+      .status-upcoming-btn.active { background: #38a169 !important; border-color: #38a169; }
+      .status-past-btn.active { background: #ed8936 !important; border-color: #ed8936; }
+      input[type="text"], textarea {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+      }
+      input[type="text"]:focus, textarea:focus {
+        border-color: #63b3ed;
+        background: #2d3748;
+        color: #e2e8f0;
+      }
+      input[type="text"]::placeholder, textarea::placeholder { color: #a0aec0; }
+      .delete-btn { background: #c53030; color: white; }
+      .delete-btn:hover { background: #e53e3e; }
+      .bullet-point-btn {
+        background: #4a5568;
+        color: #e2e8f0;
+        border: 1px solid #718096;
+      }
+      .bullet-point-btn:hover { background: #718096; }
+      select {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+      }
+      select option { background: #2d3748; color: #e2e8f0; }
+    }
+    .event-preview h4 { margin-top: 0; color: #495057; }
+
+    /* ----- rich text toolbar - optimized for one row ----- */
+    .rich-toolbar {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 2px;
+      padding: 4px 8px;
+      align-items: center;
+      background: #f1f3f5;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid #ced4da;
+      border-bottom: none;
+      min-height: 36px;
     }
     
-    .event-preview h4 {
-        margin-top: 0;
-        color: #495057;
+    .rich-toolbar button {
+      padding: 2px 6px;
+      font-size: 0.8rem;
+      min-width: 28px;
+      height: 28px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #212529;
+      font-weight: 500;
+      transition: 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     
-    .bullet-point-btn {
-        background: #6c757d;
+    .rich-toolbar button:hover {
+      background: #e9ecef;
+      border-color: #adb5bd;
+    }
+    
+    .rich-toolbar button.active-format {
+      background: #0066cc;
+      color: white;
+      border-color: #0066cc;
+    }
+    
+    .rich-toolbar .separator {
+      width: 1px;
+      height: 20px;
+      background: #ced4da;
+      margin: 0 2px;
+      flex-shrink: 0;
+    }
+    
+    /* Skinnier size dropdown */
+    .rich-toolbar select.size-dropdown {
+      width: 60px;
+      min-width: 60px;
+      max-width: 60px;
+      padding: 2px 14px 2px 4px;
+      font-size: 0.7rem;
+      height: 26px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      background: white;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M0 0l4 6 4-6z' fill='%23666'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 4px center;
+      background-size: 8px 6px;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
+    }
+    
+    .rich-toolbar select.size-dropdown option {
+      font-size: 0.7rem;
+    }
+    
+    .rich-toolbar .color-picker-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    
+    .rich-toolbar .color-picker-wrapper input[type="color"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      padding: 0;
+      border: none;
+    }
+
+    /* Dark mode support for toolbar */
+    @media (prefers-color-scheme: dark) {
+      .rich-toolbar {
+        background: #3a4455;
+        border-color: #4a5568;
+      }
+      .rich-toolbar button {
+        color: #e2e8f0;
+      }
+      .rich-toolbar button:hover {
+        background: #4a5568;
+        border-color: #718096;
+      }
+      .rich-toolbar button.active-format {
+        background: #2b6eb0;
         color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 4px 12px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        margin-right: 5px;
+        border-color: #2b6eb0;
+      }
+      .rich-toolbar select.size-dropdown {
+        background: #2d3748;
+        color: #e2e8f0;
+        border-color: #4a5568;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M0 0l4 6 4-6z' fill='%23a0aec0'/%3E%3C/svg%3E");
+      }
+      .rich-toolbar .separator { background: #4a5568; }
+      .rich-toolbar .toolbar-label { color: #cbd5e0; }
     }
-    
-    .bullet-point-btn:hover {
-        background: #5a6268;
+
+    /* Responsive - allow wrapping on very small screens */
+    @media (max-width: 768px) {
+      .rich-toolbar {
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 6px 8px;
+      }
+      .rich-toolbar select.size-dropdown {
+        width: 55px;
+        min-width: 55px;
+        font-size: 0.65rem;
+      }
     }
-    
-    .details-list {
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 10px;
-        min-height: 200px;
-        max-height: 400px;
-        overflow-y: auto;
-        font-family: monospace;
-        font-size: 0.9rem;
-        line-height: 1.4;
+
+    /* details edit area – editable div */
+    .details-editable {
+      background: white;
+      border: 1px solid #ced4da;
+      border-radius: 0 0 6px 6px;
+      padding: 12px 14px;
+      min-height: 180px;
+      max-height: 400px;
+      overflow-y: auto;
+      outline: none;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #212529;
     }
-    
-    .details-list div {
-        margin-bottom: 5px;
-        padding: 2px 0;
+    .details-editable:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
     }
-    
-    .details-list .bullet-line {
-        margin-left: 20px;
+    .details-editable ul, .details-editable ol {
+      margin: 0.2rem 0 0.4rem 1.5rem;
+      padding-left: 0.5rem;
     }
-    
-    .date-inputs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
+    .details-editable li {
+      margin-bottom: 0.1rem;
     }
-    
-    .date-inputs input {
-        flex: 1;
+    .details-editable p {
+      margin: 0 0 0.2rem 0;
     }
-</style>
+    .details-editable blockquote {
+      border-left: 4px solid #6c757d;
+      padding-left: 12px;
+      margin: 0.2rem 0 0.4rem 0;
+      color: #495057;
+    }
+    @media (prefers-color-scheme: dark) {
+      .details-editable {
+        background: #2d3748;
+        color: #e2e8f0;
+        border-color: #4a5568;
+      }
+      .details-editable:focus { border-color: #63b3ed; }
+    }
+
+    /* keep original controls */
+    .controls { margin-bottom: 16px; }
+    .form-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    .input-group { flex: 1; min-width: 140px; }
+    .input-group label { display: block; font-weight: 500; margin-bottom: 4px; }
+    .row { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-header h3 { margin: 0; }
+    .delete { background: #dc3545; color: white; border: none; border-radius: 4px; padding: 6px 14px; cursor: pointer; }
+    .delete:hover { background: #c82333; }
+    button { cursor: pointer; }
+  </style>
 </head>
 <body>
 
@@ -216,380 +292,303 @@
 <div id="events"></div>
 
 <script>
-// Make render globally accessible
-window.render = render;
+// --------------------------------------------------------------
+// RICH TEXT EDITOR LOGIC (per event)
+// --------------------------------------------------------------
 
-function init() {
-  if (AdminCommon.init('schedule', [])) {
-    loadEvents();
+// store references to editable divs by event index
+const editableMap = new Map();
+
+// apply formatting to selected text in a given editable div
+function execFormatCommand(editable, command, value = null) {
+  if (!editable) return;
+  editable.focus();
+  document.execCommand(command, false, value);
+  // update underlying data after change
+  const index = parseInt(editable.dataset.eventIndex, 10);
+  if (!isNaN(index) && AdminCommon.data[index]) {
+    AdminCommon.data[index].detailsHtml = editable.innerHTML;
+    AdminCommon.markUnsaved();
+  }
+  // update preview (optional)
+  updatePreviewForEvent(index);
+}
+
+// update preview for a specific event
+function updatePreviewForEvent(index) {
+  const previewDiv = document.querySelector(`.row[data-index="${index}"] .event-preview`);
+  if (!previewDiv) return;
+  const ev = AdminCommon.data[index];
+  if (!ev) return;
+  // use detailsHtml if available, else fallback to details array
+  let htmlContent = ev.detailsHtml || (ev.details ? ev.details.join('<br>') : '');
+  // show a simple preview
+  const previewInner = previewDiv.querySelector('.preview-details');
+  if (previewInner) {
+    previewInner.innerHTML = htmlContent || '<em>no details</em>';
   }
 }
 
-function loadEvents() {
-  AdminCommon.load().then((data) => {
-    // Store events in AdminCommon.data
-    AdminCommon.data = Array.isArray(data) ? data : [];
-    AdminCommon.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
-    
-    // Sort events when loading
-    sortEventsByDate();
-    render();
-    // Setup input listeners after render
-    AdminCommon.setupInputListeners();
-  }).catch(err => {
-    alert('Error loading schedule: ' + err.message);
-  });
+// sync editable div content from event data
+function syncEditableFromEvent(index) {
+  const editable = document.querySelector(`.details-editable[data-event-index="${index}"]`);
+  if (!editable) return;
+  const ev = AdminCommon.data[index];
+  if (!ev) return;
+  let html = ev.detailsHtml;
+  // if no html stored, build from details array (backward compatibility)
+  if (!html && ev.details && Array.isArray(ev.details)) {
+    html = ev.details.map(line => {
+      let trimmed = line.trim();
+      if (trimmed.startsWith('•')) {
+        // treat as bullet list item
+        return `<li>${trimmed.substring(1).trim()}</li>`;
+      }
+      return `<p>${line}</p>`;
+    }).join('');
+    if (html) {
+      // wrap in ul if all li
+      if (html.includes('<li>') && !html.includes('<p>')) {
+        html = `<ul>${html}</ul>`;
+      }
+    }
+  }
+  if (!html) html = '<p></p>';
+  editable.innerHTML = html;
+  // update preview
+  updatePreviewForEvent(index);
 }
 
-function sortEventsByDate() {
-  AdminCommon.data.sort((a, b) => {
-    const dateA = parseDateForSorting(a);
-    const dateB = parseDateForSorting(b);
-    const now = new Date();
-    
-    // Both events are upcoming
-    if (a.status === 'upcoming' && b.status === 'upcoming') {
-      // Sort by date ascending (closest future first)
-      return dateA - dateB;
-    }
-    
-    // Both events are past
-    if (a.status === 'past' && b.status === 'past') {
-      // Sort by date descending (most recent past first)
-      return dateB - dateA;
-    }
-    
-    // One is upcoming, one is past - upcoming should come first
-    if (a.status === 'upcoming' && b.status === 'past') {
-      return -1;
-    }
-    if (a.status === 'past' && b.status === 'upcoming') {
-      return 1;
-    }
-    
-    // Default fallback (sort by date for same status)
-    return dateA - dateB;
-  });
-}
-
-// Helper function to extract day number from display day (handles ranges like "16-17")
-function getSortingDay(displayDay) {
-  if (!displayDay) return 0;
-  
-  // If it's a range like "16-17" or "9-10", take the first number
-  const rangeMatch = displayDay.match(/^(\d+)/);
-  if (rangeMatch) {
-    return parseInt(rangeMatch[1], 10);
-  }
-  
-  // If it's just a single number
-  const singleMatch = displayDay.match(/\d+/);
-  return singleMatch ? parseInt(singleMatch[0], 10) : 0;
-}
-
-// Improved getMonthIndex to handle full month names
-function getMonthIndex(monthAbbr) {
-  if (!monthAbbr) return 0;
-  
-  const monthMap = {
-    'jan': 0, 'january': 0,
-    'feb': 1, 'february': 1,
-    'mar': 2, 'march': 2,
-    'apr': 3, 'april': 3,
-    'may': 4,
-    'jun': 5, 'june': 5,
-    'jul': 6, 'july': 6,
-    'aug': 7, 'august': 7,
-    'sep': 8, 'september': 8,
-    'oct': 9, 'october': 9,
-    'nov': 10, 'november': 10,
-    'dec': 11, 'december': 11
-  };
-  
-  const shortMonth = monthAbbr.toLowerCase().substring(0, 3);
-  return monthMap[shortMonth] !== undefined ? monthMap[shortMonth] : 0;
-}
-
-// Simpler, more robust parseDateForSorting function
-function parseDateForSorting(event) {
-  // Try to get year from date string first
-  let year = new Date().getFullYear();
-  const yearMatch = event.date?.match(/\b(\d{4})\b/);
-  if (yearMatch) {
-    year = parseInt(yearMatch[1]);
-  }
-  
-  // Get month index from displayDate.month or date string
-  let monthIndex = 0;
-  if (event.displayDate?.month) {
-    monthIndex = getMonthIndex(event.displayDate.month);
-  } else if (event.date) {
-    // Extract month from date string
-    const monthMatch = event.date.match(/^(\w+)/i);
-    if (monthMatch) {
-      monthIndex = getMonthIndex(monthMatch[1]);
-    }
-  }
-  
-  // Get day from displayDate.day or date string
-  let dayNum = 1;
-  if (event.displayDate?.day) {
-    dayNum = getSortingDay(event.displayDate.day);
-  } else if (event.date) {
-    // Extract first day number from date string
-    const dayMatch = event.date.match(/\b(\d+)(?:-\d+)?\b/);
-    if (dayMatch) {
-      dayNum = parseInt(dayMatch[1]);
-    }
-  }
-  
-  // For upcoming events that appear to be in the past, check if they should be next year
-  const now = new Date();
-  const parsedDate = new Date(year, monthIndex, dayNum);
-  
-  if (event.status === 'upcoming' && parsedDate < now) {
-    // Check if this is likely the same event next year
-    // (e.g., it's currently December and we have a January event)
-    if (parsedDate.getMonth() < now.getMonth() || 
-        (parsedDate.getMonth() === now.getMonth() && parsedDate.getDate() < now.getDate())) {
-      return new Date(year + 1, monthIndex, dayNum);
-    }
-  }
-  
-  return parsedDate;
-}
+// --------------------------------------------------------------
+// MAIN RENDER
+// --------------------------------------------------------------
 
 function render() {
-  const eventsContainer = document.getElementById('events');
-  eventsContainer.innerHTML = '';
-  
-  const noteDiv = document.createElement('div');
-  eventsContainer.appendChild(noteDiv);
-  
-  AdminCommon.data.forEach((event, eventIndex) => {
-    const eventDiv = document.createElement('div');
-    eventDiv.className = 'row';
-    eventDiv.setAttribute('data-index', eventIndex);
-    
-    // Full edit view
-    eventDiv.draggable = false;
-    
-    // Parse display date
+  const container = document.getElementById('events');
+  container.innerHTML = '';
+
+  AdminCommon.data.forEach((event, index) => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.index = index;
+
     const displayMonth = event.displayDate?.month || '';
     const displayDay = event.displayDate?.day || '';
-    
-    // Parse details array into text
-    const detailsText = event.details ? event.details.join('\n') : '';
-    
-    // Full edit view
-    const html = `
+    const detailsHtml = event.detailsHtml || '';
+
+    // build toolbar buttons - with skinnier size dropdown
+    const toolbarButtons = `
+      <button type="button" title="Bold" onclick="execFormatCommand(getEditable(${index}), 'bold')"><b>B</b></button>
+      <button type="button" title="Italic" onclick="execFormatCommand(getEditable(${index}), 'italic')"><i>I</i></button>
+      <button type="button" title="Underline" onclick="execFormatCommand(getEditable(${index}), 'underline')"><u>U</u></button>
+      <span class="separator"></span>
+      <button type="button" title="Bullet list" onclick="execFormatCommand(getEditable(${index}), 'insertUnorderedList')">• List</button>
+      <button type="button" title="Numbered list" onclick="execFormatCommand(getEditable(${index}), 'insertOrderedList')">1. List</button>
+      <span class="separator"></span>
+      <button type="button" title="Decrease indent" onclick="execFormatCommand(getEditable(${index}), 'outdent')">⇤</button>
+      <button type="button" title="Increase indent" onclick="execFormatCommand(getEditable(${index}), 'indent')">⇥</button>
+      <span class="separator"></span>
+      <select class="size-dropdown" onchange="execFormatCommand(getEditable(${index}), 'fontSize', this.value); this.value='';">
+        <option value="">Size</option>
+        <option value="1">Tiny</option>
+        <option value="3">Normal</option>
+        <option value="5">Large</option>
+        <option value="7">Huge</option>
+      </select>
+      <span class="separator"></span>
+      <div class="color-picker-wrapper">
+        <button type="button" title="Text color" onclick="document.getElementById('colorPicker_${index}').click()">🎨</button>
+        <input type="color" id="colorPicker_${index}" 
+               onchange="execFormatCommand(getEditable(${index}), 'foreColor', this.value)">
+      </div>
+    `;
+
+    row.innerHTML = `
       <div class="section-header">
-        <h3>${event.title} - ${event.date}</h3>
+        <h3>${event.title || 'Untitled'} - ${event.date || ''}</h3>
         <div>
-          ${AdminCommon.templates.deleteButton(`deleteEvent(${eventIndex})`, 'Delete', true)}
+          <button class="delete" onclick="deleteEvent(${index})">Delete</button>
         </div>
       </div>
       
       <div class="form-row">
-        <div style="flex: 2;">
-          ${AdminCommon.templates.textInput('Event Title', event.title, `updateEvent(${eventIndex}, 'title', this.value)`, 'e.g., Christmas Schamble')}
+        <div style="flex:2;">
+          <div class="input-group"><label>Event Title</label>
+            <input value="${AdminCommon.escapeHtml(event.title || '')}" oninput="updateEvent(${index}, 'title', this.value)" placeholder="e.g., Christmas Schamble">
+          </div>
         </div>
-        <div style="flex: 1;">
-          ${AdminCommon.templates.textInput('Full Date', event.date, `updateEvent(${eventIndex}, 'date', this.value)`, 'e.g., December 14, 2025')}
+        <div style="flex:1;">
+          <div class="input-group"><label>Full Date</label>
+            <input value="${AdminCommon.escapeHtml(event.date || '')}" oninput="updateEvent(${index}, 'date', this.value)" placeholder="e.g., December 14, 2025">
+          </div>
         </div>
       </div>
-      
+
       <div class="form-row">
-        <div style="flex: 1;">
-          ${AdminCommon.templates.textInput('Display Month (Short)', displayMonth, `updateDisplayDate(${eventIndex}, 'month', this.value)`, 'e.g., Dec')}
+        <div style="flex:1;">
+          <div class="input-group"><label>Display Month</label>
+            <input value="${AdminCommon.escapeHtml(displayMonth)}" oninput="updateDisplayDate(${index}, 'month', this.value)" placeholder="Dec">
+          </div>
         </div>
-        <div style="flex: 1;">
-          ${AdminCommon.templates.textInput('Display Day', displayDay, `updateDisplayDate(${eventIndex}, 'day', this.value)`, 'e.g., 14 or 16-17')}
+        <div style="flex:1;">
+          <div class="input-group"><label>Display Day</label>
+            <input value="${AdminCommon.escapeHtml(displayDay)}" oninput="updateDisplayDate(${index}, 'day', this.value)" placeholder="14 or 16-17">
+          </div>
         </div>
-        <div style="flex: 2;">
-          ${AdminCommon.templates.textInput('Time Range', event.timeRange, `updateEvent(${eventIndex}, 'timeRange', this.value)`, 'e.g., 7:00 AM - 8:00 AM (Shotgun Start)')}
+        <div style="flex:2;">
+          <div class="input-group"><label>Time Range</label>
+            <input value="${AdminCommon.escapeHtml(event.timeRange || '')}" oninput="updateEvent(${index}, 'timeRange', this.value)" placeholder="7:00 AM - 8:00 AM">
+          </div>
         </div>
       </div>
-      
+
       <div class="form-row">
-        <div style="flex: 1;">
-          ${AdminCommon.templates.textInput('Image URL', event.imageUrl, `updateEvent(${eventIndex}, 'imageUrl', this.value)`, 'URL for event thumbnail')}
+        <div style="flex:1;">
+          <div class="input-group"><label>Image URL</label>
+            <input value="${AdminCommon.escapeHtml(event.imageUrl || '')}" oninput="updateEvent(${index}, 'imageUrl', this.value)" placeholder="URL for thumbnail">
+          </div>
         </div>
-        <div style="flex: 1;">
-          ${AdminCommon.templates.textInput('Entry Fee', event.entryFee, `updateEvent(${eventIndex}, 'entryFee', this.value)`, 'e.g., $84 + $25 side pots')}
+        <div style="flex:1;">
+          <div class="input-group"><label>Entry Fee</label>
+            <input value="${AdminCommon.escapeHtml(event.entryFee || '')}" oninput="updateEvent(${index}, 'entryFee', this.value)" placeholder="$84 + $25 side pots">
+          </div>
         </div>
-        <div style="flex: 1;">
-          ${AdminCommon.templates.textInput('Format', event.format, `updateEvent(${eventIndex}, 'format', this.value)`, 'e.g., 4-Man Shamble')}
+        <div style="flex:1;">
+          <div class="input-group"><label>Format</label>
+            <input value="${AdminCommon.escapeHtml(event.format || '')}" oninput="updateEvent(${index}, 'format', this.value)" placeholder="4-Man Shamble">
+          </div>
         </div>
       </div>
-      
+
       <div class="input-group">
         <div class="status-selector">
-          <button onclick="setEventStatus(${eventIndex}, 'upcoming')" class="status-upcoming-btn ${event.status === 'upcoming' ? 'active' : ''}">
-            🟢 Upcoming Event
-          </button>
-          <button onclick="setEventStatus(${eventIndex}, 'past')" class="status-past-btn ${event.status === 'past' ? 'active' : ''}">
-            ⚫ Past Event
-          </button>
+          <button onclick="setEventStatus(${index}, 'upcoming')" class="status-upcoming-btn ${event.status === 'upcoming' ? 'active' : ''}">🟢 Upcoming</button>
+          <button onclick="setEventStatus(${index}, 'past')" class="status-past-btn ${event.status === 'past' ? 'active' : ''}">⚫ Past</button>
         </div>
       </div>
-      
+
       <div class="input-group">
-        <label>Event Details (One per line, use • for bullet points)</label>
-        <div style="margin-bottom: 10px;">
-          <button onclick="addBulletLine(${eventIndex})" class="bullet-point-btn">• Add Bullet Point</button>
-          <button onclick="addSubBulletLine(${eventIndex})" class="bullet-point-btn">  • Add Sub-bullet</button>
-          <button onclick="addEmptyLine(${eventIndex})" class="bullet-point-btn">📝 Add Empty Line</button>
+        <label>Event Details (rich text)</label>
+        <div class="rich-toolbar">
+          ${toolbarButtons}
         </div>
-        <textarea 
-          oninput="updateDetails(${eventIndex}, this.value)"
-          placeholder="Enter event details here. Each line will be displayed separately. Use • for bullet points."
-          style="min-height: 300px; font-family: monospace; line-height: 1.4; white-space: pre;"
-        >${AdminCommon.escapeHtml(detailsText)}</textarea>
+        <div class="details-editable" contenteditable="true" data-event-index="${index}" 
+             oninput="onDetailsInput(${index}, this)"></div>
       </div>
-      
+
       <div class="form-row">
-        <div style="flex: 2;">
-          ${AdminCommon.templates.textInput('Google Calendar Link', event.googleCalendarLink, `updateEvent(${eventIndex}, 'googleCalendarLink', this.value)`, 'Full Google Calendar URL')}
+        <div style="flex:2;">
+          <div class="input-group"><label>Google Calendar Link</label>
+            <input value="${AdminCommon.escapeHtml(event.googleCalendarLink || '')}" oninput="updateEvent(${index}, 'googleCalendarLink', this.value)" placeholder="Full URL">
+          </div>
         </div>
-      </div>
-      
-      <div class="form-row">
-        <div style="flex: 2;">
-          ${AdminCommon.templates.textInput('Signup Deadline Text', event.signupDeadline, `updateEvent(${eventIndex}, 'signupDeadline', this.value)`, 'e.g., midnight Wednesday December 3rd, 2025')}
+        <div style="flex:1;">
+          <div class="input-group"><label>Signup Deadline</label>
+            <input value="${AdminCommon.escapeHtml(event.signupDeadline || '')}" oninput="updateEvent(${index}, 'signupDeadline', this.value)" placeholder="midnight Wednesday">
+          </div>
         </div>
-        <div style="flex: 1;">
-          <div class="input-group">
-            <label>Deadline Status</label>
-            <select onchange="updateEvent(${eventIndex}, 'isPastDeadline', this.value === 'true')">
-              <option value="false" ${!event.isPastDeadline ? 'selected' : ''}>Open / Upcoming</option>
+        <div style="flex:1;">
+          <div class="input-group"><label>Deadline Status</label>
+            <select onchange="updateEvent(${index}, 'isPastDeadline', this.value === 'true')">
+              <option value="false" ${!event.isPastDeadline ? 'selected' : ''}>Open</option>
               <option value="true" ${event.isPastDeadline ? 'selected' : ''}>Past Deadline</option>
             </select>
           </div>
         </div>
       </div>
-      
+
       <div class="event-preview">
         <h4>Preview:</h4>
-        <div><strong>${event.title}</strong> - ${event.date}</div>
+        <div><strong>${AdminCommon.escapeHtml(event.title)}</strong> - ${AdminCommon.escapeHtml(event.date)}</div>
         <div>Status: ${event.status === 'upcoming' ? '🟢 Upcoming' : '⚫ Past'}</div>
-        <div>Display: ${displayMonth} ${displayDay}</div>
-        <div>Time: ${event.timeRange}</div>
+        <div>Display: ${AdminCommon.escapeHtml(displayMonth)} ${AdminCommon.escapeHtml(displayDay)}</div>
+        <div>Time: ${AdminCommon.escapeHtml(event.timeRange)}</div>
+        <div class="preview-details" style="margin-top:8px; border-top:1px solid #dee2e6; padding-top:8px;"></div>
       </div>
     `;
-    
-    eventDiv.innerHTML = html;
-    eventsContainer.appendChild(eventDiv);
+
+    container.appendChild(row);
+
+    // after DOM insert, populate editable and preview
+    const editable = row.querySelector('.details-editable');
+    if (editable) {
+      editableMap.set(index, editable);
+      // set content from event
+      syncEditableFromEvent(index);
+    }
   });
-  
-  // Re-setup input listeners after rendering new inputs
+
+  // re-setup input listeners
   AdminCommon.setupInputListeners();
 }
 
-function updateEvent(eventIndex, field, value) {
-  AdminCommon.updateItem(eventIndex, field, value);
-  // Resort if date or status changed
-  if (field === 'date' || field === 'status' || field === 'displayDate') {
+// helper to get editable by index
+function getEditable(index) {
+  return editableMap.get(index) || document.querySelector(`.details-editable[data-event-index="${index}"]`);
+}
+
+// called on input in editable div
+function onDetailsInput(index, element) {
+  const ev = AdminCommon.data[index];
+  if (!ev) return;
+  ev.detailsHtml = element.innerHTML;
+  AdminCommon.markUnsaved();
+  updatePreviewForEvent(index);
+}
+
+// update preview for specific event (extended)
+function updatePreviewForEvent(index) {
+  const row = document.querySelector(`.row[data-index="${index}"]`);
+  if (!row) return;
+  const previewDetails = row.querySelector('.preview-details');
+  if (!previewDetails) return;
+  const ev = AdminCommon.data[index];
+  if (!ev) return;
+  let html = ev.detailsHtml || (ev.details ? ev.details.join('<br>') : '');
+  previewDetails.innerHTML = html || '<em>no details</em>';
+}
+
+// --------------------------------------------------------------
+// EXISTING FUNCTIONS (adapted)
+// --------------------------------------------------------------
+
+function updateEvent(index, field, value) {
+  AdminCommon.updateItem(index, field, value);
+  if (field === 'date' || field === 'status') {
     sortEventsByDate();
     render();
   }
 }
 
-function updateDisplayDate(eventIndex, field, value) {
-  if (!AdminCommon.data[eventIndex].displayDate) {
-    AdminCommon.data[eventIndex].displayDate = {};
-  }
-  AdminCommon.data[eventIndex].displayDate[field] = value;
+function updateDisplayDate(index, field, value) {
+  if (!AdminCommon.data[index].displayDate) AdminCommon.data[index].displayDate = {};
+  AdminCommon.data[index].displayDate[field] = value;
   AdminCommon.markUnsaved();
   sortEventsByDate();
   render();
 }
 
-function updateDetails(eventIndex, value) {
-  // Split by newlines to create array
-  const detailsArray = value.split('\n').map(line => line.trimEnd());
-  AdminCommon.data[eventIndex].details = detailsArray;
-  AdminCommon.markUnsaved();
-}
-
-function setEventStatus(eventIndex, status) {
-  AdminCommon.data[eventIndex].status = status;
+function setEventStatus(index, status) {
+  AdminCommon.data[index].status = status;
   AdminCommon.markUnsaved();
   sortEventsByDate();
   render();
-}
-
-function addBulletLine(eventIndex) {
-  const textarea = document.querySelector(`.row[data-index="${eventIndex}"] textarea`);
-  if (!textarea) return;
-  
-  const cursorPos = textarea.selectionStart;
-  const currentValue = textarea.value;
-  const newValue = currentValue.substring(0, cursorPos) + '• ' + currentValue.substring(cursorPos);
-  
-  textarea.value = newValue;
-  updateDetails(eventIndex, newValue);
-  
-  // Set cursor position after bullet
-  setTimeout(() => {
-    textarea.focus();
-    textarea.setSelectionRange(cursorPos + 2, cursorPos + 2);
-  }, 10);
-}
-
-function addSubBulletLine(eventIndex) {
-  const textarea = document.querySelector(`.row[data-index="${eventIndex}"] textarea`);
-  if (!textarea) return;
-  
-  const cursorPos = textarea.selectionStart;
-  const currentValue = textarea.value;
-  const newValue = currentValue.substring(0, cursorPos) + '  • ' + currentValue.substring(cursorPos);
-  
-  textarea.value = newValue;
-  updateDetails(eventIndex, newValue);
-  
-  // Set cursor position after bullet
-  setTimeout(() => {
-    textarea.focus();
-    textarea.setSelectionRange(cursorPos + 4, cursorPos + 4);
-  }, 10);
-}
-
-function addEmptyLine(eventIndex) {
-  const textarea = document.querySelector(`.row[data-index="${eventIndex}"] textarea`);
-  if (!textarea) return;
-  
-  const cursorPos = textarea.selectionStart;
-  const currentValue = textarea.value;
-  const newValue = currentValue.substring(0, cursorPos) + '\n' + currentValue.substring(cursorPos);
-  
-  textarea.value = newValue;
-  updateDetails(eventIndex, newValue);
-  
-  // Set cursor position on new line
-  setTimeout(() => {
-    textarea.focus();
-    textarea.setSelectionRange(cursorPos + 1, cursorPos + 1);
-  }, 10);
 }
 
 function addEvent() {
-  const currentDate = new Date();
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthName = monthNames[currentDate.getMonth()];
-  
+  const now = new Date();
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const m = monthNames[now.getMonth()];
   AdminCommon.addItem({
-    id: 'new-event-' + Date.now(),
+    id: 'new-' + Date.now(),
     title: 'New Tournament',
-    date: `${monthName} ${currentDate.getDate()}, ${currentDate.getFullYear()}`,
-    displayDate: {
-      month: monthName,
-      day: currentDate.getDate().toString()
-    },
+    date: `${m} ${now.getDate()}, ${now.getFullYear()}`,
+    displayDate: { month: m, day: now.getDate().toString() },
     timeRange: '6:00 AM - 3:00 PM',
     imageUrl: '',
     status: 'upcoming',
     details: ['Event details go here...'],
+    detailsHtml: '<p>Event details go here...</p>',
     googleCalendarLink: '',
     signupDeadline: 'midnight Tuesday before the event',
     isPastDeadline: false,
@@ -600,12 +599,70 @@ function addEvent() {
   render();
 }
 
-function deleteEvent(eventIndex) {
-  if (AdminCommon.deleteItem(eventIndex, 'Are you sure you want to delete this event?')) {
+function deleteEvent(index) {
+  if (AdminCommon.deleteItem(index, 'Delete this event?')) {
+    editableMap.delete(index);
     render();
   }
 }
 
+// sorting (unchanged)
+function sortEventsByDate() {
+  AdminCommon.data.sort((a,b) => {
+    const da = parseDateForSorting(a);
+    const db = parseDateForSorting(b);
+    if (a.status === 'upcoming' && b.status === 'upcoming') return da - db;
+    if (a.status === 'past' && b.status === 'past') return db - da;
+    if (a.status === 'upcoming' && b.status === 'past') return -1;
+    if (a.status === 'past' && b.status === 'upcoming') return 1;
+    return da - db;
+  });
+}
+function parseDateForSorting(e) {
+  let year = new Date().getFullYear();
+  const ym = e.date?.match(/\b(\d{4})\b/);
+  if (ym) year = parseInt(ym[1]);
+  let monthIdx = 0;
+  const mm = e.displayDate?.month || e.date || '';
+  const mClean = mm.match(/^(\w+)/i);
+  if (mClean) {
+    const map = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+    monthIdx = map[mClean[1].toLowerCase().substring(0,3)] || 0;
+  }
+  let day = 1;
+  const dm = e.displayDate?.day || e.date || '';
+  const dMatch = dm.match(/\b(\d+)(?:-\d+)?\b/);
+  if (dMatch) day = parseInt(dMatch[1]);
+  const d = new Date(year, monthIdx, day);
+  if (e.status === 'upcoming' && d < new Date()) {
+    if (d.getMonth() < new Date().getMonth() || (d.getMonth()===new Date().getMonth() && d.getDate()<new Date().getDate()))
+      return new Date(year+1, monthIdx, day);
+  }
+  return d;
+}
+
+// load & init
+function init() {
+  if (AdminCommon.init('schedule', [])) loadEvents();
+}
+function loadEvents() {
+  AdminCommon.load().then(data => {
+    AdminCommon.data = Array.isArray(data) ? data : [];
+    AdminCommon.originalData = JSON.parse(JSON.stringify(AdminCommon.data));
+    // ensure detailsHtml for each event
+    AdminCommon.data.forEach(ev => {
+      if (!ev.detailsHtml && ev.details && Array.isArray(ev.details)) {
+        ev.detailsHtml = ev.details.map(line => `<p>${line}</p>`).join('');
+      }
+      if (!ev.detailsHtml) ev.detailsHtml = '<p></p>';
+    });
+    sortEventsByDate();
+    render();
+    AdminCommon.setupInputListeners();
+  }).catch(err => alert('Error loading: ' + err.message));
+}
+
+window.render = render;
 window.onload = init;
 </script>
 </body>

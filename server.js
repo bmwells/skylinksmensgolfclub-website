@@ -5,6 +5,7 @@ const path = require('path');
 const Stripe = require('stripe');
 const cors = require('cors');
 const fs = require('fs');
+const sanitizeHtml = require('sanitize-html');
 
 const { connectDB } = require('./db');
 
@@ -114,6 +115,45 @@ app.get('/api/webhook', (req, res) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// NEW: HTML sanitization middleware for rich text content
+app.use((req, res, next) => {
+    // Only process POST/PUT requests that might contain schedule data
+    if ((req.method === 'POST' || req.method === 'PUT') && 
+        (req.path.includes('/api/schedule') || req.path.includes('/api/tournaments'))) {
+        
+        // Configure sanitization options
+        const sanitizeOptions = {
+            allowedTags: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 
+                          'ul', 'ol', 'li', 'span', 'div', 'blockquote'],
+            allowedAttributes: {
+                'span': ['style'],
+                'div': ['style'],
+                'p': ['style']
+            },
+            allowedStyles: {
+                '*': {
+                    'color': [/^#([0-9a-f]{3}){1,2}$/i, /^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/],
+                    'font-size': [/^\d+(?:px|pt|em|%)?$/]
+                }
+            }
+        };
+        
+        if (req.body && Array.isArray(req.body)) {
+            // If it's an array of events
+            req.body = req.body.map(event => {
+                if (event.detailsHtml) {
+                    event.detailsHtml = sanitizeHtml(event.detailsHtml, sanitizeOptions);
+                }
+                return event;
+            });
+        } else if (req.body && req.body.detailsHtml) {
+            // If it's a single event object
+            req.body.detailsHtml = sanitizeHtml(req.body.detailsHtml, sanitizeOptions);
+        }
+    }
+    next();
+});
+
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public'), {
     index: false,
@@ -182,8 +222,14 @@ app.use('/api/tournament-manager', tournamentManagerRoutes);
 // Tournament data routes
 app.use('/api/tournaments', tournamentRoutes);
 
-// Generic data routes
-app.use('/api', genericRoutes);
+// Generic data routes - UPDATED to handle schedule with rich text
+app.use('/api', (req, res, next) => {
+    // Log when schedule data is being processed
+    if (req.path === '/schedule' && req.method === 'POST') {
+        console.log('📝 Saving schedule with rich text content');
+    }
+    next();
+}, genericRoutes);
 
 // Contact routes
 app.use('/api', contactRoutes);
@@ -297,7 +343,7 @@ app.get('/api/join-the-club', async (req, res) => {
 });
 
 // --------------------
-// HEALTH CHECK ENDPOINT
+// HEALTH CHECK ENDPOINT - UPDATED
 // --------------------
 app.get('/api/health', async (req, res) => {
     try {
@@ -306,7 +352,13 @@ app.get('/api/health', async (req, res) => {
             timestamp: new Date().toISOString(),
             jwtEnabled: true,
             stripeEnabled: !!process.env.STRIPE_SECRET_KEY,
-            webhookEnabled: !!process.env.STRIPE_WEBHOOK_SECRET
+            webhookEnabled: !!process.env.STRIPE_WEBHOOK_SECRET,
+            richTextSupport: {
+                enabled: true,
+                sanitization: true,
+                allowedTags: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 
+                             'ul', 'ol', 'li', 'span', 'div', 'blockquote']
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -555,7 +607,7 @@ app.use((req, res) => {
 });
 
 // --------------------
-// START SERVER FOR LOCAL DEVELOPMENT
+// START SERVER FOR LOCAL DEVELOPMENT - UPDATED
 // --------------------
 if (isLocal) {
     const PORT = process.env.PORT || 3000;
@@ -578,7 +630,9 @@ if (isLocal) {
         console.log(`  Join Club API: http://localhost:${PORT}/api/join-the-club`);
         console.log(`Debug: http://localhost:${PORT}/api/debug/files`);
         console.log(`Env Check: http://localhost:${PORT}/api/check-env`);
-        console.log(`Webhook Test: http://localhost:${PORT}/api/webhook-test`);
+        console.log(`\n📝 Rich Text Support: Enabled`);
+        console.log(`  HTML Sanitization: Active`);
+        console.log(`  Allowed HTML Tags: p, br, b, i, u, strong, em, ul, ol, li, span, div, blockquote`);
     });
 }
 
