@@ -1,6 +1,6 @@
 // server/stripeWebhook.js
 const { connectDB } = require('../db');
-const { ObjectId } = require('mongodb');
+const { ObjectId, Int32 } = require('mongodb');
 const nodemailer = require('nodemailer');
 
 // Create reusable transporter object using Gmail
@@ -225,7 +225,7 @@ async function handleCompletedPayment(session) {
                             name: mainPlayer.name || mainPlayer.fullName || '',
                             email: mainPlayer.email || '',
                             phoneNum: mainPlayer.phone || mainPlayer.phoneNum || '',
-                            ghin: mainPlayer.ghin ? parseInt(mainPlayer.ghin) : null,
+                            ghin: mainPlayer.ghin ? parseInt(mainPlayer.ghin, 10) : null,
                             entryNum: null,
                             index: '',
                             sidePot: mainPlayer.sidePots === 'true' || mainPlayer.sidePot === true,
@@ -262,7 +262,7 @@ async function handleCompletedPayment(session) {
                                     name: player.name || player.fullName || '',
                                     email: player.email || '',
                                     phoneNum: player.phone || player.phoneNum || '',
-                                    ghin: player.ghin ? parseInt(player.ghin) : null,
+                                    ghin: player.ghin ? parseInt(player.ghin, 10) : null,
                                     entryNum: null,
                                     index: '',
                                     sidePot: playerSidePots,
@@ -405,10 +405,15 @@ async function handleCompletedPayment(session) {
                             updates.phoneNum = phone;
                             needsUpdate = true;
                         }
-                        if (ghin && ghin !== existingMember.ghin) {
-                            updates.ghin = ghin;
+                        
+                        // GHIN comparison must account for Int32 storage
+                        const newGhin = ghin ? parseInt(ghin, 10) : null;
+                        const existingGhin = existingMember.ghin != null ? Number(existingMember.ghin) : null;
+                        if (newGhin !== null && !Number.isNaN(newGhin) && newGhin !== existingGhin) {
+                            updates.ghin = new Int32(newGhin);
                             needsUpdate = true;
                         }
+                        
                         if (firstName && firstName !== existingMember.firstName) {
                             updates.firstName = firstName;
                             needsUpdate = true;
@@ -445,13 +450,16 @@ async function handleCompletedPayment(session) {
                     const nextEntryNum = await getNextEntryNum(membersCollection);
                     console.log(`Next entry number: ${nextEntryNum}`);
                     
+                    // Parse GHIN to int (or null)
+                    const ghinNum = ghin ? parseInt(ghin, 10) : null;
+                    
                     // Create new member object
                     const newMember = {
                         email: email.toLowerCase().trim(),
                         firstName: firstName,
                         lastName: lastName,
-                        ghin: ghin || null,
-                        entryNum: nextEntryNum,
+                        ghin: (ghinNum !== null && !Number.isNaN(ghinNum)) ? new Int32(ghinNum) : null,
+                        entryNum: new Int32(Number(nextEntryNum)),
                         phoneNum: phone || '',
                         index: '', // Empty index for new members
                         createdAt: new Date(session.created * 1000),
@@ -493,21 +501,37 @@ async function handleCompletedPayment(session) {
 }
 
 // Helper function to get the next entry number
+// Type-agnostic: coerces any stored type (string, double, int) to int before sorting,
+// so a stray string can never poison the sequence.
 async function getNextEntryNum(membersCollection) {
     try {
-        // Find the member with the highest entryNum
-        const result = await membersCollection
-            .find({ entryNum: { $exists: true, $ne: null } })
-            .sort({ entryNum: -1 })
-            .limit(1)
-            .toArray();
-        
-        if (result.length > 0 && result[0].entryNum) {
-            return result[0].entryNum + 1;
-        } else {
-            // Start from 100 if no existing members
-            return 100;
+        const result = await membersCollection.aggregate([
+            { $match: { entryNum: { $exists: true, $ne: null } } },
+            {
+                $addFields: {
+                    entryNumNum: {
+                        $convert: {
+                            input: '$entryNum',
+                            to: 'int',
+                            onError: null,
+                            onNull: null
+                        }
+                    }
+                }
+            },
+            { $match: { entryNumNum: { $ne: null } } },
+            { $sort: { entryNumNum: -1 } },
+            { $limit: 1 }
+        ]).toArray();
+
+        if (result.length > 0 && Number.isInteger(result[0].entryNumNum)) {
+            const max = result[0].entryNumNum;
+            console.log(`📊 Max entryNum: ${max}, next: ${max + 1}`);
+            return max + 1;
         }
+
+        console.log('⚠️ No numeric entryNum found, starting at 100');
+        return 100;
     } catch (error) {
         console.error('Error getting next entry number:', error);
         return 100; // Default starting point
@@ -528,10 +552,13 @@ async function findExistingMember(membersCollection, email, ghin, fullName) {
             if (memberByEmail) return memberByEmail;
         }
         
-        // Try by GHIN
+        // Try by GHIN (stored as Int32, so query with Int32)
         if (ghin) {
-            const memberByGHIN = await membersCollection.findOne({ ghin: ghin });
-            if (memberByGHIN) return memberByGHIN;
+            const ghinNum = parseInt(ghin, 10);
+            if (!Number.isNaN(ghinNum)) {
+                const memberByGHIN = await membersCollection.findOne({ ghin: new Int32(ghinNum) });
+                if (memberByGHIN) return memberByGHIN;
+            }
         }
         
         // Try by name as fallback
@@ -573,12 +600,15 @@ async function findMember(membersCollection, player) {
             }
         }
         
-        // 2. Try by GHIN
+        // 2. Try by GHIN (stored as Int32)
         if (player.ghin) {
-            member = await membersCollection.findOne({ ghin: player.ghin });
-            if (member) {
-                console.log(`Found member by GHIN: ${player.ghin}`);
-                return member;
+            const ghinNum = parseInt(player.ghin, 10);
+            if (!Number.isNaN(ghinNum)) {
+                member = await membersCollection.findOne({ ghin: new Int32(ghinNum) });
+                if (member) {
+                    console.log(`Found member by GHIN: ${ghinNum}`);
+                    return member;
+                }
             }
         }
         

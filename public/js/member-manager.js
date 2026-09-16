@@ -1,4 +1,4 @@
-// member-manager.js - Handles member import/export functionality
+// member-manager.js
 
 // Make render globally accessible
 window.render = render;
@@ -8,6 +8,16 @@ let searchQuery = '';
 let filteredMembers = [];
 let isSearching = false;
 let currentSort = 'name'; // 'name', 'entryAsc', 'entryDesc'
+
+// Coerce a value to an integer, or return '' if blank/invalid.
+// Used to keep ghin and entryNum stored as numbers (never strings).
+function toIntOrEmpty(value) {
+  if (value === '' || value === null || value === undefined) return '';
+  const digits = String(value).replace(/\D/g, '');
+  if (digits === '') return '';
+  const n = parseInt(digits, 10);
+  return Number.isNaN(n) ? '' : n;
+}
 
 function init() {
   if (AdminCommon.init('members', [])) {
@@ -224,7 +234,7 @@ function render() {
         
         <div class="compact-input">
           <label>Entry Number</label>
-          <input value="${AdminCommon.escapeHtml(member.entryNum || '')}" oninput="updateMember(${memberIndex}, 'entryNum', this.value)" placeholder="123">
+          <input value="${AdminCommon.escapeHtml(member.entryNum || '')}" oninput="updateEntryNum(${memberIndex}, this.value)" placeholder="123" class="entrynum-input">
         </div>
       </div>
       
@@ -336,6 +346,26 @@ function setupFormInputs() {
       if (!/\d/.test(e.key)) e.preventDefault();
     });
   });
+  
+  // Entry Number inputs - numbers only, coerced to int on update
+  document.querySelectorAll('.entrynum-input').forEach(input => {
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    
+    newInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/\D/g, '');
+      // Trigger update
+      const match = this.oninput.toString().match(/updateEntryNum\((\d+)/);
+      if (match) {
+        updateEntryNum(parseInt(match[1]), this.value);
+      }
+    });
+    
+    newInput.addEventListener('keydown', function(e) {
+      if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) return;
+      if (!/\d/.test(e.key)) e.preventDefault();
+    });
+  });
 }
 
 function updateMember(memberIndex, field, value) {
@@ -348,8 +378,13 @@ function updatePhone(memberIndex, value) {
 }
 
 function updateGHIN(memberIndex, value) {
-  // Store GHIN as numbers only
-  AdminCommon.updateItem(memberIndex, 'ghin', value);
+  // Store GHIN as an integer (empty string if blank)
+  AdminCommon.updateItem(memberIndex, 'ghin', toIntOrEmpty(value));
+}
+
+function updateEntryNum(memberIndex, value) {
+  // Store entryNum as an integer (empty string if blank)
+  AdminCommon.updateItem(memberIndex, 'entryNum', toIntOrEmpty(value));
 }
 
 function addMember() {
